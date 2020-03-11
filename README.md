@@ -5,3 +5,7 @@ This program analyzes Schlieren data for axis-symmetrical objects using Abel inv
 The `abel` package includes inversion routines for solving the Abel problem. 
 
 The `tools` package contains miscellaneous functions to aid in analysis. 
+
+--------
+
+This code builds on the work by Samuel Grauer.
