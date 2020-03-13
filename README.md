@@ -1,4 +1,4 @@
-# Axis-symmetric unified background-oriented Schlieren (AUBOS) 
+# Axis-symmetric, unified background-oriented Schlieren (AUBOS) 
 
 The program is designed to analyze background-oriented Schlieren data for axis-symmetrical objects using the Abel transform and related operations. The focus is placed on interpreting data within the unified framework (Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axis-symmetric unified background-oriented Schlieren (AUBOS). 
 
