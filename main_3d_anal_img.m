@@ -5,15 +5,16 @@ clc;
 
 addpath('cmap');
 load('data\jet_3d_images_sines5.mat');
-cm = load_cmap('viridis');
+cm = load_cmap('inferno');
+cm = cm(25:end,:);
 
 Iref0 = Iref;
 Idef0 = Idef;
 Imax0 = max(max(max([Iref;Idef])),...
     abs(min(min([Iref;Idef]))));
 
-sigr = sqrt(1.6e-5.*Iref+(1e-6*Imax0)^2);
-sigd = sqrt(1.6e-5.*Idef+(1e-6*Imax0)^2);
+sigr = sqrt(1e-4.*Iref+(1e-6*Imax0)^2);
+sigd = sqrt(1e-4.*Idef+(1e-6*Imax0)^2);
 
 Iref = Iref...
     +sigr.*abs(randn(size(Iref)));
