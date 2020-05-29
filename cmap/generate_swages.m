@@ -16,7 +16,7 @@ for ii=1:length(fn)
         colormap(cm);
         
         F = getframe(gca);
-        imwrite(F.cdata,['imgs/',cmap_name,'.jpg']);
+        imwrite(F.cdata,['docs/',cmap_name,'.jpg']);
     end
 end
 

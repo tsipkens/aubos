@@ -1,26 +1,59 @@
 
-% TIKHONOV_LPR Generates Tikhonov smoothing operators/matrix, L. 
-% Author:   Timothy Sipkens, 2020-02-05
+% TIKHONOV_LPR  Generates 2D Tikhonov smoothing operators/matrix, L. 
+% Author:       Timothy Sipkens, 2020-02-05
 % 
 % Inputs:
 %   order       Order of the Tikhonov operator
-%   n_grid      Length of first dimension of solution
+%   n           Length of first dimension of solution
 %   x_length    Length of x vector
+%               (only used if a Grid is not specified for n_grid)
 %
 % Outputs:
 %   Lpr0        Tikhonov matrix
 %=========================================================================%
 
-function Lpr0 = tikhonov_lpr(order,n_grid,x_length)
+function Lpr0 = tikhonov_lpr(order,n,x_length)
+
+if ~exist('order','var'); order = []; end
+if isempty(order); order = 2; end
+
+if and(mod(x_length,n)~=0,order~=0) % error if dimensions don't make sense
+    error('Error: x_length must be integer multiple of n.');
+end
 
 %-- Generate Tikhonov smoothing matrix -----------------------------------%
 switch order
     case 0 % 0th order Tikhonov
         Lpr0 = -speye(x_length);
+        
     case 1 % 1st order Tikhonov
-        Lpr0 = genL1(n_grid,x_length);
+        I1 = speye(n,n);
+        E1 = full(sparse(1:n-1,2:n,1,n,n));
+        D1 = E1-I1;
+
+        m = x_length/n;
+        I2 = speye(m,m);
+        E2 = sparse(1:m-1,2:m,1,m,m);
+        D2 = E2-I2;
+
+        Lpr0 = kron(I2,D1)+kron(D2,I1);
+        
+        Lpr0 = Lpr0-spdiags(sum(Lpr0,2),0,x_length,x_length);
+        Lpr0(end,:) = [];
+        
     case 2 % 2nd order Tikhonov
-        Lpr0 = genL2(n_grid,x_length);
+        I1 = speye(n,n);
+        E1 = sparse(1:n-1,2:n,1,n,n);
+        D1 = E1+E1'-I1;
+
+        m = x_length/n;
+        I2 = speye(m,m);
+        E2 = sparse(1:m-1,2:m,1,m,m);
+        D2 = E2+E2'-I2;
+
+        Lpr0 = kron(I2,D1)+kron(D2,I1);
+        Lpr0 = Lpr0-spdiags(sum(Lpr0,2),0,x_length,x_length);
+        
     otherwise
         disp('The specified order of Tikhonov is not available.');
         disp(' ');
@@ -28,87 +61,4 @@ switch order
 end
 
 end
-%=========================================================================%
-
-
-
-%== GENL1 ================================================================%
-%   Generates Tikhonov matrix for 1st order Tikhonov regularization.
-% 
-% Inputs:
-%   n           Length of first dimension of solution
-%   x_length    Length of x vector
-%
-% Outputs:
-%   L       Tikhonov matrix
-%-------------------------------------------------------------------------%
-function L = genL1(n,x_length)
-
-% Dx = speye(n);
-% Dx = spdiag(-ones(n,1),1,Dx);
-% Dx = kron(Dx,speye(x_length/n));
-
-L = -eye(x_length);
-for jj=1:x_length
-    if ~(mod(jj,n)==0)
-        L(jj,jj+1) = 0.5;
-    else % if on right edge
-        L(jj,jj) = L(jj,jj)+0.5;
-    end
-
-    if jj<=(x_length-n)
-        L(jj,jj+n) = 0.5;
-    else % if on bottom
-        L(jj,jj) = L(jj,jj)+0.5;
-    end
-end
-L = sparse(L);
-
-end
-%=========================================================================%
-
-
-
-%== GENL2 ================================================================%
-%   Generates Tikhonov matrix for 2nd order Tikhonov regularization.
-% 
-% Inputs:
-%   n           Length of first dimension of solution
-%   x_length    Length of x vector
-%
-% Outputs:
-%   L       Tikhonov matrix
-%-------------------------------------------------------------------------%
-function L = genL2(n,x_length)
-
-L = -eye(x_length);
-for jj=1:x_length
-    if ~(mod(jj,n)==0)
-        L(jj,jj+1) = 0.25;
-    else
-        L(jj,jj) = L(jj,jj)+0.25;
-    end
-
-    if ~(mod(jj-1,n)==0)
-        L(jj,jj-1) = 0.25;
-    else
-        L(jj,jj) = L(jj,jj)+0.25;
-    end
-
-    if jj>n
-        L(jj,jj-n) = 0.25;
-    else
-        L(jj,jj) = L(jj,jj)+0.25;
-    end
-
-    if jj<=(x_length-n)
-        L(jj,jj+n) = 0.25;
-    else
-        L(jj,jj) = L(jj,jj)+0.25;
-    end
-end
-L = sparse(L);
-
-end
-%=========================================================================%
 
