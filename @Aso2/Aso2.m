@@ -1,44 +1,68 @@
 
-% ASO  A class to handle spatial information for an axis-symmetric object (aso).
+% ASO2 A class to handle spatial information for two-dimensional axis-symmetric objects (asos).
 % Author: Timothy Sipkens, 2020-05-20
 %=========================================================================%
 
 
-classdef Aso
+classdef Aso2
     
     properties
+        %-- Axial properties ---------------------------------------------%        
+        dv    = [];     % axial element width
+        v     = [];     % axial element centers
+        ve    = [];     % axial element edges
+        
+        V     = [];     % axial extent / overall width
+        Nv    = [];     % number of edges in the axial direction
+        %-----------------------------------------------------------------%
+        
+        
+        %-- Radial properties (same as Aso) ------------------------------%
         dr    = [];     % annuli width
         r     = [];     % annuli centers
         re    = [];     % annuli edges
         
         R     = [];     % outer radius of object
-        N     = [];     % number of annuli
+        Nr    = [];     % number of annuli
+        %-----------------------------------------------------------------%
+        
+        N     = [];     % total number of elements (Nr*Nv)
     end
     
     
     
     methods
-        function aso = Aso(R,N)
-            aso.N = N; % number of annuli
+        function aso = Aso2(R,Nr,V,Nv)
+            aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
             
-            aso.re = linspace(0, R, N+1)'; % linearily space edges from 0 -> R
+            aso.re = linspace(0, R, Nr+1)'; % linearily space edges from 0 -> R
             aso.r  = (aso.re(2:end) + aso.re(1:(end-1))) ./ 2; % annuli centers
             aso.dr = aso.re(2:end) - aso.re(1:(end-1)); % annuli width
+            
+            aso.Nv = Nv; % number of annuli
+            aso.V = V; % outer radius
+            
+            aso.ve = linspace(0, V, Nv+1)'; % linearily space edges from 0 -> R
+            aso.v  = (aso.ve(2:end) + aso.ve(1:(end-1))) ./ 2; % annuli centers
+            aso.dv = aso.ve(2:end) - aso.ve(1:(end-1)); % annuli width
+            
+            aso.N = aso.Nv * aso.Nr; % total number of elements
         end
         
         
         
-        %== GRAD =========================================================%
-        %   Radial gradient operator, assuming null entry at outer radius.
-        %   Timothy Sipkens, 2020-06-10
-        function D = grad(aso)
-            D = (eye(aso.N) - diag(ones(aso.N - 1,1), 1)) ./ aso.dr;
+        %== RESHAPE ======================================================%
+        %   Timothy Sipkens, 2020-06-11
+        function x = reshape(aso,x)
+            x = reshape(x,[aso.Nr + 1,aso.Nv]);
         end
+        %=================================================================%
         
         
         
-        %== UNIFORM =======================================================%
+        
+        %== UNIFORM ======================================================%
         %   Evaluates kernel/operator for a uniform basis representation of an ASO.
         %   Timothy Sipkens, 2020-06-10
         %
@@ -46,7 +70,7 @@ classdef Aso
         %   aso     Axis-symmetric object
         %   m       Set of slopes for the rays
         %   u0      Intersect with line through center of aso
-        function K = uniform(aso,m,u0)
+        function K = uniform(aso,m,u0,l,v0)
             
             rj = aso.re(1:(end-1)); % r_j
             rju  = aso.re(2:end); % r_{j+1}
@@ -61,7 +85,9 @@ classdef Aso
             
             K(abs(K)<10*eps) = 0; % remove numerical noise
             
-            K = K*aso.grad;
+            
+            K2 = zeros(aso.N, aso.N);
+            
         end
         
         
@@ -101,7 +127,6 @@ classdef Aso
             
             K(abs(K)<10*eps) = 0; % remove numerical noise
             
-            K = K*aso.grad; % incorporate gradient operator
         end
         
         

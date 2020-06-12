@@ -19,41 +19,13 @@ R = 1;
 
 
 %%
-%-{
-u0 = 0.5;
-m_vec =  linspace(0,3,20);
-r_vec = linspace(0,R,450); % vector of radii
-u0_vec = u0 .* ones(20,1);
-
-%-- FIG 2: Plot kernel across and range of slopes -----------%
-figure(2);
-clf;
-tools.plotcm(length(m_vec), [], cmi); % set color order
-
-hold on;
-for ii=1:length(m_vec) % loop through scenerios
-    plot(r_vec, kernel1.fun(m_vec(ii), u0_vec(ii), r_vec));
-end
-plot(r_vec, kernel1.fun_abel(u0_vec(ii), r_vec), 'w:'); % Abel kernel
-ylims = ylim;
-plot([u0,u0],ylims,'k');
-hold off;
-ylim([0,20]);
-%------------------------------------------------------------%
-%}
-
-
-
-%%
 
 aso = Aso(R,30); % generate an axis-symmetric object
 
-%-- Phantoms for dn/dr --%
 % x = normpdf(aso.re,0,0.35); % gaussian
 % x = normpdf(aso.re,0,0.35) - 0.6.*normpdf(aso.re,0,0.25); % gaussian with central dip
-% x = double(aso.re<0.35); % cylinder
+x = double(aso.re<0.35); % cylinder
 % x = 1-aso.re; % cone
-x = double(and(aso.re<0.35,aso.re>0.33)); % ring
 % x = sqrt(max(0.7.^2 - aso.re.^2, 0)); % half circle
 
 figure(3);
@@ -68,7 +40,18 @@ axis off;
 
 
 
+
 %%
+V = 10;
+aso2 = Aso2(R,30,V,3);
+
+x2 = [x;x];
+
+
+
+
+%%
+%{
 % positions along center of aso
 nu = 400;
 u0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), nu);
@@ -121,5 +104,6 @@ figure(3);
 aso.srays(x,m1(1:20:end),u0_vec(1:20:end));
 colormap(cmo);
 axis off;
+%}
 
 
