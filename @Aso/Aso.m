@@ -30,16 +30,19 @@ classdef Aso
         
         
         %== GRAD =========================================================%
-        %   Radial gradient operator, assuming null entry at outer radius.
+        %   Radial gradient operator, assuming no slope at outer radius.
         %   Timothy Sipkens, 2020-06-10
         function D = grad(aso)
-            D = (eye(aso.N) - diag(ones(aso.N - 1,1), 1)) ./ aso.dr;
+            D = (eye(aso.N+1, aso.N+1) - diag(ones(aso.N, 1), 1));
+            D(end, :) = []; % remove final row
+            D = D ./  aso.dr; % divide by element area
         end
         
         
         
         %== UNIFORM =======================================================%
         %   Evaluates kernel/operator for a uniform basis representation of an ASO.
+        %   Not recommended due to noise properties.
         %   Timothy Sipkens, 2020-06-10
         %
         % Inputs:
@@ -51,6 +54,7 @@ classdef Aso
             rj = aso.re(1:(end-1)); % r_j
             rju  = aso.re(2:end); % r_{j+1}
             
+            %-{
             Ka = @(m,u0,r) sqrt(r.^2 - u0.^2 ./ (1+m.^2));
             Kb = @(m,u0,r) log(r + Ka(m,u0,r)); % function for indefinite integral
             
@@ -59,9 +63,19 @@ classdef Aso
                 Kb(m,u0,rj)))';
                 % uniform basis kernel function at specified m and u0
             
-            K(abs(K)<10*eps) = 0; % remove numerical noise
+            K = -K*aso.grad; % gradient is implemented as seperate operator (better noise characteristics)
+            %}
             
-            K = K*aso.grad;
+            %{
+            Ka = @(m,u0,r) 1 ./ sqrt(r.^2 - u0.^2 ./ (1+m.^2));
+            
+            K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
+                Ka(m,u0,rj) - Ka(m,u0,rju)))';
+                % uniform basis kernel function at specified m and u0
+            %}
+            
+            K(abs(K)<300*eps) = 0; % remove numerical noise
+            
         end
         
         
@@ -82,10 +96,8 @@ classdef Aso
             rj  = aso.re(2:(end-1)); % r_j
             rju = aso.re(3:end);     % r_{j+1}
             
-            Ka = @(m,u0,r) sqrt(r.^2 - u0.^2 ./ (1+m.^2));
-            Kb = @(m,u0,r) log(r + Ka(m,u0,r));
-            Kc = @(m,u0,r1,r2,r3) 1 ./ (r2 - r1) .* (...
-                Ka(m,u0,r3) - r1 .* Kb(m,u0,r3));
+            Kb = @(m,u0,r) log(r + sqrt(r.^2 - u0.^2 ./ (1+m.^2)));
+            Kc = @(m,u0,r1,r2,r3) 1 ./ (r2 - r1) .* (Kb(m,u0,r3));
                 % function for indefinite integral
             
             K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
@@ -101,7 +113,6 @@ classdef Aso
             
             K(abs(K)<10*eps) = 0; % remove numerical noise
             
-            K = K*aso.grad; % incorporate gradient operator
         end
         
         

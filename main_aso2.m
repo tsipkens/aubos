@@ -45,9 +45,24 @@ axis off;
 V = 10;
 aso2 = Aso2(R,30,V,3);
 
-x2 = [x;x];
+x2 = repmat(x,[3,1]);
+Nx2 = size(x2);
 
 
+% positions along center of aso
+nu = 400;
+u0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), nu);
+
+cam.u = 0;
+cam.z = 10;
+m1 = (u0_vec - cam.u) ./ cam.z;
+
+Kl2 = aso2.linear(m1,u0_vec);
+
+yl = Kl2 * x2;
+
+figure(5);
+plot(yl);
 
 
 %%

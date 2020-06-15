@@ -46,14 +46,14 @@ ylim([0,20]);
 
 %%
 
-aso = Aso(R,30); % generate an axis-symmetric object
+aso = Aso(R,40); % generate an axis-symmetric object
 
 %-- Phantoms for dn/dr --%
 % x = normpdf(aso.re,0,0.35); % gaussian
-% x = normpdf(aso.re,0,0.35) - 0.6.*normpdf(aso.re,0,0.25); % gaussian with central dip
+x = normpdf(aso.re,0,0.35) - 0.6.*normpdf(aso.re,0,0.25); % gaussian with central dip
 % x = double(aso.re<0.35); % cylinder
 % x = 1-aso.re; % cone
-x = double(and(aso.re<0.35,aso.re>0.33)); % ring
+% x = double(and(aso.re<0.35,aso.re>0.33)); % ring
 % x = sqrt(max(0.7.^2 - aso.re.^2, 0)); % half circle
 
 figure(3);
@@ -100,7 +100,7 @@ for cc=1:nc % loop through camera positions
     Ku = aso.uniform(m1,u0_vec);
     Kl = aso.linear(m1,u0_vec);
     
-    yu = Ku*x(1:(end-1)); % using uniform kernel
+    yu = Ku*x; % using uniform kernel
     yl = Kl*x; % using linear kernel
     
     figure(5); plot(u0_vec,yu);

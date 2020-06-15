@@ -70,11 +70,12 @@ classdef Aso2
         %   aso     Axis-symmetric object
         %   m       Set of slopes for the rays
         %   u0      Intersect with line through center of aso
-        function K = uniform(aso,m,u0,l,v0)
+        function K2 = uniform(aso,m,u0,l,v0)
             
             rj = aso.re(1:(end-1)); % r_j
             rju  = aso.re(2:end); % r_{j+1}
             
+            %-{
             Ka = @(m,u0,r) sqrt(r.^2 - u0.^2 ./ (1+m.^2));
             Kb = @(m,u0,r) log(r + Ka(m,u0,r)); % function for indefinite integral
             
@@ -83,10 +84,12 @@ classdef Aso2
                 Kb(m,u0,rj)))';
                 % uniform basis kernel function at specified m and u0
             
-            K(abs(K)<10*eps) = 0; % remove numerical noise
+            D = (eye(aso.Nr+1, aso.Nr+1) - diag(ones(aso.Nr, 1), 1));
+            D(end, :) = []; % remove final row
+            D = D ./  aso.dr; % divide by element area
+            K = -K*D; % gradient is implemented as seperate operator (better noise characteristics)
             
-            
-            K2 = zeros(aso.N, aso.N);
+            K2 = repmat(K,[1,aso.Nv]);
             
         end
         
@@ -100,7 +103,7 @@ classdef Aso2
         %   aso     Axis-symmetric object
         %   m       Set of slopes for the rays
         %   u0      Intersect with line through center of aso
-        function K = linear(aso,m,u0)
+        function K2 = linear(aso,m,u0)
             
             if aso.N<3; error('Aso does not have enough annuli for linear basis.'); end
             
@@ -108,10 +111,8 @@ classdef Aso2
             rj  = aso.re(2:(end-1)); % r_j
             rju = aso.re(3:end);     % r_{j+1}
             
-            Ka = @(m,u0,r) sqrt(r.^2 - u0.^2 ./ (1+m.^2));
-            Kb = @(m,u0,r) log(r + Ka(m,u0,r));
-            Kc = @(m,u0,r1,r2,r3) 1 ./ (r2 - r1) .* (...
-                Ka(m,u0,r3) - r1 .* Kb(m,u0,r3));
+            Kb = @(m,u0,r) log(r + sqrt(r.^2 - u0.^2 ./ (1+m.^2)));
+            Kc = @(m,u0,r1,r2,r3) 1 ./ (r2 - r1) .* (Kb(m,u0,r3));
                 % function for indefinite integral
             
             K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
@@ -126,6 +127,8 @@ classdef Aso2
                 ]))';
             
             K(abs(K)<10*eps) = 0; % remove numerical noise
+            
+            K2 = repmat(K,[1,aso.Nv]);
             
         end
         
