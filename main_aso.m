@@ -46,11 +46,11 @@ ylim([0,20]);
 
 %%
 
-aso = Aso(R,40); % generate an axis-symmetric object
+aso = Aso(R,60); % generate an axis-symmetric object
 
 %-- Phantoms for dn/dr --%
-% x = normpdf(aso.re,0,0.35); % gaussian
-x = normpdf(aso.re,0,0.35) - 0.6.*normpdf(aso.re,0,0.25); % gaussian with central dip
+x = normpdf(aso.re,0,0.35); % gaussian
+% x = normpdf(aso.re,0,0.35) - 0.6.*normpdf(aso.re,0,0.25); % gaussian with central dip
 % x = double(aso.re<0.35); % cylinder
 % x = 1-aso.re; % cone
 % x = double(and(aso.re<0.35,aso.re>0.33)); % ring

@@ -102,13 +102,17 @@ classdef Aso
             
             K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
                 [ ...
-                 zeros(1,length(m)); ...
-                 Kc(m,u0,rjd,rj,rj) - Kc(m,u0,rjd,rj,rjd); ... % integral over rise
-                 Kc(m,u0,rj(end),rju(end),rju(end)) - Kc(m,u0,rj(end),rju(end),rj(end)) ... % incline, last element
+                 zeros(1,max(length(m),length(u0))); ... % max allows for either m or u0 to be a scalar
+                 Kc(m,u0,rjd,rj,rj) - ...
+                 Kc(m,u0,rjd,rj,rjd); ... % integral over rise
+                 Kc(m,u0,rj(end),rju(end),rju(end)) - ...
+                 Kc(m,u0,rj(end),rju(end),rj(end)) ... % incline, last element
                 ] + [
-                 Kc(m,u0,rj(1),rjd(1),rj(1)) - Kc(m,u0,rj(1),rjd(1),rjd(1)); ... % decline, last element
-                 Kc(m,u0,rju,rj,rju) - Kc(m,u0,rju,rj,rj); ... % integral over decline
-                 zeros(1,length(m))
+                 Kc(m,u0,rj(1),rjd(1),rj(1)) - ...
+                 Kc(m,u0,rj(1),rjd(1),rjd(1)); ... % decline, first element
+                 Kc(m,u0,rju,rj,rju) - ...
+                 Kc(m,u0,rju,rj,rj); ... % integral over decline
+                 zeros(1,max(length(m),length(u0)))
                 ]))';
             
             K(abs(K)<10*eps) = 0; % remove numerical noise

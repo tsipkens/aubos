@@ -27,6 +27,7 @@ classdef Aso2
         %-----------------------------------------------------------------%
         
         N     = [];     % total number of elements (Nr*Nv)
+        edges = [];     % edges of all the elements (N x 4 array)
     end
     
     
@@ -40,6 +41,7 @@ classdef Aso2
             aso.r  = (aso.re(2:end) + aso.re(1:(end-1))) ./ 2; % annuli centers
             aso.dr = aso.re(2:end) - aso.re(1:(end-1)); % annuli width
             
+            
             aso.Nv = Nv; % number of annuli
             aso.V = V; % outer radius
             
@@ -47,7 +49,13 @@ classdef Aso2
             aso.v  = (aso.ve(2:end) + aso.ve(1:(end-1))) ./ 2; % annuli centers
             aso.dv = aso.ve(2:end) - aso.ve(1:(end-1)); % annuli width
             
+            
             aso.N = aso.Nv * aso.Nr; % total number of elements
+            aso.edges = [repmat(aso.re(1:(end-1)),[Nv,1]), ...
+                repmat(aso.re(2:end),[Nv,1]), ...
+                reshape(repmat(aso.ve(1:(end-1)),[1,Nr]), [Nv*Nr,1]), ...
+                reshape(repmat(aso.ve(2:end),[1,Nr]), [Nv*Nr,1])];
+                % vectorized element edges for overall grid
         end
         
         
@@ -61,74 +69,130 @@ classdef Aso2
         
         
         
-        
-        %== UNIFORM ======================================================%
-        %   Evaluates kernel/operator for a uniform basis representation of an ASO.
-        %   Timothy Sipkens, 2020-06-10
-        %
-        % Inputs:
-        %   aso     Axis-symmetric object
-        %   m       Set of slopes for the rays
-        %   u0      Intersect with line through center of aso
-        function K2 = uniform(aso,m,u0,l,v0)
-            
-            rj = aso.re(1:(end-1)); % r_j
-            rju  = aso.re(2:end); % r_{j+1}
-            
-            %-{
-            Ka = @(m,u0,r) sqrt(r.^2 - u0.^2 ./ (1+m.^2));
-            Kb = @(m,u0,r) log(r + Ka(m,u0,r)); % function for indefinite integral
-            
-            K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
-                Kb(m,u0,rju) - ...
-                Kb(m,u0,rj)))';
-                % uniform basis kernel function at specified m and u0
-            
-            D = (eye(aso.Nr+1, aso.Nr+1) - diag(ones(aso.Nr, 1), 1));
-            D(end, :) = []; % remove final row
-            D = D ./  aso.dr; % divide by element area
-            K = -K*D; % gradient is implemented as seperate operator (better noise characteristics)
-            
-            K2 = repmat(K,[1,aso.Nv]);
-            
-        end
-        
-        
-        
         %== LINEAR =======================================================%
         %   Evaluates kernel/operator for a linear basis representation of an ASO.
         %   Timothy Sipkens, 2020-06-10
         %
         % Inputs:
         %   aso     Axis-symmetric object
-        %   m       Set of slopes for the rays
+        %   mu      Set of slopes for the rays
         %   u0      Intersect with line through center of aso
-        function K2 = linear(aso,m,u0)
+        function K = linear(aso,mu,u0,mv,v0)
             
             if aso.N<3; error('Aso does not have enough annuli for linear basis.'); end
             
-            rjd = aso.re(1:(end-2)); % r_{j-1}
-            rj  = aso.re(2:(end-1)); % r_j
-            rju = aso.re(3:end);     % r_{j+1}
+            mv(mv==0) = eps; % avoid division by zero in rv
             
-            Kb = @(m,u0,r) log(r + sqrt(r.^2 - u0.^2 ./ (1+m.^2)));
-            Kc = @(m,u0,r1,r2,r3) 1 ./ (r2 - r1) .* (Kb(m,u0,r3));
-                % function for indefinite integral
+            % edges of annuli and axial elements
+            rjd0 = aso.re(1:(end-2));
+            rj0  = aso.re(2:(end-1));
+            rju0 = aso.re(3:end);
+            vj  = aso.ve(1:(end-1));
+            vju = aso.ve(2:end);
             
-            K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
-                [ ...
-                 zeros(1,length(m)); ...
-                 Kc(m,u0,rjd,rj,rj) - Kc(m,u0,rjd,rj,rjd); ... % integral over rise
-                 Kc(m,u0,rj(end),rju(end),rju(end)) - Kc(m,u0,rj(end),rju(end),rj(end)) ... % incline, last element
-                ] + [
-                 Kc(m,u0,rj(1),rjd(1),rj(1)) - Kc(m,u0,rj(1),rjd(1),rjd(1)); ... % decline, last element
-                 Kc(m,u0,rju,rj,rju) - Kc(m,u0,rju,rj,rj); ... % integral over decline
-                 zeros(1,length(m))
-                ]))';
+            % functions for indefinite integral
+            Kb = @(mu,u0,r) log(r + sqrt(r.^2 - u0.^2 ./ (1+mu.^2)));
+            Kc = @(mu,u0,r1,r2,r3) 1 ./ (r2 - r1) .* (Kb(mu,u0,r3));
+            K1 = @(mu,r1,r2,r3,r4) r4 .* (r4 - r3) ./ (r2 - r1) .* ...
+                 (mu .* sqrt(1+mu.^2));
             
-            K(abs(K)<10*eps) = 0; % remove numerical noise
+            K = []; % initialize K
+            for ii=1:(length(aso.ve)-1) % loop throgh and append axial slices
+                
+                % Find radial intersection with axial elements.
+                % This could be a bound for either term of the integrand.
+                rv = sqrt(1 ./ (1+mu.^2) .* ...
+                    ((1+mu.^2) ./ mv .* (vj(ii) - v0) + mu.*u0) .^ 2 + ...
+                    u0.^2); % lower edge
+                rvu = sqrt(1 ./ (1+mu.^2) .* ...
+                    ((1+mu.^2) ./ mv .* (vju(ii) - v0) + mu.*u0) .^ 2 + ...
+                    u0.^2); % upper edge
+                
+                
+                % Find z intersection with axial elements.
+                % This is used to determine whether to involve front of back
+                % portion of integral.
+                zv  = (vj(ii) - v0) ./ abs(mv);
+                zvu = (vju(ii) - v0) ./ abs(mv);
+                fv  = zv <= (abs(mu) .* u0); % flags if intersect is in first integrand
+                fvu = zvu < (abs(mu) .* u0); % flags if intersect (upper) is in first integrand
+                
+                
+                % modified element width
+                % (adjusted for intersections with axial elements)
+                rjd = rjd0 .* ones(size(rv));
+                rjd(:,fv) = min(rv(fv), rjd(:,fv)); % adjust for lower axial bound
+                rjd(:,fvu) = max(rvu(fvu), rjd(:,fvu)); % adjust for upper axial bound
+                
+                rj = rj0 .* ones(size(rv));
+                rj(:,fv) = min(rv(fv), rj(:,fv));
+                rj(:,fvu) = max(rvu(fvu), rj(:,fvu));
+                
+                rju = rju0 .* ones(size(rv));
+                rju(:,fv) = min(rv(fv), rju(:,fv));
+                rju(:,fvu) = max(rvu(fvu), rju(:,fvu));
+                
+                % evaluate lower kernel
+                Kd = real(u0 .* ( ... % real(.) removes values outside integral bounds
+                    or(fv,fvu) .* ([ ...
+                     zeros(1,size(rj,2)); ...
+                     Kc(mu,u0,rjd0,rj0,rj) - ...
+                     Kc(mu,u0,rjd0,rj0,rjd) + ...
+                     K1(mu,rjd0,rj0,rjd,rj); ... % integral over rise
+                     Kc(mu,u0,rj0(end,:),rju0(end,:),rju(end,:)) - ...
+                     Kc(mu,u0,rj0(end,:),rju0(end,:),rj(end,:)) + ...
+                     K1(mu,rj0(end,:),rju0(end,:),rj(end,:),rju(end,:)) ... % incline, last element
+                    ] + [
+                     Kc(mu,u0,rj0(1,:),rjd0(1,:),rj(1,:)) - ...
+                     Kc(mu,u0,rj0(1,:),rjd0(1,:),rjd(1,:)) + ...
+                     K1(mu,rj0(1,:),rjd0(1,:),rj(1,:),rjd(1,:)); ... % decline, first element
+                     Kc(mu,u0,rju0,rj0,rju) - ...
+                     Kc(mu,u0,rju0,rj0,rj) + ...
+                     K1(mu,rju0,rj0,rju,rj); ... % integral over decline
+                     zeros(1,size(rj,2))
+                    ])))';
+                
+                
+                % modified element width
+                % (adjusted for intersections with axial elements)
+                rjd = rjd0 .* ones(size(rv));
+                rjd(:,~fv) = max(rv(~fv), rjd(:,~fv)); % adjust for lower axial bound
+                rjd(:,~fvu) = min(rvu(~fvu), rjd(:,~fvu)); % adjust for upper axial bound
+                
+                rj = rj0 .* ones(size(rv));
+                rj(:,~fv) = max(rv(~fv), rj(:,~fv));
+                rj(:,~fvu) = min(rvu(~fvu), rj(:,~fvu));
+                
+                rju = rju0 .* ones(size(rv));
+                rju(:,~fv) = max(rv(~fv), rju(:,~fv));
+                rju(:,~fvu) = min(rvu(~fvu), rju(:,~fvu));
+                
+                % evaluate upper kernel
+                Ku = real(u0 .* ( ... % real(.) removes values outside integral bounds
+                    or(~fv,~fvu) .* ([ ...
+                     zeros(1,size(rj,2)); ...
+                     Kc(mu,u0,rjd0,rj0,rj) - ...
+                     Kc(mu,u0,rjd0,rj0,rjd) - ...
+                     K1(mu,rjd0,rj0,rjd,rj); ... % integral over rise
+                     Kc(mu,u0,rj0(end,:),rju0(end,:),rju(end,:)) - ...
+                     Kc(mu,u0,rj0(end,:),rju0(end,:),rj(end,:)) - ...
+                     K1(mu,rj0(end,:),rju0(end,:),rj(end,:),rju(end,:)) ... % incline, last element
+                    ] + [
+                     Kc(mu,u0,rj0(1,:),rjd0(1,:),rj(1,:)) - ...
+                     Kc(mu,u0,rj0(1,:),rjd0(1,:),rjd(1,:)) - ...
+                     K1(mu,rj0(1,:),rjd0(1,:),rj(1,:),rjd(1,:)); ... % decline, first element
+                     Kc(mu,u0,rju0,rj0,rju) - ...
+                     Kc(mu,u0,rju0,rj0,rj) - ...
+                     K1(mu,rju0,rj0,rju,rj); ... % integral over decline
+                     zeros(1,size(rj,2))
+                    ])))';
+                
+                
+                K = [K, Kd + Ku];
+            end
             
-            K2 = repmat(K,[1,aso.Nv]);
+            K(isnan(K)) = 0; % remove NaN values that result when modified element width is zero
+            K(abs(K)<100*eps) = 0; % remove numerical noise
             
         end
         
@@ -137,71 +201,51 @@ classdef Aso2
         %== SURF =========================================================%
         %   Plot the axis-symmetric object as a surface. 
         %   Timothy Sipkens, 2020-06-09
-        function [h,t,r,z0] = surf(aso,x)
-            [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.N+1));
+        function [h,x0,y0,z0] = surf(aso,x)
+            [iv,ir] = meshgrid(1:aso.Nv, 1:(aso.Nr+1));
             
-            r = aso.re(i); % plot radii
-            x0 = r.*cos(t);
-            y0 = r.*sin(t);
-            z0 = x(i);
+            x1 = aso.ve(iv);
+            y1 = aso.re(ir);
+            
+            x0 = [flipud(x1);  x1(2:end,:)]; % plot axial positions
+            y0 = [-flipud(y1); y1(2:end,:)]; % plot radii
+            
+            z1 = reshape(x, [aso.Nr+1, aso.Nv]);
+            z0 = [flipud(z1); z1(2:end,:)];
             
             h = surf(x0,y0,z0);
             h.EdgeColor = 'none';
-            axis image;
             
             hold on;
             plot3(x0', y0', z0', 'k');
+            plot3(x0, y0, z0, 'k');
             hold off;
+            
+            xlabel('Axial, v');
+            ylabel('Radial, r');
             
             if nargout==0; clear h; end % suppress output if none required
             
         end
         
-        
-        
-        %== PLOT =========================================================%
-        %   Plot the axis-symmetric object as a series of annuli.
-        %   Timothy Sipkens, 2020-06-09
-        %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = plot(aso,x)
-            [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.N+1));
-            
-            x0 = aso.re(i).*cos(t);
-            y0 = aso.re(i).*sin(t);
-            z0 = x(i);
-            
-            h = contourf(x0,y0,z0,sort(x),'edgecolor','none');
-            axis image;
-            
-            hold on;
-            viscircles(ones(aso.N+1, 1) * [0,0], aso.re, ...
-                'EnhanceVisibility', 0, 'LineWidth', 0.1, ...
-                'Color', 'k', 'LineStyle', '-');
-            hold off;
-            
-            if nargout==0; clear h; end % suppress output if none required
-        end
         
         
         %== SRAYS ========================================================%
         %   Plot aso as a surface, with rays overlaid.
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = srays(aso,x,m,u0)
+        function h = srays(aso,x,mv,v0)
             
-            [h,t0,r0,z0] = aso.surf(x); % generate surface plot
+            [h,x0,y0,z0] = aso.surf(x); % generate surface plot
             
-            x1 = linspace(-aso.R, aso.R, 150);
-            y1 = (m').*x1 + u0';
-            r1 = sqrt(x1.^2 + y1.^2);
-            t1 = atan2(y1, x1);
-            t1(t1<0) = t1(t1<0) + 2*pi;
+            y1 = linspace(-aso.R, aso.R, 150);
+            x1 = (mv').*y1 + v0';
             
-            z1 = interp2(t0, r0, z0, t1, r1, 'linear'); 
+            y1 = y1.*ones(size(x1)); % if necessary, will out y1 to have correct dimension
+            
+            z1 = interp2(x0, y0, z0, x1, y1, 'linear'); 
             hold on;
-            plot3(x1, y1, z1, 'r');
-            quiver(-aso.R, -aso.R, aso.R/3, 0, ...
-                'MaxHeadSize', 0.8, 'Color', 'r');
+            plot3(x1', y1', z1', 'r');
             hold off;
             
             if nargout==0; clear h; end % suppress output if none required

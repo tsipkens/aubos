@@ -11,9 +11,9 @@
 %             specified.
 %=========================================================================%
 
-function varargout = plotcm(x_n,y,cm,varargin)
+function h = plotcm(x_n,y,cm,varargin)
 
-if isempty(y); n = x_n; else; n = min(size(x_n)); end
+if isempty(y); n = x_n; else; n = min(size(y)); end
     % evaluate number of different lines being plotted
 
 
@@ -27,9 +27,9 @@ set(gca,'ColorOrder',cm2,'NextPlot','replacechildren');
 
 
 if ~isempty(y) % if x and y data supplied
-    varargout = plot(x_n,y,varargin{:});
-else
-    varargout = {}; % empty if no data is plotted
+    h = plot(x_n,y,varargin{:});
+    
+    if nargout==0; clear h; end % suppress output if none required
 end
 
 end
