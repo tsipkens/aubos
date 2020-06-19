@@ -81,7 +81,7 @@ classdef Aso2
             
             if aso.N<3; error('Aso does not have enough annuli for linear basis.'); end
             
-            mv(mv==0) = eps; % avoid division by zero in rv
+            mv(abs(mv)<1e-12) = 1e-12; % avoid division by zero in rv
             
             % edges of annuli and axial elements
             rjd0 = aso.re(1:(end-2));
@@ -96,8 +96,15 @@ classdef Aso2
             K1 = @(mu,r1,r2,r3,r4) r4 .* (r4 - r3) ./ (r2 - r1) .* ...
                  (mu .* sqrt(1+mu.^2));
             
-            K = []; % initialize K
-            for ii=1:(length(aso.ve)-1) % loop throgh and append axial slices
+             
+            N_beams = max([length(mu), length(u0), ...
+                length(mv), length(v0)]); % any of the values could be scalar, so take max
+            K = spalloc(N_beams, aso.Nv * (aso.Nr + 1), ...
+                round(0.05 * N_beams * aso.Nv * (aso.Nr + 1)));
+                % initialize K, assume 5% full
+            
+                
+            for ii=1:(length(aso.ve)-1) % loop through and append axial slices
                 
                 % Find radial intersection with axial elements.
                 % This could be a bound for either term of the integrand.
@@ -188,11 +195,15 @@ classdef Aso2
                     ])))';
                 
                 
-                K = [K, Kd + Ku];
+                K0 = Kd + Ku;
+                K0(isnan(K0)) = 0; % remove NaN values that result when modified element width is zero
+                K0(abs(K0)<100*eps) = 0; % remove numerical noise
+                K0 = sparse(K0);
+                
+                K(:, ((ii-1)*(aso.Nr+1)+1):(ii*(aso.Nr+1))) = K0;
+                
             end
             
-            K(isnan(K)) = 0; % remove NaN values that result when modified element width is zero
-            K(abs(K)<100*eps) = 0; % remove numerical noise
             
         end
         
@@ -201,7 +212,11 @@ classdef Aso2
         %== SURF =========================================================%
         %   Plot the axis-symmetric object as a surface. 
         %   Timothy Sipkens, 2020-06-09
-        function [h,x0,y0,z0] = surf(aso,x)
+        function [h,x0,y0,z0] = surf(aso,x,f_grid)
+            
+            if ~exist('f_grid','var'); f_grid = []; end
+            if isempty(f_grid); f_grid = 1; end
+            
             [iv,ir] = meshgrid(1:aso.Nv, 1:(aso.Nr+1));
             
             x1 = aso.ve(iv);
@@ -216,10 +231,12 @@ classdef Aso2
             h = surf(x0,y0,z0);
             h.EdgeColor = 'none';
             
-            hold on;
-            plot3(x0', y0', z0', 'k');
-            plot3(x0, y0, z0, 'k');
-            hold off;
+            if f_grid % overlay element grid
+                hold on;
+                plot3(x0', y0', z0', 'k');
+                plot3(x0, y0, z0, 'k');
+                hold off;
+            end
             
             xlabel('Axial, v');
             ylabel('Radial, r');
@@ -234,9 +251,11 @@ classdef Aso2
         %   Plot aso as a surface, with rays overlaid.
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = srays(aso,x,mv,v0)
+        function h = srays(aso,x,mv,v0,f_grid)
             
-            [h,x0,y0,z0] = aso.surf(x); % generate surface plot
+            if ~exist('f_grid','var'); f_grid = []; end
+            
+            [h,x0,y0,z0] = aso.surf(x,f_grid); % generate surface plot
             
             y1 = linspace(-aso.R, aso.R, 150);
             x1 = (mv').*y1 + v0';

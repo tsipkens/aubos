@@ -1,11 +1,7 @@
 
-% Simulate and invert an axis-symmetric Schlieren object.
-% Timothy Sipkens, 2020-05-20
-%=========================================================================%
-
 
 clear;
-% close all;
+close all;
 
 
 addpath('cmap');
@@ -17,13 +13,39 @@ cmc = load_cmap('curl',255);
 
 
 %%
+% Read in a background.
+Iref = imread('data/bgs/dots.png');
+Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
+Iref = imresize(Iref,0.1); % reduce image size for test
+
+
+figure(1);
+imagesc(Iref);
+colormap('gray');
+axis image;
+
+
+
+%%
+% Optical flow operator.
+O = of.gen1(size(Iref)); % differential operator for image
+U = O * Iref(:); % differential operator applied to image
+
+figure(2);
+imagesc(reshape(U, size(Iref)));
+colormap('gray');
+axis image;
+
+
+
+
 R = 1;
 Nr = 50;
-aso = Aso(R,Nr); % generate an axis-symmetric object
-
 V = 10;
 Nv = 55;
 aso2 = Aso2(R,Nr,V,Nv);
+
+
 
 
 %{
@@ -55,11 +77,15 @@ x2 = x2(:);
 %}
 
 
-% positions along center of aso
-nu = 350;
-u0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), nu);
 
-nv = 200;
+
+
+
+% positions along center of aso
+nu = size(Iref,1);
+u0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), nu);
+
+nv = size(Iref,2);
 v0_vec = linspace(0.5, 9, nv);
 
 
@@ -94,25 +120,63 @@ yl2 = Kl2 * x2;
 yl2 = reshape(yl2, [length(u0_vec), length(v0_vec)]);
 
 
-%%
-figure(6);
-tools.plotcm(u0_vec,yl2,cmi);
-
-% % For a single axial slice with peak in ASO of unity.
-% Kl = aso.linear(mu_vec, u0_vec);
-% yl = Kl * x;
-% hold on;
-% plot(u0_vec,yl,'k--');
-% hold off
-
-
-
 
 figure(7);
 imagesc(yl2);
 colormap(cmc);
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
-colorbar;
 
+
+
+%%
+A = -((O * Iref(:)) .* Kl2); % compile unified operator
+    % .* avoids creating diagonal matrix from O * Iref(:)
+
+
+
+%%
+It0 = 0.01 .* A * x2;
+It0 = reshape(It0, size(Iref));
+
+Idef = max(Iref + It0, 0);
+
+figure(8);
+imagesc(It0);
+colormap(cmc);
+It_max = max(max(abs(It0)));
+caxis([-It_max, It_max]);
+axis image;
+
+
+
+
+%%
+% Sample inverse 
+rng(1);
+noise_level = 1e-2;
+e_ref = noise_level .* sqrt(Idef) .* randn(size(Idef));
+e_def = noise_level .* sqrt(Idef) .* randn(size(Idef));
+It = (Idef + e_def) - (Iref + e_ref);
+
+
+n = A\It(:);
+
+figure(12);
+aso2.surf(n,0);
+colormap(cmo);
+axis image;
+view([0,90]);
+
+
+
+Lpr2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
+
+n_tk2 = [A; 1e2.*Lpr2] \ [It(:); zeros(size(A,2),1)];
+
+figure(13);
+aso2.surf(n_tk2,0);
+colormap(cmo);
+axis image;
+view([0,90]);
 

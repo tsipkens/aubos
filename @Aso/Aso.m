@@ -12,17 +12,17 @@ classdef Aso
         re    = [];     % annuli edges
         
         R     = [];     % outer radius of object
-        N     = [];     % number of annuli
+        Nr     = [];     % number of annuli
     end
     
     
     
     methods
-        function aso = Aso(R,N)
-            aso.N = N; % number of annuli
+        function aso = Aso(R,Nr)
+            aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
             
-            aso.re = linspace(0, R, N+1)'; % linearily space edges from 0 -> R
+            aso.re = linspace(0, R, Nr+1)'; % linearily space edges from 0 -> R
             aso.r  = (aso.re(2:end) + aso.re(1:(end-1))) ./ 2; % annuli centers
             aso.dr = aso.re(2:end) - aso.re(1:(end-1)); % annuli width
         end
@@ -33,7 +33,7 @@ classdef Aso
         %   Radial gradient operator, assuming no slope at outer radius.
         %   Timothy Sipkens, 2020-06-10
         function D = grad(aso)
-            D = (eye(aso.N+1, aso.N+1) - diag(ones(aso.N, 1), 1));
+            D = (eye(aso.Nr+1, aso.Nr+1) - diag(ones(aso.Nr, 1), 1));
             D(end, :) = []; % remove final row
             D = D ./  aso.dr; % divide by element area
         end
@@ -90,7 +90,7 @@ classdef Aso
         %   u0      Intersect with line through center of aso
         function K = linear(aso,m,u0)
             
-            if aso.N<3; error('Aso does not have enough annuli for linear basis.'); end
+            if aso.Nr<3; error('Aso does not have enough annuli for linear basis.'); end
             
             rjd = aso.re(1:(end-2)); % r_{j-1}
             rj  = aso.re(2:(end-1)); % r_j
@@ -125,19 +125,22 @@ classdef Aso
         %   Plot the axis-symmetric object as a surface. 
         %   Timothy Sipkens, 2020-06-09
         function [h,t,r,z0] = surf(aso,x)
-            [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.N+1));
             
-            r = aso.re(i); % plot radii
-            x0 = r.*cos(t);
-            y0 = r.*sin(t);
-            z0 = x(i);
+            [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
+                % 
             
-            h = surf(x0,y0,z0);
-            h.EdgeColor = 'none';
-            axis image;
+            r = aso.re(i); % radii to plot
+            x0 = r.*cos(t); % x values for plot
+            y0 = r.*sin(t); % y values for plot
+            z0 = x(i); % z value for plot, given by input data
+            
+            h = surf(x0,y0,z0); % generate the surface plot
+            h.EdgeColor = 'none'; % remove default edges on plot
+            axis image; % such that circles are properly round
+            axis off; % remove axis to clean visualization
             
             hold on;
-            plot3(x0', y0', z0', 'k');
+            plot3(x0', y0', z0', 'k'); % add circles corresponding to element edges
             hold off;
             
             if nargout==0; clear h; end % suppress output if none required
@@ -151,7 +154,7 @@ classdef Aso
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
         function h = plot(aso,x)
-            [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.N+1));
+            [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
             
             x0 = aso.re(i).*cos(t);
             y0 = aso.re(i).*sin(t);
@@ -161,7 +164,7 @@ classdef Aso
             axis image;
             
             hold on;
-            viscircles(ones(aso.N+1, 1) * [0,0], aso.re, ...
+            viscircles(ones(aso.Nr+1, 1) * [0,0], aso.re, ...
                 'EnhanceVisibility', 0, 'LineWidth', 0.1, ...
                 'Color', 'k', 'LineStyle', '-');
             hold off;
