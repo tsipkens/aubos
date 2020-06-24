@@ -50,38 +50,13 @@ classdef Aso
         %   m       Set of slopes for the rays
         %   u0      Intersect with line through center of aso
         function K = uniform(aso,m,u0)
-            
-            rj = aso.re(1:(end-1)); % r_j
-            rju  = aso.re(2:end); % r_{j+1}
-            
-            %-{
-            Ka = @(m,u0,r) sqrt(r.^2 - u0.^2 ./ (1+m.^2));
-            Kb = @(m,u0,r) log(r + Ka(m,u0,r)); % function for indefinite integral
-            
-            K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
-                Kb(m,u0,rju) - ...
-                Kb(m,u0,rj)))';
-                % uniform basis kernel function at specified m and u0
-            
-            K = -K*aso.grad; % gradient is implemented as seperate operator (better noise characteristics)
-            %}
-            
-            %{
-            Ka = @(m,u0,r) 1 ./ sqrt(r.^2 - u0.^2 ./ (1+m.^2));
-            
-            K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
-                Ka(m,u0,rj) - Ka(m,u0,rju)))';
-                % uniform basis kernel function at specified m and u0
-            %}
-            
-            K(abs(K)<300*eps) = 0; % remove numerical noise
-            
+            K = kernel.uniform(aso,m,u0);
         end
         
         
         
         %== LINEAR =======================================================%
-        %   Evaluates kernel/operator for a linear basis representation of an ASO.
+        %   Bridge function from Aso to kernel.
         %   Timothy Sipkens, 2020-06-10
         %
         % Inputs:
@@ -89,34 +64,7 @@ classdef Aso
         %   m       Set of slopes for the rays
         %   u0      Intersect with line through center of aso
         function K = linear(aso,m,u0)
-            
-            if aso.Nr<3; error('Aso does not have enough annuli for linear basis.'); end
-            
-            rjd = aso.re(1:(end-2)); % r_{j-1}
-            rj  = aso.re(2:(end-1)); % r_j
-            rju = aso.re(3:end);     % r_{j+1}
-            
-            Kb = @(m,u0,r) log(r + sqrt(r.^2 - u0.^2 ./ (1+m.^2)));
-            Kc = @(m,u0,r1,r2,r3) 1 ./ (r2 - r1) .* (Kb(m,u0,r3));
-                % function for indefinite integral
-            
-            K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
-                [ ...
-                 zeros(1,max(length(m),length(u0))); ... % max allows for either m or u0 to be a scalar
-                 Kc(m,u0,rjd,rj,rj) - ...
-                 Kc(m,u0,rjd,rj,rjd); ... % integral over rise
-                 Kc(m,u0,rj(end),rju(end),rju(end)) - ...
-                 Kc(m,u0,rj(end),rju(end),rj(end)) ... % incline, last element
-                ] + [
-                 Kc(m,u0,rj(1),rjd(1),rj(1)) - ...
-                 Kc(m,u0,rj(1),rjd(1),rjd(1)); ... % decline, first element
-                 Kc(m,u0,rju,rj,rju) - ...
-                 Kc(m,u0,rju,rj,rj); ... % integral over decline
-                 zeros(1,max(length(m),length(u0)))
-                ]))';
-            
-            K(abs(K)<10*eps) = 0; % remove numerical noise
-            
+            K = kernel.linear(aso,m,u0);
         end
         
         
@@ -124,10 +72,13 @@ classdef Aso
         %== SURF =========================================================%
         %   Plot the axis-symmetric object as a surface. 
         %   Timothy Sipkens, 2020-06-09
-        function [h,t,r,z0] = surf(aso,x)
+        function [h,t,r,z0] = surf(aso,x,f_grid)
+            
+            if ~exist('f_grid','var'); f_grid = []; end
+            if isempty(f_grid); f_grid = 1; end
             
             [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
-                % 
+                % mesh of angles and integers for radial positions
             
             r = aso.re(i); % radii to plot
             x0 = r.*cos(t); % x values for plot
@@ -139,9 +90,11 @@ classdef Aso
             axis image; % such that circles are properly round
             axis off; % remove axis to clean visualization
             
-            hold on;
-            plot3(x0', y0', z0', 'k'); % add circles corresponding to element edges
-            hold off;
+            if f_grid % overlay radial element edges
+                hold on;
+                plot3(x0', y0', z0', 'k'); % add circles corresponding to element edges
+                hold off;
+            end
             
             if nargout==0; clear h; end % suppress output if none required
             

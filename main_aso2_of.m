@@ -5,7 +5,7 @@ close all;
 
 
 addpath('cmap');
-cmi = load_cmap('inferno',500);
+cmi = load_cmap('inferno',5e3);
 cmo = load_cmap('ocean',255);
 cmh = load_cmap('haline',255);
 cmc = load_cmap('curl',255);
@@ -170,9 +170,8 @@ view([0,90]);
 
 
 
-Lpr2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
-
-n_tk2 = [A; 1e2.*Lpr2] \ [It(:); zeros(size(A,2),1)];
+L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
+n_tk2 = [A; 1e2.*L_tk2] \ [It(:); zeros(size(A,2),1)];
 
 figure(13);
 aso2.surf(n_tk2,0);

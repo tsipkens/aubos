@@ -9,18 +9,22 @@ close all;
 
 
 addpath('cmap');
-cmi = load_cmap('inferno',255);
+cmi = load_cmap('inferno',5e3);
 cmo = load_cmap('ocean',255);
 cmh = load_cmap('haline',255);
+cmc = load_cmap('curl',255);
+
+
 
 R = 1;
-
+Nr = 80;
+aso = Aso(R, Nr); % generate an axis-symmetric object
 
 
 
 %%
 %-{
-u0 = 0.6;
+u0 = 0.5;
 nm = 21;
 m_vec =  linspace(0,3,nm);
 r_vec = linspace(0,R,450); % vector of radii
@@ -54,12 +58,10 @@ l.Title.Visible = 'on';
 
 %%
 
-aso = Aso(R,60); % generate an axis-symmetric object
-
 %-- Case studies / phantoms for dn/dr ------------------------------%
-% x = normpdf(aso.re,0,0.35); % gaussian
-x = (1+1.2) .* normpdf(aso.re,0,0.35) - 1.2.*normpdf(aso.re,0,0.25); % gaussian with central dip
-% x = double(aso.re<0.35); % cylinder
+% x = normpdf(aso.re,0,0.3); % gaussian
+% x = (1+1.2) .* normpdf(aso.re,0,0.25) - 1.2.*normpdf(aso.re,0,0.15); % gaussian with central dip
+x = double(aso.re<0.35); % cylinder
 % x = 1-aso.re; % cone
 % x = double(and(aso.re<0.35,aso.re>0.33)); % ring
 % x = sqrt(max(0.7.^2 - aso.re.^2, 0)); % half circle
@@ -83,7 +85,7 @@ u0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), nu);
 nc = 20;
 zc_vec = logspace(log10(1.1),log10(10),nc); % vector of z locations for camera
 % zc_vec = linspace(1.1,10,nc);
-uc_vec = fliplr(linspace(0, 0.5, nc)); % vector of u locations for camera
+uc_vec = fliplr(linspace(0, 0.8, nc)); % vector of u locations for camera
 % uc_vec = 0.5 .* ones(nc,1); % alternate u locations, where u is constant
 cam(nc).z = 0; cam(nc).u = 0; % pre-allocate camera structs
 
@@ -137,16 +139,92 @@ colormap(cmo);
 
 figure(10);
 aso.surf(x,0);
-colormap(cmo);
+tools.plotcm(nc, [], flipud(cmi)); % set color order
 hold on;
-plot(zc_vec, uc_vec,'-ok');
+for ii=1:length(zc_vec)
+    plot(zc_vec(ii), uc_vec(ii),'.');
+end
+plot(zc_vec, uc_vec, 'k-');
 hold off;
 view([0,90]);
+colormap(cmo);
 
 
 
 
+%%
+%{
+fup = 1./aso.dr(1); % frequency of grid points
+f_vec = logspace(-0.5, log10(fup), 4e3+1); % start low fequency (flat), end high frequency
+T_vec = 1 ./ f_vec;
 
+figure(12);
+hold off;
+plot(aso.re, x, 'k--');
+tools.plotcm(length(f_vec), [], flipud(cmi)); % set color order
+
+err = [];
+for ii=1:length(f_vec)
+    for jj=1 % loop over multiple kinds of noise
+        Iref0 = 1/3 .* (cos(u0_vec .* (2*pi .* f_vec(ii)))' + 2);
+        
+        O = of.gen1([length(u0_vec), 1]);
+        A = -0.1 .* ((O * Iref0) .* Kl);
+        It0 = A * x;
+        
+        Idef0 = Iref0 + It0;
+        
+        rng(jj);
+        e_ref = 1e-5 .* sqrt(Iref0) .* randn(size(It0));
+        e_def = 1e-5 .* sqrt(Idef0) .* randn(size(It0));
+        
+        Iref = Iref0 + e_ref;
+        Idef = Idef0 + e_def;
+        It = Idef - Iref;
+
+        n = A \ It;
+
+        L_tk2 = regularize.tikhonov_lpr(2, Nr+1, Nr+1);
+        n_tk2 = [A; 0.5.*L_tk2] \ [It; zeros(Nr+1,1)];
+        
+        if jj==1
+            figure(12);
+            hold on;
+            % plot(aso.re, n);
+            plot(aso.re, n_tk2);
+            hold off;
+        end
+        
+        err(ii,jj) = norm(n_tk2 - x);
+    end
+end
+
+
+figure(11);
+plot(Iref0);
+hold on;
+plot(Idef);
+plot(Iref);
+hold off;
+
+
+figure(13);
+plot(It0);
+hold on;
+plot(It);
+hold off;
+
+
+figure(14);
+semilogx(f_vec, median(err, 2));
+hold on;
+semilogx(f_vec, prctile(err, 5, 2));
+semilogx(f_vec, prctile(err, 95, 2));
+
+yl = ylim;
+plot([fup,fup],yl);
+hold off
+%}
 
 
 
