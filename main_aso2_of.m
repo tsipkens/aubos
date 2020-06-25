@@ -88,15 +88,17 @@ u0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), nu);
 nv = size(Iref,2);
 v0_vec = linspace(0.5, 9, nv);
 
+[u0_vec2, v0_vec2] = ndgrid(u0_vec, v0_vec); % meshgrid to generate image dims.
+u0_vec2 = u0_vec2(:)'; v0_vec2 = v0_vec2(:)'; % must be row vectors
 
 cam.u = 1;
 cam.v = 3;
 cam.z = 2;
-mu_vec = (u0_vec - cam.u) ./ cam.z;
-mv_vec = (v0_vec - cam.v) ./ cam.z;
+mu_vec = (u0_vec2 - cam.u) ./ cam.z;
+mv_vec = (v0_vec2 - cam.v) ./ cam.z;
 
 figure(3);
-aso2.srays(x2,mv_vec,v0_vec);
+aso2.srays(x2, mv_vec, v0_vec2);
 colormap(cmo);
 
 
@@ -107,13 +109,8 @@ colormap(cmo);
 yl2 = [];
 Kl2 = [];
 disp('Processing rays...');
-tools.textbar(0);
-for ii=1:length(v0_vec)
-    Kl2 = [Kl2;aso2.linear(mu_vec, u0_vec, mv_vec(ii), ... 
-        v0_vec(ii).*ones(size(u0_vec)))];
-    
-    tools.textbar(ii/length(v0_vec));
-end
+Kl2 = aso2.linear(mu_vec, u0_vec2, mv_vec, v0_vec2);
+disp('Complete.');
 disp(' ');
 
 yl2 = Kl2 * x2;

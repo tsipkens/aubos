@@ -103,7 +103,9 @@ classdef Aso2
                 round(0.05 * N_beams * aso.Nv * (aso.Nr + 1)));
                 % initialize K, assume 5% full
             
-                
+            
+            disp('Looping through axial slices...');
+            tools.textbar(0);
             for ii=1:(length(aso.ve)-1) % loop through and append axial slices
                 
                 % Find radial intersection with axial elements.
@@ -202,6 +204,7 @@ classdef Aso2
                 
                 K(:, ((ii-1)*(aso.Nr+1)+1):(ii*(aso.Nr+1))) = K0;
                 
+                tools.textbar(ii/(length(aso.ve)-1));
             end
             
             
