@@ -16,7 +16,7 @@ cmc = load_cmap('curl',255);
 % Read in a background.
 Iref = imread('data/bgs/dots.png');
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = imresize(Iref,0.05); % reduce image size for test
+Iref = imresize(Iref,0.01); % reduce image size for test
 
 
 figure(1);
