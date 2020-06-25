@@ -16,7 +16,7 @@ cmc = load_cmap('curl',255);
 % Read in a background.
 Iref = imread('data/bgs/dots.png');
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = imresize(Iref,0.1); % reduce image size for test
+Iref = imresize(Iref,0.05); % reduce image size for test
 
 
 figure(1);
@@ -89,9 +89,9 @@ nv = size(Iref,2);
 v0_vec = linspace(0.5, 9, nv);
 
 
-cam.u = 0;
+cam.u = 1;
 cam.v = 3;
-cam.z = 7;
+cam.z = 2;
 mu_vec = (u0_vec - cam.u) ./ cam.z;
 mv_vec = (v0_vec - cam.v) ./ cam.z;
 
