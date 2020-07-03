@@ -35,9 +35,9 @@ disp(' ');
 
 
 R = 1;
-Nr = round(size(Iref,1) .* 1.2);
+Nr = min(round(size(Iref,1) .* 1.2),400);
 V = 8;
-Nv = round(size(Iref,2) .* 1.2);
+Nv = min(round(size(Iref,2) .* 1.2), 300);
 aso2 = Aso2(R,Nr,V,Nv);
 
 
