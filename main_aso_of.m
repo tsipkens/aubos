@@ -17,7 +17,7 @@ cmc = load_cmap('curl',255);
 
 
 R = 1;
-Nr = 80;
+Nr = 20;
 aso = Aso(R, Nr); % generate an axis-symmetric object
 
 
@@ -37,10 +37,10 @@ tools.plotcm(length(m_vec), [], cmi); % set color order
 
 hold on;
 for ii=1:length(m_vec) % loop through scenerios
-    plot(r_vec, kernel.fun(m_vec(ii), u0_vec(ii), r_vec));
+    plot(r_vec, kernel.K(m_vec(ii), u0_vec(ii), r_vec));
 end
 
-plot(r_vec, kernel.fun_abel(u0_vec(ii), r_vec), 'w:'); % Abel kernel
+plot(r_vec, kernel.K_abel(u0_vec(ii), r_vec), 'w:'); % Abel kernel
 ylims = ylim;
 plot([u0,u0],ylims,'k'); % add u0 to plot
 hold off;
@@ -60,8 +60,8 @@ l.Title.Visible = 'on';
 
 %-- Case studies / phantoms for dn/dr ------------------------------%
 % x = normpdf(aso.re,0,0.3); % gaussian
-% x = (1+1.2) .* normpdf(aso.re,0,0.25) - 1.2.*normpdf(aso.re,0,0.15); % gaussian with central dip
-x = double(aso.re<0.35); % cylinder
+x = (1+1.2) .* normpdf(aso.re,0,0.25) - 1.2.*normpdf(aso.re,0,0.15); % gaussian with central dip
+% x = double(aso.re<0.35); % cylinder
 % x = 1-aso.re; % cone
 % x = double(and(aso.re<0.35,aso.re>0.33)); % ring
 % x = sqrt(max(0.7.^2 - aso.re.^2, 0)); % half circle

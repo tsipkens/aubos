@@ -36,9 +36,9 @@ switch order
         E2 = sparse(1:m-1,2:m,1,m,m);
         D2 = E2-I2;
 
-        Lpr0 = kron(I2,D1)+kron(D2,I1);
+        Lpr0 = kron(I2,D1) + kron(D2,I1);
         
-        Lpr0 = Lpr0-spdiags(sum(Lpr0,2),0,x_length,x_length);
+        Lpr0 = Lpr0 - spdiags(sum(Lpr0,2),0,x_length,x_length);
         Lpr0(end,:) = [];
         
     case 2 % 2nd order Tikhonov
@@ -51,8 +51,12 @@ switch order
         E2 = sparse(1:m-1,2:m,1,m,m);
         D2 = E2+E2'-I2;
 
-        Lpr0 = kron(I2,D1)+kron(D2,I1);
-        Lpr0 = Lpr0-spdiags(sum(Lpr0,2),0,x_length,x_length);
+        Lpr0 = kron(I2,D1) + kron(D2,I1);
+        Lpr0 = Lpr0 - spdiags(sum(Lpr0,2),0,x_length,x_length);
+        
+        % i0 = [(0:n:(x_length-n))+1, (n:n:x_length)];
+        % Li = sparse(i0, i0, ones(size(i0)), x_length, x_length);
+        % Lpr0 = Lpr0 - Li;
         
     otherwise
         disp('The specified order of Tikhonov is not available.');

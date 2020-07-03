@@ -91,118 +91,154 @@ classdef Aso2
             vju = aso.ve(2:end);
             
             % functions for indefinite integral
-            Kb = @(mu,u0,r) log(r + sqrt(r.^2 - u0.^2 ./ (1+mu.^2)));
-            Kc = @(mu,u0,r1,r2,r3) 1 ./ (r2 - r1) .* (Kb(mu,u0,r3));
-            K1 = @(mu,r1,r2,r3,r4) r4 .* (r4 - r3) ./ (r2 - r1) .* ...
-                 (mu .* sqrt(1+mu.^2));
+            A = @(mu,u0,rv,rvu,r3) 1 ./ (rvu - rv) .* ...
+                log(abs(r3 + sqrt(r3.^2 - u0.^2 ./ (1+mu.^2))));
+            Ad = @(mu,rvd,rv,r1,r2) (r2 - r1) ./ (rv - rvd) ...
+                .* mu .* sqrt(1 + mu.^2);
             
-             
+            
             N_beams = max([length(mu), length(u0), ...
                 length(mv), length(v0)]); % any of the values could be scalar, so take max
             K = spalloc(N_beams, aso.Nv * (aso.Nr + 1), ...
-                round(0.05 * N_beams * aso.Nv * (aso.Nr + 1)));
-                % initialize K, assume 5% full
+                round(1e-4 * N_beams * aso.Nv * (aso.Nr + 1)));
+                % initialize K, assume 0.5% full
             
             
             disp('Looping through axial slices...');
             tools.textbar(0);
             for ii=1:(length(aso.ve)-1) % loop through and append axial slices
                 
-                % Find radial intersection with axial elements.
-                % This could be a bound for either term of the integrand.
-                rv = sqrt(1 ./ (1+mu.^2) .* ...
-                    ((1+mu.^2) ./ mv .* (vj(ii) - v0) + mu.*u0) .^ 2 + ...
-                    u0.^2); % lower edge
-                rvu = sqrt(1 ./ (1+mu.^2) .* ...
-                    ((1+mu.^2) ./ mv .* (vju(ii) - v0) + mu.*u0) .^ 2 + ...
-                    u0.^2); % upper edge
-                
-                
                 % Find z intersection with axial elements.
                 % This is used to determine whether to involve front of back
                 % portion of integral.
-                zv  = (vj(ii) - v0) ./ abs(mv);
-                zvu = (vju(ii) - v0) ./ abs(mv);
-                fv  = zv <= (abs(mu) .* u0); % flags if intersect is in first integrand
-                fvu = zvu < (abs(mu) .* u0); % flags if intersect (upper) is in first integrand
+                zv  = (vj(ii) - v0) ./ mv;
+                zvu = (vju(ii) - v0) ./ mv;
+                
+                % flag if ray intersects elements at all
+                f0 = or(or(or(and(zv > -aso.R, zv < aso.R), ... % if zv is in the bounds
+                    and(zvu > -aso.R, zvu < aso.R)), ... % if zvu is in the bounds
+                    and(zvu > 0, zv < 0)), ...
+                    and(zvu < 0, zv > 0)); % if there is a change of sign
+                idx_a = 1:length(f0);
+                idx_a = idx_a(f0); % indices of rays that intersect element
                 
                 
-                % modified element width
+                
+                % Find radial intersection with axial elements.
+                % This will be a strictly positive number.
+                % This could be a bound for either term of the integrand.
+                rv = sqrt(1 ./ (1+mu(idx_a).^2) .* ...
+                    ((1+mu(idx_a).^2) ./ mv(idx_a) .* ...
+                    (vj(ii) - v0(idx_a)) + mu(idx_a).*u0(idx_a)) .^ 2 + ...
+                    u0(idx_a).^2); % lower edge
+                rvu = sqrt(1 ./ (1+mu(idx_a).^2) .* ...
+                    ((1+mu(idx_a).^2) ./ mv(idx_a) .* ...
+                    (vju(ii) - v0(idx_a)) + mu(idx_a).*u0(idx_a)) .^ 2 + ...
+                    u0(idx_a).^2); % upper edge
+                
+                
+                
+                %== FIRST INTEGRAND ======================================%
+                % flag where intersect occurs
+                fv  = zv(idx_a)  < (-mu(idx_a) .* u0(idx_a) ...
+                    ./ (1 + mu(idx_a).^2)); % flags if intersect is in first integrand
+                fvu = zvu(idx_a) < (-mu(idx_a) .* u0(idx_a) ...
+                    ./ (1 + mu(idx_a).^2)); % flags if upper intersect is in first integrand
+                
+                % reverse if slope is negative (i.e. rvu is encountered first)
+                r1 = rv; r1(mv(idx_a)<0) = rvu(mv(idx_a)<0);
+                r2 = rvu; r2(mv(idx_a)<0) = rv(mv(idx_a)<0);
+                f1 = fv; f1(mv(idx_a)<0) = fvu(mv(idx_a)<0);
+                f2 = fvu; f2(mv(idx_a)<0) = fv(mv(idx_a)<0);
+                
+                % modified element widths
                 % (adjusted for intersections with axial elements)
-                rjd = rjd0 .* ones(size(rv));
-                rjd(:,fv) = min(rv(fv), rjd(:,fv)); % adjust for lower axial bound
-                rjd(:,fvu) = max(rvu(fvu), rjd(:,fvu)); % adjust for upper axial bound
+                rjd = rjd0 .* ones(size(rv)); % repeat for relevant rv elements
+                rjd(:,f1) = min(r1(f1), rjd(:,f1)); % adjust for lower axial bound
+                rjd(:,f2) = max(r2(f2), rjd(:,f2)); % adjust for upper axial bound
                 
                 rj = rj0 .* ones(size(rv));
-                rj(:,fv) = min(rv(fv), rj(:,fv));
-                rj(:,fvu) = max(rvu(fvu), rj(:,fvu));
+                rj(:,f1) = min(r1(f1), rj(:,f1));
+                rj(:,f2) = max(r2(f2), rj(:,f2));
                 
                 rju = rju0 .* ones(size(rv));
-                rju(:,fv) = min(rv(fv), rju(:,fv));
-                rju(:,fvu) = max(rvu(fvu), rju(:,fvu));
+                rju(:,f1) = min(r1(f1), rju(:,f1));
+                rju(:,f2) = max(r2(f2), rju(:,f2));
                 
                 % evaluate lower kernel
-                Kd = real(u0 .* ( ... % real(.) removes values outside integral bounds
+                K1 = (u0(idx_a) .* ( ... % real(.) removes values outside integral bounds
                     or(fv,fvu) .* ([ ...
                      zeros(1,size(rj,2)); ...
-                     Kc(mu,u0,rjd0,rj0,rj) - ...
-                     Kc(mu,u0,rjd0,rj0,rjd) + ...
-                     K1(mu,rjd0,rj0,rjd,rj); ... % integral over rise
-                     Kc(mu,u0,rj0(end,:),rju0(end,:),rju(end,:)) - ...
-                     Kc(mu,u0,rj0(end,:),rju0(end,:),rj(end,:)) + ...
-                     K1(mu,rj0(end,:),rju0(end,:),rj(end,:),rju(end,:)) ... % incline, last element
+                     A(mu(idx_a),u0(idx_a),rjd0,rj0,rj) - ...
+                     A(mu(idx_a),u0(idx_a),rjd0,rj0,rjd) + ... % integral over rise
+                     Ad(mu(idx_a),rjd0,rj0,rjd,rj); ... % added component of integrand
+                     A(mu(idx_a),u0(idx_a),rj0(end,:),rju0(end,:),rju(end,:)) - ...
+                     A(mu(idx_a),u0(idx_a),rj0(end,:),rju0(end,:),rj(end,:)) + ...
+                     Ad(mu(idx_a),rj0(end,:),rju0(end,:),rj(end,:),rju(end,:)) ... % incline, last element
                     ] + [
-                     Kc(mu,u0,rj0(1,:),rjd0(1,:),rj(1,:)) - ...
-                     Kc(mu,u0,rj0(1,:),rjd0(1,:),rjd(1,:)) + ...
-                     K1(mu,rj0(1,:),rjd0(1,:),rj(1,:),rjd(1,:)); ... % decline, first element
-                     Kc(mu,u0,rju0,rj0,rju) - ...
-                     Kc(mu,u0,rju0,rj0,rj) + ...
-                     K1(mu,rju0,rj0,rju,rj); ... % integral over decline
+                     A(mu(idx_a),u0(idx_a),rj0(1,:),rjd0(1,:),rj(1,:)) - ...
+                     A(mu(idx_a),u0(idx_a),rj0(1,:),rjd0(1,:),rjd(1,:)) - ...
+                     Ad(mu(idx_a),rj0(1,:),rjd0(1,:),rj(1,:),rjd(1,:)); ...
+                     A(mu(idx_a),u0(idx_a),rju0,rj0,rju) - ...
+                     A(mu(idx_a),u0(idx_a),rju0,rj0,rj) - ...
+                     Ad(mu(idx_a),rju0,rj0,rju,rj); ... % integral over decline
                      zeros(1,size(rj,2))
                     ])))';
                 
+                
+                
+                %== SECOND INTEGRAND =====================================%
+                % flag where intersect occurs
+                fv  = ~fv; % flags if intersect is in first integrand
+                fvu = ~fvu; % flags if upper intersect is in first integrand
+                
+                % reverse if slope is negative (i.e. rvu is encountered first)
+                r1 = rvu; r1(mv(idx_a)<0) = rv(mv(idx_a)<0);
+                r2 = rv; r2(mv(idx_a)<0) = rvu(mv(idx_a)<0);
+                f1 = fvu; f1(mv(idx_a)<0) = fv(mv(idx_a)<0);
+                f2 = fv; f2(mv(idx_a)<0) = fvu(mv(idx_a)<0);
                 
                 % modified element width
                 % (adjusted for intersections with axial elements)
-                rjd = rjd0 .* ones(size(rv));
-                rjd(:,~fv) = max(rv(~fv), rjd(:,~fv)); % adjust for lower axial bound
-                rjd(:,~fvu) = min(rvu(~fvu), rjd(:,~fvu)); % adjust for upper axial bound
+                rjd = rjd0 .* ones(size(rv)); % repeat for relevant rv elements
+                rjd(:,f1) = min(r1(f1), rjd(:,f1)); % adjust for lower axial bound
+                rjd(:,f2) = max(r2(f2), rjd(:,f2)); % adjust for upper axial bound
                 
                 rj = rj0 .* ones(size(rv));
-                rj(:,~fv) = max(rv(~fv), rj(:,~fv));
-                rj(:,~fvu) = min(rvu(~fvu), rj(:,~fvu));
+                rj(:,f1) = min(r1(f1), rj(:,f1));
+                rj(:,f2) = max(r2(f2), rj(:,f2));
                 
                 rju = rju0 .* ones(size(rv));
-                rju(:,~fv) = max(rv(~fv), rju(:,~fv));
-                rju(:,~fvu) = min(rvu(~fvu), rju(:,~fvu));
+                rju(:,f1) = min(r1(f1), rju(:,f1));
+                rju(:,f2) = max(r2(f2), rju(:,f2));
                 
-                % evaluate upper kernel
-                Ku = real(u0 .* ( ... % real(.) removes values outside integral bounds
-                    or(~fv,~fvu) .* ([ ...
+                % evaluate second integrand
+                K2 = (u0(idx_a) .* ( ... % real(.) removes values outside integral bounds
+                    or(fv,fvu) .* ([ ...
                      zeros(1,size(rj,2)); ...
-                     Kc(mu,u0,rjd0,rj0,rj) - ...
-                     Kc(mu,u0,rjd0,rj0,rjd) - ...
-                     K1(mu,rjd0,rj0,rjd,rj); ... % integral over rise
-                     Kc(mu,u0,rj0(end,:),rju0(end,:),rju(end,:)) - ...
-                     Kc(mu,u0,rj0(end,:),rju0(end,:),rj(end,:)) - ...
-                     K1(mu,rj0(end,:),rju0(end,:),rj(end,:),rju(end,:)) ... % incline, last element
+                     A(mu(idx_a),u0(idx_a),rjd0,rj0,rj) - ...
+                     A(mu(idx_a),u0(idx_a),rjd0,rj0,rjd) - ... % integral over rise
+                     Ad(mu(idx_a),rjd0,rj0,rjd,rj); ... % added component of integrand
+                     A(mu(idx_a),u0(idx_a),rj0(end,:),rju0(end,:),rju(end,:)) - ...
+                     A(mu(idx_a),u0(idx_a),rj0(end,:),rju0(end,:),rj(end,:)) - ...
+                     Ad(mu(idx_a),rj0(end,:),rju0(end,:),rj(end,:),rju(end,:)) ... % incline, last element
                     ] + [
-                     Kc(mu,u0,rj0(1,:),rjd0(1,:),rj(1,:)) - ...
-                     Kc(mu,u0,rj0(1,:),rjd0(1,:),rjd(1,:)) - ...
-                     K1(mu,rj0(1,:),rjd0(1,:),rj(1,:),rjd(1,:)); ... % decline, first element
-                     Kc(mu,u0,rju0,rj0,rju) - ...
-                     Kc(mu,u0,rju0,rj0,rj) - ...
-                     K1(mu,rju0,rj0,rju,rj); ... % integral over decline
+                     A(mu(idx_a),u0(idx_a),rj0(1,:),rjd0(1,:),rj(1,:)) - ...
+                     A(mu(idx_a),u0(idx_a),rj0(1,:),rjd0(1,:),rjd(1,:)) + ...
+                     Ad(mu(idx_a),rj0(1,:),rjd0(1,:),rj(1,:),rjd(1,:)); ...
+                     A(mu(idx_a),u0(idx_a),rju0,rj0,rju) - ...
+                     A(mu(idx_a),u0(idx_a),rju0,rj0,rj) + ...
+                     Ad(mu(idx_a),rju0,rj0,rju,rj); ... % integral over decline
                      zeros(1,size(rj,2))
                     ])))';
                 
                 
-                K0 = Kd + Ku;
+                K0 = K1 + K2;
                 K0(isnan(K0)) = 0; % remove NaN values that result when modified element width is zero
                 K0(abs(K0)<100*eps) = 0; % remove numerical noise
                 K0 = sparse(K0);
                 
-                K(:, ((ii-1)*(aso.Nr+1)+1):(ii*(aso.Nr+1))) = K0;
+                K(idx_a, ((ii-1)*(aso.Nr+1)+1):(ii*(aso.Nr+1))) = K0;
                 
                 tools.textbar(ii/(length(aso.ve)-1));
             end
@@ -218,7 +254,9 @@ classdef Aso2
         function [h,x0,y0,z0] = surf(aso,x,f_grid)
             
             if ~exist('f_grid','var'); f_grid = []; end
-            if isempty(f_grid); f_grid = 1; end
+            if isempty(f_grid)
+                if x>1e3; f_grid = 1; else; f_grid = 0; end
+            end
             
             [iv,ir] = meshgrid(1:aso.Nv, 1:(aso.Nr+1));
             
@@ -261,7 +299,7 @@ classdef Aso2
             [h,x0,y0,z0] = aso.surf(x,f_grid); % generate surface plot
             
             y1 = linspace(-aso.R, aso.R, 150);
-            x1 = (mv').*y1 + v0';
+            x1 = (mv(1:10:end)').*y1 + v0(1:10:end)';
             
             y1 = y1.*ones(size(x1)); % if necessary, will out y1 to have correct dimension
             
