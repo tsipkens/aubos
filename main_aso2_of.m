@@ -18,7 +18,7 @@ disp('Reading and transforming image...');
 Iref = imread('data/bgs/dots.png');
 % Iref = imread('data/bgs/sines5.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = imresize(Iref, 0.2); % reduce image size for test
+Iref = imresize(Iref, 0.05); % reduce image size for test
 Iref = max(Iref, 1);
 
 
@@ -68,8 +68,9 @@ Nx2 = size(x2);
 %== OPTION 2: Define a 2D ASO from scratch. ==============================%
 [ve, re] = meshgrid(aso2.ve(1:(end-1)), aso2.re);
 
-x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
-% x2 = normpdf(re, 0, 0.3); % uniform Gaussian
+% x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
+% x2 = normpdf(re, 0, 0.2); % uniform Gaussian
+x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
 
 x2 = x2(:);
 %}
@@ -89,13 +90,13 @@ v0_vec = linspace(0, V, nv);
 [u0_vec2, v0_vec2] = ndgrid(u0_vec, v0_vec); % meshgrid to generate image dims.
 u0_vec2 = u0_vec2(:)'; v0_vec2 = v0_vec2(:)'; % must be row vectors
 
-% cam.u = 0;
-% cam.v = 3;
-% cam.z = 2;
+cam.u = 0;
+cam.v = 4;
+cam.z = 20;
 
-cam.u = 0.5;
-cam.v = 4.;
-cam.z = 1.2;
+% cam.u = 0.5;
+% cam.v = 4.;
+% cam.z = 1.2;
 
 mu_vec = (u0_vec2 - cam.u) ./ cam.z;
 mv_vec = (v0_vec2 - cam.v) ./ cam.z;
@@ -127,7 +128,8 @@ imagesc(v0_vec, u0_vec, yl2);
 colormap(cmc);
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
-
+axis image;
+ylim([-1,1]);
 
 
 %%
