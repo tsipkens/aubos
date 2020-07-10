@@ -8,17 +8,20 @@ addpath('cmap');
 cmi = load_cmap('inferno',5e3);
 cmo = load_cmap('ocean',255);
 cmh = load_cmap('haline',255);
-cmc = load_cmap('PiYG',255);
+cmc = load_cmap('curl',255);
+cmb = load_cmap('balance',255);
 
 
 
 %%
 % Read in a background.
 disp('Reading and transforming image...');
-Iref = imread('data/bgs/dots.png');
-% Iref = imread('data/bgs/sines5.png')';
+% Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :);
+Iref = imread('data/bgs/sines5.png')';
+Iref = imread('data/bgs/sines.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = imresize(Iref, 0.05); % reduce image size for test
+Iref = imresize(Iref, [249,352]); % reduce image size for test
+    % [249,352] -> 0.05
 Iref = max(Iref, 1);
 
 
@@ -36,32 +39,15 @@ disp(' ');
 
 R = 1;
 Nr = min(round(size(Iref,1) .* 1.2),400);
-V = 8;
+% V = 8;
+V = 4;
 Nv = min(round(size(Iref,2) .* 1.2), 300);
 aso2 = Aso2(R,Nr,V,Nv);
 
 
 
 
-%{
-%== OPTION 1: Define a radial ASO and convolve with axial dependence. ====%
-% Radial ASOs, with an axial component
-x = normpdf(aso.re,0,0.35); % gaussian
-% x = normpdf(aso.re,0,0.35) - 0.6.*normpdf(aso.re,0,0.25); % gaussian with central dip
-% x = double(aso.re<0.35); % cylinder
-% x = 1-aso.re; % cone
-% x = sqrt(max(0.7.^2 - aso.re.^2, 0)); % half circle
 
-% Add an axial component
-% fun_v = normpdf(aso2.ve,5,1.5) ./ normpdf(5,5,1.5); % Gaussian in middle
-% fun_v = normpdf(aso2.ve,0,3) ./ normpdf(0,0,3); % Gaussian centered at inlet
-fun_v = ones(size(aso2.ve)); % uniform
-x2 = [];
-for ii=1:Nv
-    x2 = [x2; x .* fun_v(ii)];
-end
-Nx2 = size(x2);
-%}
 
 
 %-{
@@ -70,7 +56,8 @@ Nx2 = size(x2);
 
 % x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % x2 = normpdf(re, 0, 0.2); % uniform Gaussian
-x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
+% x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
+x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 2 above
 
 x2 = x2(:);
 %}
@@ -90,13 +77,17 @@ v0_vec = linspace(0, V, nv);
 [u0_vec2, v0_vec2] = ndgrid(u0_vec, v0_vec); % meshgrid to generate image dims.
 u0_vec2 = u0_vec2(:)'; v0_vec2 = v0_vec2(:)'; % must be row vectors
 
-cam.u = 0;
-cam.v = 4;
-cam.z = 20;
-
 % cam.u = 0.5;
-% cam.v = 4.;
-% cam.z = 1.2;
+% cam.v = 3.5; % 7.5;
+% cam.z = 1.9;
+
+% cam.u = 0;
+% cam.v = 2; % 4;
+% cam.z = 20;
+
+cam.u = 0.5;
+cam.v = 2; % 4.;
+cam.z = 1.2;
 
 mu_vec = (u0_vec2 - cam.u) ./ cam.z;
 mv_vec = (v0_vec2 - cam.v) ./ cam.z;
@@ -105,6 +96,7 @@ figure(3);
 aso2.surf(x2);
 % aso2.srays(x2, mv_vec, v0_vec2);
 colormap(cmo);
+axis image;
 
 
 
@@ -129,11 +121,12 @@ colormap(cmc);
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
 axis image;
-ylim([-1,1]);
+set(gca,'YDir','normal');
+ylim([-2,2]);
 
 
 %%
-%{
+%-{
 % Optical flow operator.
 % O = of.gen1(size(Iref)); % differential operator for image
 % U = O * Iref(:); % differential operator applied to image
@@ -164,6 +157,7 @@ colormap(cmc);
 It_max = max(max(abs(It0)));
 caxis([-It_max, It_max]);
 axis image;
+set(gca,'YDir','normal');
 %}
 
 

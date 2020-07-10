@@ -288,6 +288,47 @@ classdef Aso2
         
         
         
+        %== PLOT =========================================================%
+        %   Plot the axis-symmetric object as a surface. 
+        %   Timothy Sipkens, 2020-06-09
+        function [h,x0,y0,z0] = plot(aso,x,f_grid)
+            
+            if ~exist('f_grid','var'); f_grid = []; end
+            if isempty(f_grid)
+                if x>1e3; f_grid = 1; else; f_grid = 0; end
+            end
+            
+            [iv,ir] = meshgrid(1:aso.Nv, 1:(aso.Nr+1));
+            
+            x1 = aso.ve(iv);
+            y1 = aso.re(ir);
+            
+            x0 = [flipud(x1);  x1(2:end,:)]; % plot axial positions
+            y0 = [-flipud(y1); y1(2:end,:)]; % plot radii
+            
+            z1 = reshape(x, [aso.Nr+1, aso.Nv]);
+            z0 = [flipud(z1); z1(2:end,:)];
+            
+            h = imagesc(x0(1,:),y0(:,1),z0);
+            axis image;
+            set(gca,'YDir','normal');
+            
+            if f_grid % overlay element grid
+                hold on;
+                plot(x0, y0, 'k');
+                plot(x0, y0, 'k');
+                hold off;
+            end
+            
+            xlabel('Axial, v');
+            ylabel('Radial, r');
+            
+            if nargout==0; clear h; end % suppress output if none required
+            
+        end
+        
+        
+        
         %== SRAYS ========================================================%
         %   Plot aso as a surface, with rays overlaid.
         %   Timothy Sipkens, 2020-06-09
