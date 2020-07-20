@@ -56,8 +56,8 @@ aso2 = Aso2(R,Nr,V,Nv);
 
 % x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % x2 = normpdf(re, 0, 0.2); % uniform Gaussian
-% x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
-x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 2 above
+x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
+% x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
 x2 = x2(:);
 %}
@@ -78,16 +78,16 @@ v0_vec = linspace(0, V, nv);
 u0_vec2 = u0_vec2(:)'; v0_vec2 = v0_vec2(:)'; % must be row vectors
 
 % cam.u = 0.5;
-% cam.v = 3.5; % 7.5;
+% cam.v = 7.5; % 3.5; % 7.5;
 % cam.z = 1.9;
 
-% cam.u = 0;
-% cam.v = 2; % 4;
-% cam.z = 20;
+cam.u = 0;
+cam.v = 2; % 2; % 4;
+cam.z = 20;
 
-cam.u = 0.5;
-cam.v = 2; % 4.;
-cam.z = 1.2;
+% cam.u = 0.5;
+% cam.v = 2; % 2; % 4.;
+% cam.z = 1.2;
 
 mu_vec = (u0_vec2 - cam.u) ./ cam.z;
 mv_vec = (v0_vec2 - cam.v) ./ cam.z;
