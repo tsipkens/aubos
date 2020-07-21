@@ -18,7 +18,7 @@ cmb = load_cmap('balance',255);
 disp('Reading and transforming image...');
 % Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :);
 Iref = imread('data/bgs/sines5.png')';
-Iref = imread('data/bgs/sines.png')';
+% Iref = imread('data/bgs/sines.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
 Iref = imresize(Iref, [249,352]); % reduce image size for test
     % [249,352] -> 0.05
@@ -56,8 +56,8 @@ aso2 = Aso2(R,Nr,V,Nv);
 
 % x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % x2 = normpdf(re, 0, 0.2); % uniform Gaussian
-x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
-% x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
+% x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
+x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
 x2 = x2(:);
 %}
@@ -81,13 +81,13 @@ u0_vec2 = u0_vec2(:)'; v0_vec2 = v0_vec2(:)'; % must be row vectors
 % cam.v = 7.5; % 3.5; % 7.5;
 % cam.z = 1.9;
 
-cam.u = 0;
-cam.v = 2; % 2; % 4;
-cam.z = 20;
+% cam.u = 0;
+% cam.v = 2; % 2; % 4;
+% cam.z = 20;
 
-% cam.u = 0.5;
-% cam.v = 2; % 2; % 4.;
-% cam.z = 1.2;
+cam.u = 0.5;
+cam.v = 2; % 2; % 4.;
+cam.z = 1.2;
 
 mu_vec = (u0_vec2 - cam.u) ./ cam.z;
 mv_vec = (v0_vec2 - cam.v) ./ cam.z;
@@ -106,19 +106,30 @@ axis image;
 yl2 = [];
 Kl2 = [];
 disp('Processing rays...');
-Kl2 = aso2.linear(mu_vec, u0_vec2, mv_vec, v0_vec2);
+[Kl2, Kv2] = aso2.linear(mu_vec, u0_vec2, mv_vec, v0_vec2);
 disp('Complete.');
 disp(' ');
 
 yl2 = Kl2 * x2; % yl2 is vertical deflections in image coordinate system
 yl2 = reshape(yl2, [length(u0_vec), length(v0_vec)]);
 
+yv2 = Kv2 * x2;
+yv2 = reshape(yv2, [length(u0_vec), length(v0_vec)]);
 
 
 figure(7);
 imagesc(v0_vec, u0_vec, yl2);
 colormap(cmc);
 y_max = max(max(abs(yl2)));
+caxis([-y_max, y_max]);
+axis image;
+set(gca,'YDir','normal');
+ylim([-2,2]);
+
+figure(17);
+imagesc(v0_vec, u0_vec, yv2);
+colormap(cmc);
+y_max = max(max(abs(yv2)));
 caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
@@ -153,7 +164,7 @@ Idef = Iref + It0;
 
 figure(8);
 imagesc(It0);
-colormap(cmc);
+colormap(cmb);
 It_max = max(max(abs(It0)));
 caxis([-It_max, It_max]);
 axis image;
