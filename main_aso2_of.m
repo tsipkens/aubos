@@ -38,10 +38,10 @@ disp(' ');
 
 
 R = 1;
-Nr = min(round(size(Iref,1) .* 1.2),400);
+Nr = min(round(size(Iref,1) .* 1.2), 250);
 % V = 8;
 V = 4;
-Nv = min(round(size(Iref,2) .* 1.2), 300);
+Nv = min(round(size(Iref,2) .* 1.2), 400);
 aso2 = Aso2(R,Nr,V,Nv);
 
 
@@ -142,8 +142,9 @@ ylim([-2,2]);
 % O = of.gen1(size(Iref)); % differential operator for image
 % U = O * Iref(:); % differential operator applied to image
 
-[~,U] = gradient(Iref);
+[V,U] = gradient(Iref);
 U = U(:);
+V = V(:);
 
 figure(2);
 imagesc(reshape(U, size(Iref)));
@@ -154,6 +155,8 @@ C0 = 2e-4;
 A = -C0 .* (U .* Kl2); % compile unified operator
     % .* avoids creating diagonal matrix from O * Iref(:)
 
+A = -C0 .* (U .* Kl2 + V .* Kv2); % compile unified operator
+    % .* avoids creating diagonal matrix from O * Iref(:)
 
 
 %%

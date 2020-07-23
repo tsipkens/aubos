@@ -1,9 +1,9 @@
 
-% FUN_ABEL  Simple function representing the forward Abel transform.
+% K_ABEL  Simple function representing the forward Abel transform.
 % Timothy Sipkens, 2020-06-11
 %=========================================================================%
 
-function f = fun_abel(u0,r)
+function f = K_abel(u0,r)
 
 r(r<u0) = NaN; % blank out irrelevant radii for u0
 
