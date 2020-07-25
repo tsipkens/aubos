@@ -9,7 +9,7 @@ cmi = inferno(5e3);
 cmo = ocean(255);
 cmh = haline(255);
 cmc = curl(255);
-cmb = balance(255);
+cmb = balanced(255);
 
 
 
