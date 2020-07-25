@@ -39,8 +39,8 @@ disp(' ');
 
 R = 1;
 Nr = min(round(size(Iref,1) .* 1.2), 250);
-% V = 8;
-V = 4;
+V = 8;
+% V = 4;
 Nv = min(round(size(Iref,2) .* 1.2), 400);
 aso2 = Aso2(R,Nr,V,Nv);
 
@@ -56,8 +56,8 @@ aso2 = Aso2(R,Nr,V,Nv);
 
 % x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % x2 = normpdf(re, 0, 0.2); % uniform Gaussian
-% x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
-x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
+x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
+% x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
 x2 = x2(:);
 %}
@@ -81,13 +81,13 @@ u0_vec2 = u0_vec2(:)'; v0_vec2 = v0_vec2(:)'; % must be row vectors
 % cam.v = 7.5; % 3.5; % 7.5;
 % cam.z = 1.9;
 
-% cam.u = 0;
-% cam.v = 2; % 2; % 4;
-% cam.z = 20;
+cam.u = 0;
+cam.v = 4; % 2; % 4;
+cam.z = 20;
 
-cam.u = 0.5;
-cam.v = 2; % 2; % 4.;
-cam.z = 1.2;
+% cam.u = 0.5;
+% cam.v = 2; % 2; % 4.;
+% cam.z = 1.2;
 
 mu_vec = (u0_vec2 - cam.u) ./ cam.z;
 mv_vec = (v0_vec2 - cam.v) ./ cam.z;
@@ -177,12 +177,12 @@ set(gca,'YDir','normal');
 
 
 %%
-%{
+%-{
 disp('Computing inverses...');
 
 % Sample inverse 
 rng(1);
-noise_level = 1e-5;
+noise_level = 1e-3;
 e_ref = noise_level .* sqrt(Idef) .* randn(size(Idef));
 e_def = noise_level .* sqrt(Idef) .* randn(size(Idef));
 Lb = spdiags((Idef(:) + Iref(:)) .* noise_level.^2, ...
@@ -191,7 +191,6 @@ It = (Idef + e_def) - (Iref + e_ref);
 
 
 idx_nmissed = ~(sum(A,1)==0);
-A1 = A(:, idx_nmissed);
 It1 = It(:);
 
 %{
@@ -216,15 +215,17 @@ view([0,90]);
 %}
 
 
-L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A1,2));
-A_tk2 = [Lb*A1; 1e-8 .* L_tk2];
-n1_tk2 = (A_tk2' * A_tk2) \ ...
-    (A_tk2' * [Lb * It1; zeros(size(A1,2),1)]);
-n_tk2 = zeros(size(x2));
-n_tk2(idx_nmissed) = n1_tk2;
+L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
+A_tk2 = [Lb*A; 1e-8.*L_tk2];
+n_tk2 = (A_tk2' * A_tk2) \ ...
+    (A_tk2' * [Lb * It1; zeros(size(A,2),1)]);
 
 disp('Complete.');
 disp(' ');
+
+
+figure(14);
+imagesc(It);
 
 
 
