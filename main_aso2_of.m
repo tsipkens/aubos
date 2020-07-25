@@ -5,11 +5,11 @@ close all;
 
 
 addpath('cmap');
-cmi = load_cmap('inferno',5e3);
-cmo = load_cmap('ocean',255);
-cmh = load_cmap('haline',255);
-cmc = load_cmap('curl',255);
-cmb = load_cmap('balance',255);
+cmi = inferno(5e3);
+cmo = ocean(255);
+cmh = haline(255);
+cmc = curl(255);
+cmb = balance(255);
 
 
 
@@ -182,16 +182,22 @@ disp('Computing inverses...');
 
 % Sample inverse 
 rng(1);
-noise_level = 1e-3;
+noise_level = 1e-4;
 e_ref = noise_level .* sqrt(Idef) .* randn(size(Idef));
 e_def = noise_level .* sqrt(Idef) .* randn(size(Idef));
 Lb = spdiags((Idef(:) + Iref(:)) .* noise_level.^2, ...
     0, numel(Idef), numel(Idef)); % data covariance
 It = (Idef + e_def) - (Iref + e_ref);
+b = It(:);
 
 
-idx_nmissed = ~(sum(A,1)==0);
-It1 = It(:);
+figure(14);
+imagesc(It);
+colormap(balance);
+It_max = max(max(abs(It)));
+caxis([-It_max, It_max]);
+
+
 
 %{
 % Least-squares analysis
@@ -216,16 +222,12 @@ view([0,90]);
 
 
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
-A_tk2 = [Lb*A; 1e-8.*L_tk2];
+A_tk2 = [Lb*A; 2e-8.*L_tk2];
 n_tk2 = (A_tk2' * A_tk2) \ ...
-    (A_tk2' * [Lb * It1; zeros(size(A,2),1)]);
+    (A_tk2' * [Lb * b; sparse(zeros(size(A,2),1))]);
 
 disp('Complete.');
 disp(' ');
-
-
-figure(14);
-imagesc(It);
 
 
 
@@ -234,7 +236,7 @@ figure(13);
 
 subplot(2,1,1);
 aso2.surf(n_tk2,0);
-colormap(cmo);
+colormap(ocean);
 colorbar;
 axis image;
 view([0,90]);
@@ -242,7 +244,7 @@ view([0,90]);
 
 subplot(2,1,2);
 aso2.surf(x2,0);
-colormap(cmo);
+colormap(ocean);
 colorbar;
 axis image;
 view([0,90]);
