@@ -39,7 +39,7 @@ disp(' ');
 
 R = 1;
 Nr = min(round(size(Iref,1) .* 1.2), 250);
-V = 8;
+V = 4;
 % V = 4;
 Nv = min(round(size(Iref,2) .* 1.2), 400);
 aso2 = Aso2(R,Nr,V,Nv);
@@ -82,7 +82,7 @@ u0_vec2 = u0_vec2(:)'; v0_vec2 = v0_vec2(:)'; % must be row vectors
 % cam.z = 1.9;
 
 cam.u = 0;
-cam.v = 4; % 2; % 4;
+cam.v = 2; % 2; % 4;
 cam.z = 20;
 
 % cam.u = 0.5;
@@ -182,7 +182,7 @@ disp('Computing inverses...');
 
 % Sample inverse 
 rng(1);
-noise_level = 1e-4;
+noise_level = 1.5e-4;
 e_ref = noise_level .* sqrt(Idef) .* randn(size(Idef));
 e_def = noise_level .* sqrt(Idef) .* randn(size(Idef));
 Lb = spdiags((Idef(:) + Iref(:)) .* noise_level.^2, ...
@@ -193,7 +193,7 @@ b = It(:);
 
 figure(14);
 imagesc(It);
-colormap(balance);
+colormap(balanced);
 It_max = max(max(abs(It)));
 caxis([-It_max, It_max]);
 
@@ -222,7 +222,7 @@ view([0,90]);
 
 
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
-A_tk2 = [Lb*A; 2e-8.*L_tk2];
+A_tk2 = [Lb*A; 1e-7.*L_tk2];
 n_tk2 = (A_tk2' * A_tk2) \ ...
     (A_tk2' * [Lb * b; sparse(zeros(size(A,2),1))]);
 
@@ -232,22 +232,22 @@ disp(' ');
 
 
 figure(13);
-% max_n = max(max(max(n_tk2)), max(max(x2)));
+x_max = max(max(abs([x2, n_tk2])));
 
 subplot(2,1,1);
-aso2.surf(n_tk2,0);
+aso2.plot(n_tk2, 0);
 colormap(ocean);
 colorbar;
 axis image;
 view([0,90]);
-% caxis([0,max_n]);
+caxis([0,x_max]);
 
 subplot(2,1,2);
-aso2.surf(x2,0);
+aso2.plot(x2, 0);
 colormap(ocean);
 colorbar;
 axis image;
 view([0,90]);
-% caxis([0,max_n]);
+caxis([0,x_max]);
 %}
 
