@@ -20,10 +20,11 @@ disp('Reading and transforming image...');
 Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = imresize(Iref, [249,352]); % reduce image size for test
-    % [249,352] -> 0.05
+Iref = tools.gen_bg('sines', [249,352], 5);
 Iref = max(Iref, 1);
 
+Iref = imresize(Iref, [249,352]); % reduce image size for test
+    % [249,352] -> 0.05
 
 figure(1);
 imagesc(Iref);
@@ -222,7 +223,7 @@ view([0,90]);
 
 
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
-A_tk2 = [Lb*A; 1e-7.*L_tk2];
+A_tk2 = [Lb*A; 1e-6.*L_tk2];
 n_tk2 = (A_tk2' * A_tk2) \ ...
     (A_tk2' * [Lb * b; sparse(zeros(size(A,2),1))]);
 
@@ -234,7 +235,7 @@ disp(' ');
 figure(13);
 x_max = max(max(abs([x2, n_tk2])));
 
-subplot(2,1,1);
+subplot(2,1,2);
 aso2.plot(n_tk2, 0);
 colormap(ocean);
 colorbar;
@@ -242,7 +243,7 @@ axis image;
 view([0,90]);
 caxis([0,x_max]);
 
-subplot(2,1,2);
+subplot(2,1,1);
 aso2.plot(x2, 0);
 colormap(ocean);
 colorbar;
