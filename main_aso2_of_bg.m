@@ -13,14 +13,24 @@ cmb = balanced(255);
 
 
 
-%%
+bg_vec = [1, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 9, ...
+    10, 11, 12, 13, 14, 15, 17, 20, 22, 25, 30, 40, 50, 60, 80, ...
+    100, 250, 500, 1e3];
+% bg_vec = logspace(0, 3, 80);
+
+n_tk2_vec = {};
+err = []; n_norm = []; res_norm = []; pr_norm = [];
+
+for jj=1:length(bg_vec)
+
+
 % Read in a background.
 disp('Reading and transforming image...');
 % Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :);
 Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = tools.gen_bg('sines', [249,352], 5);
+Iref = tools.gen_bg('sines', [249,352], bg_vec(jj));
 Iref = max(Iref, 1);
 
 Iref = imresize(Iref, [249,352]); % reduce image size for test
@@ -34,7 +44,7 @@ disp('Complete.');
 disp(' ');
 
 
-%%
+
 
 
 
@@ -102,7 +112,7 @@ axis image;
 
 
 
-%%
+
 
 yl2 = [];
 Kl2 = [];
@@ -137,7 +147,7 @@ set(gca,'YDir','normal');
 ylim([-2,2]);
 
 
-%%
+
 %-{
 % Optical flow operator.
 % O = of.gen1(size(Iref)); % differential operator for image
@@ -160,7 +170,7 @@ A = -C0 .* (U .* Kl2 + V .* Kv2); % compile unified operator
     % .* avoids creating diagonal matrix from O * Iref(:)
 
 
-%%
+
 It0 = A * x2;
 It0 = reshape(It0, size(Iref));
 
@@ -177,7 +187,6 @@ set(gca,'YDir','normal');
 
 
 
-%%
 %-{
 disp('Computing inverses...');
 
@@ -225,20 +234,18 @@ view([0,90]);
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 
 tools.textbar(0);
-n_tk2_vec = {};
-err = []; n_norm = []; res_norm = []; pr_norm = [];
-lambda_vec = logspace(-8, -3, 26);
+lambda_vec = logspace(-8, -3, 26)';
 for ii=1:length(lambda_vec)
     A_tk2 = [Lb*A; lambda_vec(ii).*L_tk2];
     b_tk2 = [Lb*b; sparse(zeros(size(A,2),1))];
     
-    n_tk2_vec{ii} = lsqlin(A_tk2, b_tk2);
+    n_tk2_vec{ii,jj} = lsqlin(A_tk2, b_tk2);
     
-    err(ii) = norm(n_tk2_vec{ii} - x2);
-    n_norm(ii) = norm(n_tk2_vec{ii});
-    res_norm(ii) = norm(Lb*A*n_tk2_vec{ii} - Lb*b);
-    pr_norm(ii) = norm((lambda_vec(ii).*L_tk2) * ...
-    	n_tk2_vec{ii});
+    err(ii,jj) = norm(n_tk2_vec{ii,jj} - x2);
+    n_norm(ii,jj) = norm(n_tk2_vec{ii,jj});
+    res_norm(ii,jj) = norm(Lb*A*n_tk2_vec{ii,jj} - Lb*b);
+    pr_norm(ii,jj) = norm((lambda_vec(ii).*L_tk2) * ...
+    	n_tk2_vec{ii,jj});
     
     tools.textbar(ii ./ length(lambda_vec));
 end
@@ -273,13 +280,14 @@ caxis([0,x_max]);
 
 
 figure(4);
-semilogx(lambda_vec, err, '.-');
+semilogx(lambda_vec, err ./ n_norm, '.-');
 
 figure(5);
 loglog(res_norm, n_norm, '.-');
 
 figure(20);
-loglog(lambda_vec, ...
-    1/2.*log(lambda_vec), '.-');
+loglog(lambda_vec, log(lambda_vec) - res_norm, '.-');
 %}
+end
 
+save('results/bg_opt_2.mat');

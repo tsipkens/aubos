@@ -7,12 +7,16 @@
 %   n           Length of first dimension of solution
 %   x_length    Length of x vector
 %               (only used if a Grid is not specified for n_grid)
+%   A           Model matris
+%               (Only used if GSVD, S1 and S2, is to be computed)
 %
 % Outputs:
 %   Lpr0        Tikhonov matrix
+%   S1          GSVD of A
+%   S2          GSVD of Lpr0
 %=========================================================================%
 
-function Lpr0 = tikhonov_lpr(order,n,x_length)
+function [Lpr0, S1, S2] = tikhonov_lpr(order, n, x_length, A)
 
 if ~exist('order','var'); order = []; end
 if isempty(order); order = 2; end
@@ -63,6 +67,23 @@ switch order
         disp(' ');
         return
 end
+
+
+% compute generalized singular value decomposition (GSVD) of A and Lpr0
+if nargout>1
+    if ~exist('A', 'var')
+        warning('The GSVD cannot be computed if A is not given as an input.');
+        S1 = []; S2 = [];
+        return;
+    end
+    
+    disp('Pre-computing generalized SVD...');
+    [~,~,~,S1,S2] = tools.gsvd(A, Lpr0);
+        % pre-compute gsvd for Bayes factor calculation
+    disp('Complete.');
+    disp(' ');
+end
+
 
 end
 
