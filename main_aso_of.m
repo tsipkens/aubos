@@ -8,11 +8,7 @@ clear;
 close all;
 
 
-addpath('cmap');
-cmi = load_cmap('inferno',5e3);
-cmo = load_cmap('ocean',255);
-cmh = load_cmap('haline',255);
-cmc = load_cmap('curl',255);
+addpath cmap;
 
 
 
@@ -33,7 +29,7 @@ u0_vec = u0 .* ones(nm,1);
 %-- FIG 2: Plot kernel across and range of slopes -----------%
 figure(2);
 clf;
-tools.plotcm(length(m_vec), [], cmi); % set color order
+tools.plotcm(length(m_vec), [], inferno); % set color order
 
 hold on;
 for ii=1:length(m_vec) % loop through scenerios
@@ -70,7 +66,7 @@ x = (1+1.2) .* normpdf(aso.re,0,0.25) - 1.2.*normpdf(aso.re,0,0.15); % gaussian 
 
 figure(3);
 aso.surf(x);
-colormap(cmo);
+colormap(ocean);
 axis off;
 
 
@@ -94,7 +90,7 @@ cam(nc).z = 0; cam(nc).u = 0; % pre-allocate camera structs
 figure(5);
 clf;
 ylabel(['Deflection, ',char(949),'_u']); xlabel('Vertical position, u_0');
-tools.plotcm(nc, [], flipud(cmi)); % set color order
+tools.plotcm(nc, [], flipud(inferno)); % set color order
 hold on;
 
 
@@ -102,7 +98,7 @@ hold on;
 figure(6);
 clf;
 ylabel(['Deflection, ',char(949),'_u']); xlabel('Vertical position, u_0');
-tools.plotcm(nc, [], flipud(cmi)); % set color order
+tools.plotcm(nc, [], flipud(inferno)); % set color order
 hold on;
 
 
@@ -129,17 +125,17 @@ figure(6); hold off;
 m1 = (u0_vec - cam(1).u) ./ cam(1).z; % slopes for first camera location
 figure(3);
 aso.srays(x,m1(1:20:end),u0_vec(1:20:end));
-colormap(cmo);
+colormap(ocean);
 
 m1 = (u0_vec - cam(end).u) ./ cam(end).z; % slopes for first camera location
 figure(4);
 aso.srays(x,m1(1:20:end),u0_vec(1:20:end));
-colormap(cmo);
+colormap(ocean);
 
 
 figure(10);
 aso.surf(x,0);
-tools.plotcm(nc, [], flipud(cmi)); % set color order
+tools.plotcm(nc, [], flipud(inferno)); % set color order
 hold on;
 for ii=1:length(zc_vec)
     plot(zc_vec(ii), uc_vec(ii),'.');
@@ -147,7 +143,7 @@ end
 plot(zc_vec, uc_vec, 'k-');
 hold off;
 view([0,90]);
-colormap(cmo);
+colormap(ocean);
 
 
 
@@ -161,7 +157,7 @@ T_vec = 1 ./ f_vec;
 figure(12);
 hold off;
 plot(aso.re, x, 'k--');
-tools.plotcm(length(f_vec), [], flipud(cmi)); % set color order
+tools.plotcm(length(f_vec), [], flipud(inferno)); % set color order
 
 err = [];
 for ii=1:length(f_vec)

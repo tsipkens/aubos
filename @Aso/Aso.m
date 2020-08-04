@@ -50,7 +50,7 @@ classdef Aso
         %   m       Set of slopes for the rays
         %   u0      Intersect with line through center of aso
         function K = uniform(aso,m,u0)
-            K = kernel.uniform(aso,m,u0);
+            K = kernel.uniform1(aso,m,u0);
         end
         
         
@@ -64,7 +64,7 @@ classdef Aso
         %   m       Set of slopes for the rays
         %   u0      Intersect with line through center of aso
         function K = linear(aso,m,u0)
-            K = kernel.linear(aso,m,u0);
+            K = kernel.linear1(aso,m,u0);
         end
         
         
