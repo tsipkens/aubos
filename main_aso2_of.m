@@ -4,12 +4,7 @@ clear;
 close all;
 
 
-addpath('cmap');
-cmi = inferno(5e3);
-cmo = ocean(255);
-cmh = haline(255);
-cmc = curl(255);
-cmb = balanced(255);
+addpath cmap;
 
 
 
@@ -120,7 +115,7 @@ yv2 = reshape(yv2, [length(u0_vec), length(v0_vec)]);
 
 figure(7);
 imagesc(v0_vec, u0_vec, yl2);
-colormap(cmc);
+colormap(curl(255));
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
 axis image;
@@ -129,7 +124,7 @@ ylim([-2,2]);
 
 figure(17);
 imagesc(v0_vec, u0_vec, yv2);
-colormap(cmc);
+colormap(curl(255));
 y_max = max(max(abs(yv2)));
 caxis([-y_max, y_max]);
 axis image;
@@ -168,7 +163,7 @@ Idef = Iref + It0;
 
 figure(8);
 imagesc(It0);
-colormap(cmb);
+colormap(balanced(255));
 It_max = max(max(abs(It0)));
 caxis([-It_max, It_max]);
 axis image;
@@ -204,7 +199,7 @@ caxis([-It_max, It_max]);
 % Least-squares analysis
 figure(9);
 imagesc(It);
-colormap(cmc);
+colormap(curl(255));
 It_max = max(max(abs(It)));
 caxis([-It_max, It_max]);
 axis image;
@@ -216,7 +211,7 @@ n(idx_nmissed) = n1;
 
 figure(12);
 aso2.surf(n,0);
-colormap(cmo);
+colormap(ocean);
 axis image;
 view([0,90]);
 %}
