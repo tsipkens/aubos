@@ -33,7 +33,6 @@ switch type
         
 end
 
-img = round(img .* 255);
 
 end
 

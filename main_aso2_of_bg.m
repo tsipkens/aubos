@@ -21,7 +21,7 @@ bg_vec = [1, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 9, ...
 n_tk2_vec = {};
 err = []; n_norm = []; res_norm = []; pr_norm = [];
 
-for jj=1:length(bg_vec)
+for jj=length(bg_vec)
 
 
 % Read in a background.
@@ -30,7 +30,7 @@ disp('Reading and transforming image...');
 Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = tools.gen_bg('sines', [249,352], bg_vec(jj));
+Iref = tools.gen_bg('sines', [249,352], bg_vec(jj)) .* 255;
 Iref = max(Iref, 1);
 
 Iref = imresize(Iref, [249,352]); % reduce image size for test
@@ -290,4 +290,7 @@ loglog(lambda_vec, log(lambda_vec) - res_norm, '.-');
 %}
 end
 
-save('results/bg_opt_2.mat');
+save('results/bg_opt_3.mat');
+
+figure(21);
+semilogx(bg_vec, min(err),'.-');

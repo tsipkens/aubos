@@ -15,7 +15,7 @@ disp('Reading and transforming image...');
 Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = tools.gen_bg('sines', [249,352], 5);
+Iref = tools.gen_bg('sines', [249,352], 5)  .* 255;
 Iref = max(Iref, 1);
 
 Iref = imresize(Iref, [249,352]); % reduce image size for test
