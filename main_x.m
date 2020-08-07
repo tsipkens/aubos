@@ -63,12 +63,12 @@ U = U(:);
 A = -C0 .* (U .* Kl2); % compile unified operator
     % .* avoids creating diagonal matrix from O * Iref(:)
 
-b = It(:);
+b = -It(:);
 
 
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 
-A_tk2 = [A; 1e-4 .* L_tk2];
+A_tk2 = [A; 1e-5 .* L_tk2];
 b_tk2 = [b; sparse(zeros(size(A,2),1))];
 
 n_tk2 = lsqlin(A_tk2, b_tk2);

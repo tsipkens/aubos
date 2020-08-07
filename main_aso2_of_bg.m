@@ -21,15 +21,15 @@ bg_vec = [1, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 9, ...
 n_tk2_vec = {};
 err = []; n_norm = []; res_norm = []; pr_norm = [];
 
-for jj=length(bg_vec)
+for jj=1:length(bg_vec)
 
 
 % Read in a background.
 disp('Reading and transforming image...');
 % Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :);
-Iref = imread('data/bgs/sines5.png')';
+% Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
-Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
+% Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
 Iref = tools.gen_bg('sines', [249,352], bg_vec(jj)) .* 255;
 Iref = max(Iref, 1);
 
@@ -195,7 +195,7 @@ rng(1);
 noise_level = 1.5e-4;
 e_ref = noise_level .* sqrt(Idef) .* randn(size(Idef));
 e_def = noise_level .* sqrt(Idef) .* randn(size(Idef));
-Lb = spdiags((Idef(:) + Iref(:)) .* noise_level.^2, ...
+Le = spdiags((Idef(:) + Iref(:)) .* noise_level.^2, ...
     0, numel(Idef), numel(Idef)); % data covariance
 It = (Idef + e_def) - (Iref + e_ref);
 b = It(:);
@@ -236,22 +236,22 @@ L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 tools.textbar(0);
 lambda_vec = logspace(-8, -3, 26)';
 for ii=1:length(lambda_vec)
-    A_tk2 = [Lb*A; lambda_vec(ii).*L_tk2];
-    b_tk2 = [Lb*b; sparse(zeros(size(A,2),1))];
+    A_tk2 = [Le*A; lambda_vec(ii).*L_tk2];
+    b_tk2 = [Le*b; sparse(zeros(size(A,2),1))];
     
     n_tk2_vec{ii,jj} = lsqlin(A_tk2, b_tk2);
     
     err(ii,jj) = norm(n_tk2_vec{ii,jj} - x2);
     n_norm(ii,jj) = norm(n_tk2_vec{ii,jj});
-    res_norm(ii,jj) = norm(Lb*A*n_tk2_vec{ii,jj} - Lb*b);
+    res_norm(ii,jj) = norm(Le*A*n_tk2_vec{ii,jj} - Le*b);
     pr_norm(ii,jj) = norm((lambda_vec(ii).*L_tk2) * ...
     	n_tk2_vec{ii,jj});
     
     tools.textbar(ii ./ length(lambda_vec));
 end
 
-[~, ii_min] = min(err);
-n_tk2 = n_tk2_vec{ii_min};
+[~, ii_min] = min(err(:,jj));
+n_tk2 = n_tk2_vec{ii_min,jj};
 
 disp('Complete.');
 disp(' ');

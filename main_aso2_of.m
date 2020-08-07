@@ -11,11 +11,11 @@ addpath cmap;
 %%
 % Read in a background.
 disp('Reading and transforming image...');
-% Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :);
-Iref = imread('data/bgs/sines5.png')';
+Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :) + 10;
+% Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = tools.gen_bg('sines', [249,352], 5)  .* 255;
+% Iref = tools.gen_bg('sines', [249,352], 5)  .* 255;
 Iref = max(Iref, 1);
 
 Iref = imresize(Iref, [249,352]); % reduce image size for test
@@ -160,6 +160,7 @@ It0 = A * x2;
 It0 = reshape(It0, size(Iref));
 
 Idef = Iref + It0;
+Idef = max(Idef, 0);
 
 figure(8);
 imagesc(It0);
@@ -179,11 +180,10 @@ disp('Computing inverses...');
 % Sample inverse 
 rng(1);
 noise_level = 1.5e-4;
-e_ref = noise_level .* sqrt(Idef) .* randn(size(Idef));
-e_def = noise_level .* sqrt(Idef) .* randn(size(Idef));
-Lb = spdiags((Idef(:) + Iref(:)) .* noise_level.^2, ...
+e_e = noise_level .* (sqrt(Idef) + sqrt(Idef)) .* randn(size(Idef));
+Le = spdiags((Idef(:) + Iref(:)) .* noise_level.^2, ...
     0, numel(Idef), numel(Idef)); % data covariance
-It = (Idef + e_def) - (Iref + e_ref);
+It = Idef - Iref + e_e;
 b = It(:);
 
 
@@ -224,14 +224,14 @@ n_tk2_vec = {};
 err = []; n_norm = []; res_norm = []; pr_norm = [];
 lambda_vec = logspace(-8, -3, 26);
 for ii=1:length(lambda_vec)
-    A_tk2 = [Lb*A; lambda_vec(ii).*L_tk2];
-    b_tk2 = [Lb*b; sparse(zeros(size(A,2),1))];
+    A_tk2 = [Le*A; lambda_vec(ii).*L_tk2];
+    b_tk2 = [Le*b; sparse(zeros(size(A,2),1))];
     
     n_tk2_vec{ii} = lsqlin(A_tk2, b_tk2);
     
     err(ii) = norm(n_tk2_vec{ii} - x2);
     n_norm(ii) = norm(n_tk2_vec{ii});
-    res_norm(ii) = norm(Lb*A*n_tk2_vec{ii} - Lb*b);
+    res_norm(ii) = norm(Le*A*n_tk2_vec{ii} - Le*b);
     pr_norm(ii) = norm((lambda_vec(ii).*L_tk2) * ...
     	n_tk2_vec{ii});
     
