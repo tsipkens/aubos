@@ -63,6 +63,9 @@ U = U(:);
 A = -C0 .* (U .* Kl2); % compile unified operator
     % .* avoids creating diagonal matrix from O * Iref(:)
 
+e_e0 = 
+Le = spdiags(1 ./ e_e0(:), ...
+    0, numel(Idef), numel(Idef)); % data covariance
 b = -It(:);
 
 

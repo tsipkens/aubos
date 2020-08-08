@@ -236,14 +236,14 @@ L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 tools.textbar(0);
 lambda_vec = logspace(-8, -3, 26)';
 for ii=1:length(lambda_vec)
-    A_tk2 = [Le*A; lambda_vec(ii).*L_tk2];
-    b_tk2 = [Le*b; sparse(zeros(size(A,2),1))];
+    A_tk2 = [Lb*A; lambda_vec(ii).*L_tk2];
+    b_tk2 = [Lb*b; sparse(zeros(size(A,2),1))];
     
     n_tk2_vec{ii,jj} = lsqlin(A_tk2, b_tk2);
     
     err(ii,jj) = norm(n_tk2_vec{ii,jj} - x2);
     n_norm(ii,jj) = norm(n_tk2_vec{ii,jj});
-    res_norm(ii,jj) = norm(Le*A*n_tk2_vec{ii,jj} - Le*b);
+    res_norm(ii,jj) = norm(Lb*A*n_tk2_vec{ii,jj} - Lb*b);
     pr_norm(ii,jj) = norm((lambda_vec(ii).*L_tk2) * ...
     	n_tk2_vec{ii,jj});
     

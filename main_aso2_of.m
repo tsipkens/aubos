@@ -15,8 +15,9 @@ Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :) + 10;
 % Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
 Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-% Iref = tools.gen_bg('sines', [249,352], 5)  .* 255;
 Iref = max(Iref, 1);
+
+Iref = tools.gen_bg('sines', [249,352], 5)  .* 255;
 
 Iref = imresize(Iref, [249,352]); % reduce image size for test
     % [249,352] -> 0.05
@@ -179,11 +180,13 @@ disp('Computing inverses...');
 
 % Sample inverse 
 rng(1);
-noise_level = 1.5e-4;
-e_e = noise_level .* (sqrt(Idef) + sqrt(Idef)) .* randn(size(Idef));
-Le = spdiags((Idef(:) + Iref(:)) .* noise_level.^2, ...
+pois_level = 1e-3;
+e_e0 = pois_level .* ...
+    sqrt(max(Idef + Iref, max(max(Iref)).*1e-4)); % magnitude of noise
+e_e = e_e0 .* randn(size(Iref)); % realization of noise
+Le = spdiags(1 ./ e_e0(:), ...
     0, numel(Idef), numel(Idef)); % data covariance
-It = Idef - Iref + e_e;
+It = It0 + e_e;
 b = It(:);
 
 
@@ -192,6 +195,7 @@ imagesc(It);
 colormap(balanced);
 It_max = max(max(abs(It)));
 caxis([-It_max, It_max]);
+drawnow;
 
 
 
@@ -219,15 +223,21 @@ view([0,90]);
 
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 
-tools.textbar(0);
+% tools.textbar(0);
 n_tk2_vec = {};
 err = []; n_norm = []; res_norm = []; pr_norm = [];
-lambda_vec = logspace(-8, -3, 26);
+lambda_vec = 5e2; %logspace(-8, -3, 26);
 for ii=1:length(lambda_vec)
     A_tk2 = [Le*A; lambda_vec(ii).*L_tk2];
     b_tk2 = [Le*b; sparse(zeros(size(A,2),1))];
     
+    tic;
     n_tk2_vec{ii} = lsqlin(A_tk2, b_tk2);
+    toc;
+    
+    % tic;
+    % n_tk2_vec2{ii} = regularize.mart(A_tk2, b_tk2);
+    % toc;
     
     err(ii) = norm(n_tk2_vec{ii} - x2);
     n_norm(ii) = norm(n_tk2_vec{ii});
@@ -235,8 +245,9 @@ for ii=1:length(lambda_vec)
     pr_norm(ii) = norm((lambda_vec(ii).*L_tk2) * ...
     	n_tk2_vec{ii});
     
-    tools.textbar(ii ./ length(lambda_vec));
+    % tools.textbar(ii ./ length(lambda_vec));
 end
+
 
 [~, ii_min] = min(err);
 n_tk2 = n_tk2_vec{ii_min};
