@@ -1,7 +1,8 @@
 
 % ASO  A class to handle spatial information for a 1D axis-symmetric object (ASO).
 % Such an object has no axial dependence, which is useful in demonstrating
-% and testing kernels. 
+% and testing kernels. This class provides the basics for discretizing the
+% space and plotting functions on the space. 
 % 
 % Author: Timothy Sipkens, 2020-05-20
 %=========================================================================%
@@ -79,11 +80,12 @@ classdef Aso
         function h = plot(aso, x)
             [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
             
-            x0 = aso.re(i).*cos(t);
-            y0 = aso.re(i).*sin(t);
+            x0 = aso.re(i) .* cos(t);
+            y0 = aso.re(i) .* sin(t);
             z0 = x(i);
             
-            h = contourf(x0,y0,z0,sort(x),'edgecolor','none');
+            h = contourf(x0, y0, z0, sort(x), ...
+                'edgecolor','none');
             axis image;
             
             hold on;
