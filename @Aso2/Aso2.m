@@ -8,12 +8,12 @@ classdef Aso2
     
     properties
         %-- Axial properties ---------------------------------------------%        
-        dv    = [];     % axial element width
-        v     = [];     % axial element centers
-        ve    = [];     % axial element edges
+        dy    = [];     % axial element width
+        y     = [];     % axial element centers
+        ye    = [];     % axial element edges
         
-        V     = [];     % axial extent / overall width
-        Nv    = [];     % number of edges in the axial direction
+        Y     = [];     % axial extent / overall width
+        Ny    = [];     % number of edges in the axial direction
         %-----------------------------------------------------------------%
         
         
@@ -33,7 +33,7 @@ classdef Aso2
     
     
     methods
-        function aso = Aso2(R,Nr,V,Nv)
+        function aso = Aso2(R,Nr,Y,Ny)
             aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
             
@@ -42,19 +42,19 @@ classdef Aso2
             aso.dr = aso.re(2:end) - aso.re(1:(end-1)); % annuli width
             
             
-            aso.Nv = Nv; % number of annuli
-            aso.V = V; % outer radius
+            aso.Ny = Ny; % number of annuli
+            aso.Y = Y; % outer radius
             
-            aso.ve = linspace(0, V, Nv+1)'; % linearily space edges from 0 -> R
-            aso.v  = (aso.ve(2:end) + aso.ve(1:(end-1))) ./ 2; % annuli centers
-            aso.dv = aso.ve(2:end) - aso.ve(1:(end-1)); % annuli width
+            aso.ye = linspace(0, Y, Ny+1)'; % linearily space edges from 0 -> R
+            aso.y  = (aso.ye(2:end) + aso.ye(1:(end-1))) ./ 2; % annuli centers
+            aso.dy = aso.ye(2:end) - aso.ye(1:(end-1)); % annuli width
             
             
-            aso.N = aso.Nv * aso.Nr; % total number of elements
-            aso.edges = [repmat(aso.re(1:(end-1)),[Nv,1]), ...
-                repmat(aso.re(2:end),[Nv,1]), ...
-                reshape(repmat(aso.ve(1:(end-1)),[1,Nr]), [Nv*Nr,1]), ...
-                reshape(repmat(aso.ve(2:end),[1,Nr]), [Nv*Nr,1])];
+            aso.N = aso.Ny * aso.Nr; % total number of elements
+            aso.edges = [repmat(aso.re(1:(end-1)),[Ny,1]), ...
+                repmat(aso.re(2:end),[Ny,1]), ...
+                reshape(repmat(aso.ye(1:(end-1)),[1,Nr]), [Ny*Nr,1]), ...
+                reshape(repmat(aso.ye(2:end),[1,Nr]), [Ny*Nr,1])];
                 % vectorized element edges for overall grid
         end
         
@@ -63,7 +63,7 @@ classdef Aso2
         %== RESHAPE ======================================================%
         %   Timothy Sipkens, 2020-06-11
         function x = reshape(aso,x)
-            x = reshape(x,[aso.Nr + 1,aso.Nv]);
+            x = reshape(x,[aso.Nr + 1,aso.Ny]);
         end
         %=================================================================%
         
@@ -94,8 +94,8 @@ classdef Aso2
             rjd0 = aso.re(1:(end-2));
             rj0  = aso.re(2:(end-1));
             rju0 = aso.re(3:end);
-            vj  = aso.ve(1:(end-1));
-            vju = aso.ve(2:end);
+            vj  = aso.ye(1:(end-1));
+            vju = aso.ye(2:end);
             
             % functions for indefinite integral
             A = @(mu,u0,rv,rvu,r3) 1 ./ (rvu - rv) .* ...
@@ -106,17 +106,17 @@ classdef Aso2
             
             N_beams = max([length(mu), length(u0), ...
                 length(mv), length(v0)]); % any of the values could be scalar, so take max
-            K = spalloc(N_beams, aso.Nv * (aso.Nr + 1), ...
-                round(1e-4 * N_beams * aso.Nv * (aso.Nr + 1)));
+            K = spalloc(N_beams, aso.Ny * (aso.Nr + 1), ...
+                round(1e-4 * N_beams * aso.Ny * (aso.Nr + 1)));
                 % initialize K, assume 0.5% full
             
-            Kv = spalloc(N_beams, aso.Nv * (aso.Nr + 1), ...
-                round(1e-5 * N_beams * aso.Nv * (aso.Nr + 1)));
+            Kv = spalloc(N_beams, aso.Ny * (aso.Nr + 1), ...
+                round(1e-5 * N_beams * aso.Ny * (aso.Nr + 1)));
             
             
             disp('Looping through axial slices...');
             tools.textbar(0);
-            for ii=1:(length(aso.ve)-1) % loop through and append axial slices
+            for ii=1:(length(aso.ye)-1) % loop through and append axial slices
                 
                 % Find z intersection with axial elements.
                 % This is used to determine whether to involve front of back
@@ -269,7 +269,7 @@ classdef Aso2
                 Kv(idx_a, ((ii-1)*(aso.Nr+1)+1):(ii*(aso.Nr+1))) = sparse(Kv0);
                 
                 
-                tools.textbar(ii/(length(aso.ve)-1));
+                tools.textbar(ii/(length(aso.ye)-1));
             end
             
             
@@ -290,15 +290,15 @@ classdef Aso2
                 if x>1e3; f_grid = 1; else; f_grid = 0; end
             end
             
-            [iv,ir] = meshgrid(1:aso.Nv, 1:(aso.Nr+1));
+            [iv,ir] = meshgrid(1:aso.Ny, 1:(aso.Nr+1));
             
-            x1 = aso.ve(iv);
+            x1 = aso.ye(iv);
             y1 = aso.re(ir);
             
             x0 = [flipud(x1);  x1(2:end,:)]; % plot axial positions
             y0 = [-flipud(y1); y1(2:end,:)]; % plot radii
             
-            z1 = reshape(x, [aso.Nr+1, aso.Nv]);
+            z1 = reshape(x, [aso.Nr+1, aso.Ny]);
             z0 = [flipud(z1); z1(2:end,:)];
             
             h = surf(x0,y0,z0);
@@ -330,15 +330,15 @@ classdef Aso2
                 if x>1e3; f_grid = 1; else; f_grid = 0; end
             end
             
-            [iv,ir] = meshgrid(1:aso.Nv, 1:(aso.Nr+1));
+            [iv,ir] = meshgrid(1:aso.Ny, 1:(aso.Nr+1));
             
-            x1 = aso.ve(iv);
+            x1 = aso.ye(iv);
             y1 = aso.re(ir);
             
             x0 = [flipud(x1);  x1(2:end,:)]; % plot axial positions
             y0 = [-flipud(y1); y1(2:end,:)]; % plot radii
             
-            z1 = reshape(x, [aso.Nr+1, aso.Nv]);
+            z1 = reshape(x, [aso.Nr+1, aso.Ny]);
             z0 = [flipud(z1); z1(2:end,:)];
             
             h = imagesc(x0(1,:),y0(:,1),z0);
