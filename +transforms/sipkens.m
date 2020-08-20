@@ -1,9 +1,9 @@
 
-% K  Simple function representing the more general transform for any set of rays.
-% Timothy Sipkens, 2020-06-11
+% SIPKENS  The general transform described by Sipkens et al. for non-parallel rays.
+% Author: Timothy Sipkens, 2020-06-11
 %=========================================================================%
 
-function f = K(m,u0,r)
+function f = sipkens(m,u0,r)
 
 r(r<u0/sqrt(1+m^2)) = NaN; % blank out irrelevant radii for u0 and m
 

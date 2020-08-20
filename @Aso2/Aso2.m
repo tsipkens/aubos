@@ -26,8 +26,12 @@ classdef Aso2
         Nr    = [];     % number of annuli
         %-----------------------------------------------------------------%
         
+        
         N     = [];     % total number of elements (Nr*Nv)
         edges = [];     % edges of all the elements (N x 4 array)
+        
+        gradx = [];     % x-gradient operator
+        grady = [];     % y-gradient operator
     end
     
     
@@ -56,6 +60,8 @@ classdef Aso2
                 reshape(repmat(aso.ye(1:(end-1)),[1,Nr]), [Ny*Nr,1]), ...
                 reshape(repmat(aso.ye(2:end),[1,Nr]), [Ny*Nr,1])];
                 % vectorized element edges for overall grid
+            
+            [aso.gradx, aso.grady] = 
         end
         
         
