@@ -1,16 +1,20 @@
-# Axis-symmetric, unified background-oriented Schlieren (AUBOS) 
+# AUBOS
 
-The program is designed to analyze background-oriented Schlieren data for axis-symmetrical objects using the Abel transform and related operations. The focus is placed on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axis-symmetric unified background-oriented Schlieren (AUBOS). 
+**(*A*xisymmetric *U*nified *B*ackground *O*riented *S*chlieren)**
+
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+
+The program is designed to analyze background-oriented Schlieren data for axisymmetric objects, primarily using a generalization of the Abel transform. The focus is placed on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented Schlieren (AUBOS), and with the use of Bayesian inference and priors. 
 
 ### Code contents
 
-The `abel` package includes functions to generate the typical forward and inverse operators for solving the Abel problem. Inputs vary depending on the operator, with some specifically built for deflectometry measurements, while others apply to the more generic problem and require that the data be transformed prior to use. 
+The `kernel` package includes functions to generate the typical forward and inverse operators for solving the Abel problem. Inputs vary depending on the operator, with some specifically built for deflectometry measurements, while others apply to the more generic problem and require that the data be transformed prior to use. 
 
 The `tools` package contains miscellaneous functions to aid in analysis. This includes a text-based toolbar function attributed to @sgrauer. 
 
 --------
 
-This code builds on the work by Samueal Grauer (@sgrauer). 
+This code builds on the work by Samuel Grauer (@sgrauer). 
 
 ##### References
 

@@ -11,11 +11,11 @@ addpath cmap;
 %%
 % Read in a background.
 disp('Reading and transforming image...');
-Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :) + 10;
+% Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :) + 10;
 % Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
-Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-Iref = max(Iref, 1);
+% Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
+% Iref = max(Iref, 1);
 
 Iref = tools.gen_bg('sines', [249,352], 5)  .* 255;
 
