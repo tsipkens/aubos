@@ -1,5 +1,5 @@
 
-% ASO2 A class to handle spatial information for two-dimensional axis-symmetric objects (asos).
+% ASO2 A class to handle spatial information for 2D axisymmetric objects (ASOs).
 % Author: Timothy Sipkens, 2020-05-20
 %=========================================================================%
 
@@ -63,7 +63,7 @@ classdef Aso2
         %== RESHAPE ======================================================%
         %   Timothy Sipkens, 2020-06-11
         function x = reshape(aso,x)
-            x = reshape(x,[aso.Nr + 1,aso.Ny]);
+            x = reshape(x, [aso.Nr + 1, aso.Ny]);
         end
         %=================================================================%
         
@@ -78,7 +78,7 @@ classdef Aso2
         % Inputs:
         %   aso     Axis-symmetric object
         %   mu      Set of slopes for the rays
-        %   u0      Intersect with line through center of aso
+        %   y0      Intersect with line through center of aso
         %
         % Outputs:
         %   K       Overall radial deflection kernel
@@ -88,7 +88,7 @@ classdef Aso2
             
             if aso.N<3; error('Aso does not have enough annuli for linear basis.'); end
             
-            mv(abs(mv)<1e-12) = 1e-12; % avoid division by zero in rv
+            mv(abs(mv) < 1e-12) = 1e-12; % avoid division by zero in rv
             
             % edges of annuli and axial elements
             rjd0 = aso.re(1:(end-2));
