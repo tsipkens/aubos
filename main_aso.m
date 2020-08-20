@@ -59,17 +59,22 @@ axis off;
 
 %%
 % positions along center of aso
-nu = 400; % number of positions
+nu = 1500; % number of positions
 x0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), nu);
 
 
 % define parameters for camera location
 nc = 20;
 zc_vec = logspace(log10(1.1),log10(10),nc); % vector of z locations for camera
-% zc_vec = linspace(1.1,10,nc);
-uc_vec = fliplr(linspace(0, 0.8, nc)); % vector of u locations for camera
-% uc_vec = 0.5 .* ones(nc,1); % alternate u locations, where u is constant
-cam(nc).z = 0; cam(nc).u = 0; % pre-allocate camera structs
+xc_vec = fliplr(linspace(0, 0.8, nc)); % vector of u locations for camera
+for cc=nc:-1:1 % build camera structure
+    cam(cc).z = zc_vec(cc);
+    cam(cc).x = xc_vec(cc); % pre-allocate camera structs
+    cam(cc).mx = (x0_vec - cam(cc).x) ./ ...
+        cam(cc).z; % slope implied by camera location
+end
+
+
 
 
 % intialize Fig. 5 for uniform basis functions
@@ -90,43 +95,42 @@ hold on;
 
 hold on;
 for cc=1:nc % loop through multiple camera positions
-    cam(cc).z = zc_vec(cc); % z-position of camera
-    cam(cc).x = xc_vec(cc); % u-position of camera
-    m1 = (x0_vec - cam(cc).x) ./ cam(cc).z; % slope implied by camera location
     
-    Ku = kernel.uniform1(aso, m1, x0_vec);
-    Kl = kernel.linear1(aso, m1, x0_vec);
+    Ku = kernel.uniform1(aso, cam(cc).mx, x0_vec);
+    Kl = kernel.linear1(aso, cam(cc).mx, x0_vec);
     
     yu = Ku*x; % using uniform kernel
     yl = Kl*x; % using linear kernel
     
-    figure(5); plot(x0_vec,yu);
-    figure(6); plot(x0_vec,yl);
+    figure(5); plot(x0_vec, yu);
+    figure(6); plot(x0_vec, yl);
 end
 figure(5); hold off; 
 figure(6); hold off;
 
 
-% plot of rays overlaid on phantom
-m1 = (x0_vec - cam(1).u) ./ cam(1).z; % slopes for first camera location
+% Plot of rays overlaid on phantom (demonstarting how parallel rays are)
+% Uses first camera in cam structure. 
+m1 = (x0_vec - cam(1).x) ./ cam(1).z; % slopes for first camera location
 figure(3);
-aso.srays(x,m1(1:20:end),x0_vec(1:20:end));
+aso.srays(x, m1(1:20:end), x0_vec(1:20:end));
 colormap(flipud(ocean));
 
-m1 = (x0_vec - cam(end).u) ./ cam(end).z; % slopes for first camera location
+m1 = (x0_vec - cam(end).x) ./ cam(end).z; % slopes for first camera location
 figure(4);
-aso.srays(x,m1(1:20:end),x0_vec(1:20:end));
+aso.srays(x, m1(1:20:end), x0_vec(1:20:end));
 colormap(flipud(ocean));
 
 
+% Plot position of cameras relative to ASO
 figure(10);
 aso.surf(x,0);
 tools.plotcm(nc, [], flipud(inferno)); % set color order
 hold on;
-for ii=1:length(zc_vec)
-    plot(zc_vec(ii), uc_vec(ii),'.');
+for cc=1:length(zc_vec)
+    plot(zc_vec(cc), xc_vec(cc),'.');
 end
-plot(zc_vec, uc_vec, 'k-');
+plot(zc_vec, xc_vec, 'k-');
 hold off;
 view([0,90]);
 colormap(flipud(ocean));

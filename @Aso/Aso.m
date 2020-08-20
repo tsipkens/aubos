@@ -1,12 +1,11 @@
 
-% ASO  A class to handle spatial information for a 1D axis-symmetric object (ASO).
+% ASO  A class to handle spatial information for 1D axisymmetric objects.
 % Such an object has no axial dependence, which is useful in demonstrating
 % and testing kernels. This class provides the basics for discretizing the
 % space and plotting functions on the space. 
 % 
 % Author: Timothy Sipkens, 2020-05-20
 %=========================================================================%
-
 
 classdef Aso
     

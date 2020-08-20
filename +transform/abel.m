@@ -3,11 +3,11 @@
 % Timothy Sipkens, 2020-06-11
 %=========================================================================%
 
-function f = abel(u0,r)
+function K = abel(u0,r)
 
 r(r<u0) = NaN; % blank out irrelevant radii for u0
 
-f = 2 .* u0 ./ ...
+K = 2 .* u0 ./ ...
     sqrt(r.^2 - u0.^2);
     % forward transform
 

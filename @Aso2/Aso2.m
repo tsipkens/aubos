@@ -1,8 +1,7 @@
 
-% ASO2 A class to handle spatial information for 2D axisymmetric objects (ASOs).
+% ASO2  A class to handle spatial information for 2D axisymmetric objects.
 % Author: Timothy Sipkens, 2020-05-20
 %=========================================================================%
-
 
 classdef Aso2
     
