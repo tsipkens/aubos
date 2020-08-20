@@ -39,35 +39,6 @@ classdef Aso
         
         
         
-        %== UNIFORM =======================================================%
-        %   Evaluates kernel/operator for a uniform basis representation of an ASO.
-        %   Not recommended due to noise properties.
-        %   Timothy Sipkens, 2020-06-10
-        %
-        % Inputs:
-        %   aso     Axis-symmetric object
-        %   m       Set of slopes for the rays
-        %   x0      Intersect with line through center of aso
-        function K = uniform(aso,m,x0)
-            K = kernel.uniform1(aso,m,x0);
-        end
-        
-        
-        
-        %== LINEAR =======================================================%
-        %   Bridge function from Aso to kernel.
-        %   Timothy Sipkens, 2020-06-10
-        %
-        % Inputs:
-        %   aso     Axis-symmetric object
-        %   m       Set of slopes for the rays
-        %   x0      Intersect with line through center of aso
-        function K = linear(aso, m, x0)
-            K = kernel.linear1(aso,m,x0);
-        end
-        
-        
-        
         %== SURF =========================================================%
         %   Plot the axis-symmetric object as a surface. 
         %   Timothy Sipkens, 2020-06-09

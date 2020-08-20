@@ -34,10 +34,10 @@ tools.plotcm(length(m_vec), [], inferno); % set color order
 
 hold on;
 for ii=1:length(m_vec) % loop through scenerios
-    plot(r_vec, kernel.K(m_vec(ii), x0_vec(ii), r_vec));
+    plot(r_vec, transforms.sipkens(m_vec(ii), x0_vec(ii), r_vec));
 end
 
-plot(r_vec, kernel.K_abel(x0_vec(ii), r_vec), 'w:'); % Abel kernel
+plot(r_vec, transforms.abel(x0_vec(ii), r_vec), 'w:'); % Abel kernel
 ylims = ylim;
 plot([x0,x0],ylims,'k'); % add u0 to plot
 hold off;
@@ -109,8 +109,8 @@ for cc=1:nc % loop through multiple camera positions
     cam(cc).u = uc_vec(cc); % u-position of camera
     m1 = (x0_vec - cam(cc).u) ./ cam(cc).z; % slope implied by camera location
     
-    Ku = aso.uniform(m1,x0_vec);
-    Kl = aso.linear(m1,x0_vec);
+    Ku = kernel.uniform1(aso, m1, x0_vec);
+    Kl = kernel.linear1(aso, m1, x0_vec);
     
     yu = Ku*x; % using uniform kernel
     yl = Kl*x; % using linear kernel
