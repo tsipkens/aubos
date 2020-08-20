@@ -1,5 +1,5 @@
 
-% Simulate and invert an axis-symmetric Schlieren object.
+% MAIN_ASO  Simulate and invert an axis-symmetric Schlieren object.
 % Timothy Sipkens, 2020-05-20
 %=========================================================================%
 
@@ -13,61 +13,41 @@ addpath cmap;
 
 
 R = 1;
-Nr = 20;
+Nr = 150;
 aso = Aso(R, Nr); % generate an axis-symmetric object
 
 
-
-%%
-%-{
-x0 = 0.5;
-nm = 21;
-m_vec =  linspace(0, 3, nm);
-r_vec = linspace(0, R, 450); % vector of radii
-x0_vec = x0 .* ones(nm, 1);
-
-
-%-- FIG 2: Plot kernel across and range of slopes ------------------------%
-figure(2);
-clf;
-tools.plotcm(length(m_vec), [], inferno); % set color order
-
-hold on;
-for ii=1:length(m_vec) % loop through scenerios
-    plot(r_vec, transforms.sipkens(m_vec(ii), x0_vec(ii), r_vec));
-end
-
-plot(r_vec, transforms.abel(x0_vec(ii), r_vec), 'w:'); % Abel kernel
-ylims = ylim;
-plot([x0,x0],ylims,'k'); % add u0 to plot
-hold off;
-ylim([0,20]);
-
-ylabel('Kernel, {\it{K}}');
-xlabel('Radius, {\it{r}}');
-l = legend(num2str(m_vec','%5.2f'),'Location','eastoutside');
-title(l,'m')
-l.Title.Visible = 'on';
-%-------------------------------------------------------------------------%
-%}
-
-
-
-%%
-
 %-- Case studies / phantoms for dn/dr ------------------------------------%
-% x = normpdf(aso.re,0,0.3); % gaussian
-x = (1+1.2) .* normpdf(aso.re,0,0.25) - 1.2.*normpdf(aso.re,0,0.15); % gaussian with central dip
-% x = double(aso.re<0.35); % cylinder
-% x = 1-aso.re; % cone
-% x = double(and(aso.re<0.35,aso.re>0.33)); % ring
-% x = sqrt(max(0.7.^2 - aso.re.^2, 0)); % half circle
+%   Evaluated as ASO radial element edges.
+pha_no = 3;
+switch pha_no
+    case 1 % gaussian
+        x = normpdf(aso.re,0,0.3);
+        
+    case 2 % gaussian with central dip
+        x = (1+1.2) .* normpdf(aso.re,0,0.25) - ...
+            1.2.*normpdf(aso.re,0,0.15);
+        
+    case 3 % approx. cylinder, sigmoid function softens transition
+        f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-100 .* x)); % sigmoid function
+        x = f_sigmoid(aso.re - 0.35);
+        
+    case 4 % cone
+        x = 1-aso.re;
+        
+    case 5 % ring, e.g. looking through a cup, sigmoid softens transition
+        f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-100 .* x)); % sigmoid function
+        x = f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33);
+        
+    case 6 % half circle
+        x = sqrt(max(0.7.^2 - aso.re.^2, 0));
+end
 %-------------------------------------------------------------------%
 
 
 figure(3);
 aso.surf(x);
-colormap(ocean);
+colormap(flipud(ocean));
 axis off;
 
 
@@ -126,12 +106,12 @@ figure(6); hold off;
 m1 = (x0_vec - cam(1).u) ./ cam(1).z; % slopes for first camera location
 figure(3);
 aso.srays(x,m1(1:20:end),x0_vec(1:20:end));
-colormap(ocean);
+colormap(flipud(ocean));
 
 m1 = (x0_vec - cam(end).u) ./ cam(end).z; % slopes for first camera location
 figure(4);
 aso.srays(x,m1(1:20:end),x0_vec(1:20:end));
-colormap(ocean);
+colormap(flipud(ocean));
 
 
 figure(10);
@@ -144,7 +124,7 @@ end
 plot(zc_vec, uc_vec, 'k-');
 hold off;
 view([0,90]);
-colormap(ocean);
+colormap(flipud(ocean));
 
 
 
