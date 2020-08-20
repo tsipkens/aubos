@@ -1,6 +1,10 @@
 
-% MAIN_ASO  Simulate and invert an axis-symmetric Schlieren object.
-% Timothy Sipkens, 2020-05-20
+% MAIN_ASO  Demonstrate use of ASO class. 
+% This involves simulating and inverting phantoms defined on a 1D 
+% axisymmetric object (i.e., % only a radial object, with no axial 
+% considerations). 
+% 
+% Author: Timothy Sipkens, 2020-05-20
 %=========================================================================%
 
 
@@ -13,7 +17,7 @@ addpath cmap;
 
 
 R = 1;
-Nr = 150;
+Nr = 125;
 aso = Aso(R, Nr); % generate an axis-symmetric object
 
 
@@ -29,14 +33,14 @@ switch pha_no
             1.2.*normpdf(aso.re,0,0.15);
         
     case 3 % approx. cylinder, sigmoid function softens transition
-        f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-100 .* x)); % sigmoid function
+        f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
         x = f_sigmoid(aso.re - 0.35);
         
     case 4 % cone
         x = 1-aso.re;
         
     case 5 % ring, e.g. looking through a cup, sigmoid softens transition
-        f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-100 .* x)); % sigmoid function
+        f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
         x = f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33);
         
     case 6 % half circle
@@ -45,6 +49,7 @@ end
 %-------------------------------------------------------------------%
 
 
+% Produce a plot of the phantom
 figure(3);
 aso.surf(x);
 colormap(flipud(ocean));
@@ -70,7 +75,7 @@ cam(nc).z = 0; cam(nc).u = 0; % pre-allocate camera structs
 % intialize Fig. 5 for uniform basis functions
 figure(5);
 clf;
-ylabel(['Deflection, ',char(949),'_u']); xlabel('Vertical position, u_0');
+ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
 tools.plotcm(nc, [], flipud(inferno)); % set color order
 hold on;
 
@@ -78,7 +83,7 @@ hold on;
 % intialize Fig. 6 for linear basis functions
 figure(6);
 clf;
-ylabel(['Deflection, ',char(949),'_u']); xlabel('Vertical position, u_0');
+ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
 tools.plotcm(nc, [], flipud(inferno)); % set color order
 hold on;
 
@@ -86,8 +91,8 @@ hold on;
 hold on;
 for cc=1:nc % loop through multiple camera positions
     cam(cc).z = zc_vec(cc); % z-position of camera
-    cam(cc).u = uc_vec(cc); % u-position of camera
-    m1 = (x0_vec - cam(cc).u) ./ cam(cc).z; % slope implied by camera location
+    cam(cc).x = xc_vec(cc); % u-position of camera
+    m1 = (x0_vec - cam(cc).x) ./ cam(cc).z; % slope implied by camera location
     
     Ku = kernel.uniform1(aso, m1, x0_vec);
     Kl = kernel.linear1(aso, m1, x0_vec);
