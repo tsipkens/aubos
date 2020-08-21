@@ -69,14 +69,14 @@ oc = [fliplr(linspace(0, 0.8, Nc)); ...
 
 
 % define parameters for camera location
-%-{
+%{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
     cam(cc) = Camera(Nu, 1, oc(:,cc), 1e2);
 end
 %}
 
-%{
+%-{
 %-- OPTION 2: Manually assign parameters -----%
 for cc=Nc:-1:1
     cam(cc).x = oc(1, cc);
@@ -108,8 +108,8 @@ hold on;
 
 hold on;
 for cc=1:Nc % loop through multiple camera positions
-    Ku = kernel.uniform1(aso, cam(cc).mx, cam(cc).x0);
-    Kl = kernel.linear1(aso, cam(cc).mx, cam(cc).x0);
+    Ku = kernel.uniform(aso, cam(cc).mx, cam(cc).x0);
+    Kl = kernel.linear(aso, cam(cc).mx, cam(cc).x0);
     
     yu = Ku*x; % using uniform kernel
     yl = Kl*x; % using linear kernel
