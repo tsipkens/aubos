@@ -17,7 +17,9 @@ r_vec = linspace(0, R, 450); % vector of radii for plotting transform
 x0_vec = x0 .* ones(Nm, 1);
 
 
-%-- FIG 2: Plot kernel across and range of slopes ------------------------%
+%-- FIG 2: Plot kernel across and range of rays --------------------------%
+%   Rays have identical x0 values (x-position of ray at z = 0)
+%   and differ in terms of the slope, mx.
 figure(2);
 clf;
 tools.plotcm(length(mx_vec), [], inferno); % set color order
