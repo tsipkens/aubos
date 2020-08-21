@@ -23,7 +23,7 @@ aso = Aso(R, Nr); % generate an axis-symmetric object
 
 %-- Case studies / phantoms for dn/dr ------------------------------------%
 %   Evaluated as ASO radial element edges.
-pha_no = 3;
+pha_no = 1;
 switch pha_no
     case 1 % gaussian
         x = normpdf(aso.re,0,0.3);
@@ -57,22 +57,36 @@ axis off;
 
 
 
-%%
-% positions along center of aso
-nu = 1500; % number of positions
-x0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), nu);
+
+% positions along the center of the aso
+Nu = 400; % number of pixels in camera
+x0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
+
+Nc = 20;
+oc = [fliplr(linspace(0, 0.8, Nc)); ...
+    zeros(1, Nc); ...
+    -logspace(log10(1.1),log10(10),Nc)]; % vector of camera origin locations
 
 
 % define parameters for camera location
-nc = 20;
-zc_vec = logspace(log10(1.1),log10(10),nc); % vector of z locations for camera
-xc_vec = fliplr(linspace(0, 0.8, nc)); % vector of u locations for camera
-for cc=nc:-1:1 % build camera structure
-    cam(cc).z = zc_vec(cc);
-    cam(cc).x = xc_vec(cc); % pre-allocate camera structs
-    cam(cc).mx = (x0_vec - cam(cc).x) ./ ...
+%{
+%-- OPTION 1: Use tools.Camera ---------------%
+for cc=Nc:-1:1
+    cam(cc) = tools.Camera(1, Nu, oc(:,cc), 100);
+end
+%}
+
+%-{
+%-- OPTION 2: Manually assign parameters -----%
+for cc=Nc:-1:1
+    cam(cc).x = oc(1, cc);
+    cam(cc).z = oc(3, cc);
+    
+    cam(cc).x0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
+    cam(cc).mx = (cam(cc).x - cam(cc).x0) ./ ...
         cam(cc).z; % slope implied by camera location
 end
+%}
 
 
 
@@ -81,56 +95,52 @@ end
 figure(5);
 clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
-tools.plotcm(nc, [], flipud(inferno)); % set color order
+tools.plotcm(Nc, [], flipud(inferno)); % set color order
 hold on;
-
 
 % intialize Fig. 6 for linear basis functions
 figure(6);
 clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
-tools.plotcm(nc, [], flipud(inferno)); % set color order
+tools.plotcm(Nc, [], flipud(inferno)); % set color order
 hold on;
 
 
 hold on;
-for cc=1:nc % loop through multiple camera positions
-    
-    Ku = kernel.uniform1(aso, cam(cc).mx, x0_vec);
-    Kl = kernel.linear1(aso, cam(cc).mx, x0_vec);
+for cc=1:Nc % loop through multiple camera positions
+    Ku = kernel.uniform1(aso, cam(cc).mx, cam(cc).x0);
+    Kl = kernel.linear1(aso, cam(cc).mx, cam(cc).x0);
     
     yu = Ku*x; % using uniform kernel
     yl = Kl*x; % using linear kernel
     
-    figure(5); plot(x0_vec, yu);
-    figure(6); plot(x0_vec, yl);
+    figure(5); plot(cam(cc).x0, yu);
+    figure(6); plot(cam(cc).x0, yl);
 end
-figure(5); hold off; 
+figure(5); hold off;
 figure(6); hold off;
 
 
-% Plot of rays overlaid on phantom (demonstarting how parallel rays are)
+% Plot of rays overlaid on phantom (demonstating how parallel rays are)
 % Uses first camera in cam structure. 
-m1 = (x0_vec - cam(1).x) ./ cam(1).z; % slopes for first camera location
 figure(3);
-aso.srays(x, m1(1:20:end), x0_vec(1:20:end));
+aso.srays(x, cam(1).mx(1:10:end), cam(1).x0(1:10:end));
 colormap(flipud(ocean));
 
-m1 = (x0_vec - cam(end).x) ./ cam(end).z; % slopes for first camera location
 figure(4);
-aso.srays(x, m1(1:20:end), x0_vec(1:20:end));
+aso.srays(x, cam(end).mx(1:10:end), cam(end).x0(1:10:end));
 colormap(flipud(ocean));
 
 
 % Plot position of cameras relative to ASO
 figure(10);
 aso.surf(x,0);
-tools.plotcm(nc, [], flipud(inferno)); % set color order
+tools.plotcm(Nc, [], flipud(inferno)); % set color order
 hold on;
-for cc=1:length(zc_vec)
-    plot(zc_vec(cc), xc_vec(cc),'.');
+for cc=1:Nc
+    plot(cam(cc).z, cam(cc).x,'.');
 end
-plot(zc_vec, xc_vec, 'k-');
+plot([cam(cc).z], [cam(cc).x], 'k-');
 hold off;
 view([0,90]);
 colormap(flipud(ocean));
@@ -138,23 +148,24 @@ colormap(flipud(ocean));
 
 
 
-%%
-%{
-fup = 1./aso.dr(1); % frequency of grid points
-f_vec = logspace(-0.5, log10(fup), 4e3+1); % start low fequency (flat), end high frequency
-T_vec = 1 ./ f_vec;
+%-{
+%== Consider the inverse problem =========================================%
+f_max = 1 ./ aso.dr(1); % frequency of grid points
+Nf = 500;
+freq_vec = logspace(-1, log10(f_max), Nf); % start low fequency (flat), end high frequency
+T_vec = 1 ./ freq_vec;
 
 figure(12);
 hold off;
 plot(aso.re, x, 'k--');
-tools.plotcm(length(f_vec), [], flipud(inferno)); % set color order
+tools.plotcm(length(freq_vec), [], flipud(inferno(1e3))); % set color order
 
 err = [];
-for ii=1:length(f_vec)
-    for jj=1 % loop over multiple kinds of noise
-        Iref0 = 1/3 .* (cos(u0_vec .* (2*pi .* f_vec(ii)))' + 2);
+for ii = 1:Nf
+    for jj = 1 % loop over multiple kinds of noise
+        Iref0 = 1/3 .* (cos(x0_vec .* (2*pi .* freq_vec(ii)))' + 2);
         
-        O = of.gen1([length(u0_vec), 1]);
+        O = of.gen1([length(x0_vec), 1]);
         A = -0.1 .* ((O * Iref0) .* Kl);
         It0 = A * x;
         
@@ -187,10 +198,13 @@ end
 
 
 figure(11);
+Iref0 = 1/3 .* (cos(x0_vec .* ...
+    (2*pi .* freq_vec(1)))' + 2);
 plot(Iref0);
 hold on;
-plot(Idef);
-plot(Iref);
+Iref0 = 1/3 .* (cos(x0_vec .* ...
+    (2*pi .* freq_vec(end)))' + 2);
+plot(Iref0);
 hold off;
 
 
@@ -202,13 +216,13 @@ hold off;
 
 
 figure(14);
-semilogx(f_vec, median(err, 2));
+semilogx(freq_vec, median(err, 2));
 hold on;
-semilogx(f_vec, prctile(err, 5, 2));
-semilogx(f_vec, prctile(err, 95, 2));
+semilogx(freq_vec, prctile(err, 5, 2));
+semilogx(freq_vec, prctile(err, 95, 2));
 
 yl = ylim;
-plot([fup,fup],yl);
+plot([f_max,f_max], yl);
 hold off
 %}
 
