@@ -32,7 +32,7 @@ switch order
         
     case 1 % 1st order Tikhonov
         I1 = speye(n,n);
-        E1 = full(sparse(1:n-1,2:n,1,n,n));
+        E1 = sparse(1:n-1,2:n,1,n,n);
         D1 = E1-I1;
 
         m = x_length/n;

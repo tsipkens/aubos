@@ -29,43 +29,63 @@ classdef Aso2
         N     = [];     % total number of elements (Nr*Nv)
         edges = [];     % edges of all the elements (N x 4 array)
         
-        gradx = [];     % x-gradient operator
-        grady = [];     % y-gradient operator
+        Dr    = [];     % r-gradient operator
+        Dy    = [];     % y-gradient operator
     end
     
     
     
     methods
         function aso = Aso2(R,Nr,Y,Ny)
+            %-- Radial positions and discretization ----------------------%
             aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
             
             aso.re = linspace(0, R, Nr+1)'; % linearily space edges from 0 -> R
             aso.r  = (aso.re(2:end) + aso.re(1:(end-1))) ./ 2; % annuli centers
             aso.dr = aso.re(2:end) - aso.re(1:(end-1)); % annuli width
+            %-------------------------------------------------------------%
             
-            
+            %-- Axial positions and discretization -----------------------%
             aso.Ny = Ny; % number of annuli
             aso.Y = Y; % outer radius
             
             aso.ye = linspace(0, Y, Ny+1)'; % linearily space edges from 0 -> R
             aso.y  = (aso.ye(2:end) + aso.ye(1:(end-1))) ./ 2; % annuli centers
             aso.dy = aso.ye(2:end) - aso.ye(1:(end-1)); % annuli width
+            %-------------------------------------------------------------%
             
-            
+            %-- Consolidated element information -------------------------%
             aso.N = aso.Ny * aso.Nr; % total number of elements
             aso.edges = [repmat(aso.re(1:(end-1)),[Ny,1]), ...
                 repmat(aso.re(2:end),[Ny,1]), ...
                 reshape(repmat(aso.ye(1:(end-1)),[1,Nr]), [Ny*Nr,1]), ...
                 reshape(repmat(aso.ye(2:end),[1,Nr]), [Ny*Nr,1])];
                 % vectorized element edges for overall grid
+            %-------------------------------------------------------------%
             
-            % [aso.gradx, aso.grady] = 1;
+            %-- Compute differential operators ---------------------------%
+            I1 = speye(aso.Nr+1, aso.Nr+1);
+            E1 = sparse(1:aso.Nr+1-1,2:aso.Nr+1,1,aso.Nr+1,aso.Nr+1);
+            D1 = E1-I1;
+            D1(end,end) = 0; % applies no slope at final radial position
+            
+            I2 = speye(aso.Ny,aso.Ny);
+            E2 = sparse(1:aso.Ny-1,2:aso.Ny,1,aso.Ny,aso.Ny);
+            D2 = E2-I2;
+            D2(end,end) = 1; D2(end,end-1) = -1; % applies same slope as previous y-position
+            
+            aso.Dr = kron(I2,D1);
+            aso.Dy = kron(D2,I1);
+            %-------------------------------------------------------------%
+            
+            
         end
         
         
         
         %== RESHAPE ======================================================%
+        %   Reshape, assuming x is evaluated at aso.re.
         %   Timothy Sipkens, 2020-06-11
         function x = reshape(aso,x)
             x = reshape(x, [aso.Nr + 1, aso.Ny]);

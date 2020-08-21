@@ -1,5 +1,5 @@
 
-% LINEAR1  Evaluates kernel/operator for a linear basis representation of a 1D ASO.
+% LINEAR  Evaluates kernel/operator for a linear basis representation of a 1D ASO.
 % Timothy Sipkens, 2020-06-10
 % 
 % Inputs:
@@ -8,7 +8,7 @@
 %   x0      Intersect with line through center of aso
 %=========================================================================%
 
-function K = linear1(aso_re, m, x0)
+function K = linear(aso_re, m, x0)
 
 if isa(aso_re,'Aso'); re = aso_re.re; % if input is an Aso
 else; re = aso_re; end % if an input is edges

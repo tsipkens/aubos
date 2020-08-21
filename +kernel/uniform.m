@@ -1,5 +1,5 @@
 
-% UNIFORM1  Evaluates kernel/operator for a uniform basis representation of a 1D ASO.
+% UNIFORM  Evaluates kernel/operator for a uniform basis representation of a 1D ASO.
 %   Not recommended due to noise properties.
 %   Timothy Sipkens, 2020-06-10
 %
@@ -9,7 +9,7 @@
 %   x0      Intersect with line through center of aso
 %=========================================================================%
 
-function K = uniform1(aso_re, m, x0)
+function K = uniform(aso_re, m, x0)
 
 if isa(aso_re,'Aso'); re = aso_re.re; % if input is an Aso
 else; re = aso_re; end % if an input is edges

@@ -32,7 +32,8 @@ classdef Aso
             aso.dr = aso.re(2:end) - aso.re(1:(end-1)); % annuli width
             
             % Evaluate the radial gradient, assuming no slope at outer radius.
-            D = (eye(aso.Nr+1, aso.Nr+1) - diag(ones(aso.Nr, 1), 1));
+            D = speye(aso.Nr+1, aso.Nr+1) - ...
+                spdiags(ones(aso.Nr+1, 1), 1, aso.Nr+1, aso.Nr+1);
             D(end, :) = []; % remove final row
             aso.grad = D ./  aso.dr; % divide by element area
         end

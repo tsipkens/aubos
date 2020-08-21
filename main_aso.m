@@ -21,7 +21,7 @@ Nr = 125;
 aso = Aso(R, Nr); % generate an axis-symmetric object
 
 
-%-- Case studies / phantoms for dn/dr ------------------------------------%
+%== Case studies / phantoms for dn/dr ====================================%
 %   Evaluated as ASO radial element edges.
 pha_no = 1;
 switch pha_no
@@ -46,7 +46,7 @@ switch pha_no
     case 6 % half circle
         x = sqrt(max(0.7.^2 - aso.re.^2, 0));
 end
-%-------------------------------------------------------------------%
+%=========================================================================%
 
 
 % Produce a plot of the phantom
@@ -59,7 +59,7 @@ axis off;
 
 
 % positions along the center of the aso
-Nu = 1200; % number of pixels in camera
+Nu = 400; % number of pixels in camera
 x0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
 
 Nc = 20;

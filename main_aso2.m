@@ -35,10 +35,10 @@ disp(' ');
 
 
 R = 1;
-Nr = min(round(size(Iref,1) .* 1.2), 250);
+Nr = 2;%min(round(size(Iref,1) .* 1.2), 250);
 Y = 4;
 % V = 4;
-Ny = min(round(size(Iref,2) .* 1.2), 400);
+Ny = 3;%min(round(size(Iref,2) .* 1.2), 400);
 aso2 = Aso2(R,Nr,Y,Ny);
 
 
@@ -48,7 +48,7 @@ aso2 = Aso2(R,Nr,Y,Ny);
 
 
 %-{
-%== OPTION 2: Define a 2D ASO from scratch. ==============================%
+%== Case studies / phantoms ==============================================%
 [ye, re] = meshgrid(aso2.ye(1:(end-1)), aso2.re);
 
 % x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
@@ -57,6 +57,7 @@ x2 = normpdf(re, 0, 0.4 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
 % x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
 x2 = x2(:);
+%=========================================================================%
 %}
 
 
