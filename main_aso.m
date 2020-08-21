@@ -59,7 +59,7 @@ axis off;
 
 
 % positions along the center of the aso
-Nu = 400; % number of pixels in camera
+Nu = 1200; % number of pixels in camera
 x0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
 
 Nc = 20;
@@ -72,7 +72,7 @@ oc = [fliplr(linspace(0, 0.8, Nc)); ...
 %{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
-    cam(cc) = tools.Camera(1, Nu, oc(:,cc), 100);
+    cam(cc) = tools.Camera(Nu, 1, oc(:,cc), 1e2);
 end
 %}
 
@@ -87,6 +87,8 @@ for cc=Nc:-1:1
         cam(cc).z; % slope implied by camera location
 end
 %}
+
+% cam = cam1;
 
 
 
@@ -148,7 +150,7 @@ colormap(flipud(ocean));
 
 
 
-%-{
+%{
 %== Consider the inverse problem =========================================%
 %   Loop through various frequency backgrounds
 f_max = 1 ./ aso.dr(1); % frequency of grid points

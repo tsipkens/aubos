@@ -58,7 +58,7 @@ cam.K = [f 0 w/2; 0 f h/2; 0 0 1];
 
 %--- Camera model --------------------------------------------------------%
 % Normalized sensor points
-p = cam.K\[w-cam.u+1 cam.v ones(h*w,1)]'; % homogeneous coords. []
+p = cam.K\[w-cam.u(:)+1 cam.v(:) ones(h*w,1)]'; % homogeneous coords. []
 x = p(1,:); % u-coordinates []
 y = p(2,:); % v-coordinates []
 r = x.^2 + y.^2; % radius []
@@ -84,12 +84,12 @@ end
 % Modeled ray vectors and slopes (camera facing +z)
 cam.rays = [xp; yp; ones(1, h*w)] .* [-1 -1 1]';
 cam.rays = cam.rays ./ sqrt(sum(cam.rays.^2));
-cam.mx = cam.rays(2,:) ./ cam.rays(3,:);
-cam.my = cam.rays(1,:) ./ cam.rays(3,:);
+cam.mx = cam.rays(1,:) ./ cam.rays(3,:);
+cam.my = cam.rays(2,:) ./ cam.rays(3,:);
 
 % Mid-plane slopes collisions
 d = -o(3) ./ (cam.rays'*[0 0 1]');
-cam.p0 = o + bsxfun(@times,cam.rays,d');
+cam.p0 = o(:) + bsxfun(@times,cam.rays,d');
 cam.x0 = cam.p0(1,:);
 cam.y0 = cam.p0(2,:);
 %-------------------------------------------------------------------------%
