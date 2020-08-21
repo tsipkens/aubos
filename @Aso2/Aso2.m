@@ -60,7 +60,7 @@ classdef Aso2
                 reshape(repmat(aso.ye(2:end),[1,Nr]), [Ny*Nr,1])];
                 % vectorized element edges for overall grid
             
-            [aso.gradx, aso.grady] = 
+            % [aso.gradx, aso.grady] = 1;
         end
         
         

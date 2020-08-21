@@ -36,10 +36,10 @@ disp(' ');
 
 R = 1;
 Nr = min(round(size(Iref,1) .* 1.2), 250);
-V = 4;
+Y = 4;
 % V = 4;
-Nv = min(round(size(Iref,2) .* 1.2), 400);
-aso2 = Aso2(R,Nr,V,Nv);
+Ny = min(round(size(Iref,2) .* 1.2), 400);
+aso2 = Aso2(R,Nr,Y,Ny);
 
 
 
@@ -49,11 +49,11 @@ aso2 = Aso2(R,Nr,V,Nv);
 
 %-{
 %== OPTION 2: Define a 2D ASO from scratch. ==============================%
-[ve, re] = meshgrid(aso2.ve(1:(end-1)), aso2.re);
+[ye, re] = meshgrid(aso2.ye(1:(end-1)), aso2.re);
 
 % x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % x2 = normpdf(re, 0, 0.2); % uniform Gaussian
-x2 = normpdf(re, 0, 0.4 .* (ve + 4)./(V + 4)); % spreading Gaussian jet 2
+x2 = normpdf(re, 0, 0.4 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
 % x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
 x2 = x2(:);
@@ -65,29 +65,29 @@ x2 = x2(:);
 
 
 % positions along center of aso
-nu = size(Iref,1);
-u0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), nu);
+Nu = size(Iref,1);
+x0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nu);
 
-nv = size(Iref,2);
-v0_vec = linspace(0, V, nv);
+Nv = size(Iref,2);
+y0_vec = linspace(0, Y, Nv);
 
-[u0_vec2, v0_vec2] = ndgrid(u0_vec, v0_vec); % meshgrid to generate image dims.
-u0_vec2 = u0_vec2(:)'; v0_vec2 = v0_vec2(:)'; % must be row vectors
+[x0_vec2, y0_vec2] = ndgrid(x0_vec, y0_vec); % meshgrid to generate image dims.
+x0_vec2 = x0_vec2(:)'; y0_vec2 = y0_vec2(:)'; % must be row vectors
 
-% cam.u = 0.5;
-% cam.v = 7.5; % 3.5; % 7.5;
+% cam.x = 0.5;
+% cam.y = 7.5; % 3.5; % 7.5;
 % cam.z = 1.9;
 
-cam.u = 0;
-cam.v = 2; % 2; % 4;
+cam.x = 0;
+cam.y = 2; % 2; % 4;
 cam.z = 20;
 
-% cam.u = 0.5;
-% cam.v = 2; % 2; % 4.;
+% cam.x = 0.5;
+% cam.y = 2; % 2; % 4.;
 % cam.z = 1.2;
 
-mu_vec = (u0_vec2 - cam.u) ./ cam.z;
-mv_vec = (v0_vec2 - cam.v) ./ cam.z;
+mx_vec = (x0_vec2 - cam.x) ./ cam.z;
+my_vec = (y0_vec2 - cam.y) ./ cam.z;
 
 figure(3);
 aso2.plot(x2);
@@ -103,19 +103,19 @@ axis image;
 yl2 = [];
 Kl2 = [];
 disp('Processing rays...');
-[Kl2, Kv2] = aso2.linear(mu_vec, u0_vec2, mv_vec, v0_vec2);
+[Kl2, Kv2] = aso2.linear(mx_vec, x0_vec2, my_vec, y0_vec2);
 disp('Complete.');
 disp(' ');
 
 yl2 = Kl2 * x2; % yl2 is vertical deflections in image coordinate system
-yl2 = reshape(yl2, [length(u0_vec), length(v0_vec)]);
+yl2 = reshape(yl2, [length(x0_vec), length(y0_vec)]);
 
 yv2 = Kv2 * x2;
-yv2 = reshape(yv2, [length(u0_vec), length(v0_vec)]);
+yv2 = reshape(yv2, [length(x0_vec), length(y0_vec)]);
 
 
 figure(7);
-imagesc(v0_vec, u0_vec, yl2);
+imagesc(y0_vec, x0_vec, yl2);
 colormap(curl(255));
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
@@ -124,7 +124,7 @@ set(gca,'YDir','normal');
 ylim([-2,2]);
 
 figure(17);
-imagesc(v0_vec, u0_vec, yv2);
+imagesc(y0_vec, x0_vec, yv2);
 colormap(curl(255));
 y_max = max(max(abs(yv2)));
 caxis([-y_max, y_max]);
@@ -139,9 +139,9 @@ ylim([-2,2]);
 % O = of.gen1(size(Iref)); % differential operator for image
 % U = O * Iref(:); % differential operator applied to image
 
-[V,U] = gradient(Iref);
+[Y,U] = gradient(Iref);
 U = U(:);
-V = V(:);
+Y = Y(:);
 
 figure(2);
 imagesc(reshape(U, size(Iref)));
@@ -152,7 +152,7 @@ C0 = 2e-4;
 A = -C0 .* (U .* Kl2); % compile unified operator
     % .* avoids creating diagonal matrix from O * Iref(:)
 
-A = -C0 .* (U .* Kl2 + V .* Kv2); % compile unified operator
+A = -C0 .* (U .* Kl2 + Y .* Kv2); % compile unified operator
     % .* avoids creating diagonal matrix from O * Iref(:)
 
 

@@ -150,6 +150,7 @@ colormap(flipud(ocean));
 
 %-{
 %== Consider the inverse problem =========================================%
+%   Loop through various frequency backgrounds
 f_max = 1 ./ aso.dr(1); % frequency of grid points
 Nf = 500;
 freq_vec = logspace(-1, log10(f_max), Nf); % start low fequency (flat), end high frequency
