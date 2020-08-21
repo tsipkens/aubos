@@ -69,14 +69,14 @@ oc = [fliplr(linspace(0, 0.8, Nc)); ...
 
 
 % define parameters for camera location
-%{
+%-{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
-    cam(cc) = tools.Camera(Nu, 1, oc(:,cc), 1e2);
+    cam(cc) = Camera(Nu, 1, oc(:,cc), 1e2);
 end
 %}
 
-%-{
+%{
 %-- OPTION 2: Manually assign parameters -----%
 for cc=Nc:-1:1
     cam(cc).x = oc(1, cc);
@@ -88,19 +88,17 @@ for cc=Nc:-1:1
 end
 %}
 
-% cam = cam1;
 
 
 
-
-% intialize Fig. 5 for uniform basis functions
+% FIG 5: Plot uniform basis functions.
 figure(5);
 clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
 tools.plotcm(Nc, [], flipud(inferno)); % set color order
 hold on;
 
-% intialize Fig. 6 for linear basis functions
+% FIG 6: Plot linear basis functions.
 figure(6);
 clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
@@ -116,25 +114,29 @@ for cc=1:Nc % loop through multiple camera positions
     yu = Ku*x; % using uniform kernel
     yl = Kl*x; % using linear kernel
     
-    figure(5); plot(cam(cc).x0, yu);
-    figure(6); plot(cam(cc).x0, yl);
+    figure(5); plot(cam(cc).x0, yu); % add line to FIG 5
+    figure(6); plot(cam(cc).x0, yl); % add line to FIG 6
 end
 figure(5); hold off;
 figure(6); hold off;
 
 
-% Plot of rays overlaid on phantom (demonstating how parallel rays are)
-% Uses first camera in cam structure. 
+
+% FIG 3 + 4: Plot of rays overlaid on phantom.
+% This demonstating the degree to which the rays are parallel.
+% Use first camera in cam structure. 
 figure(3);
 aso.srays(x, cam(1).mx(1:10:end), cam(1).x0(1:10:end));
 colormap(flipud(ocean));
 
+% Use last camera in cam structure. 
 figure(4);
 aso.srays(x, cam(end).mx(1:10:end), cam(end).x0(1:10:end));
 colormap(flipud(ocean));
 
 
-% Plot position of cameras relative to ASO
+
+% FIG 10: Plot position of cameras relative to ASO
 figure(10);
 aso.surf(x,0);
 tools.plotcm(Nc, [], flipud(inferno)); % set color order
