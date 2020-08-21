@@ -10,6 +10,10 @@ classdef Aso2
         dy    = [];     % axial element width
         y     = [];     % axial element centers
         ye    = [];     % axial element edges
+        ye2   = [];     % axial edges (for all elements in 2D grid),
+                        % to be used with 2D phantoms defined on 
+                        % a linear basis for radius and uniform basis for
+                        % axial position
         
         Y     = [];     % axial extent / overall width
         Ny    = [];     % number of edges in the axial direction
@@ -20,6 +24,10 @@ classdef Aso2
         dr    = [];     % annuli width
         r     = [];     % annuli centers
         re    = [];     % annuli edges
+        re2   = [];     % annuli edges (for all elements in 2D grid),
+                        % to be used with 2D phantoms defined on 
+                        % a linear basis for radius and uniform basis for
+                        % axial position
         
         R     = [];     % outer radius of object
         Nr    = [];     % number of annuli
@@ -57,11 +65,16 @@ classdef Aso2
             
             %-- Consolidated element information -------------------------%
             aso.N = aso.Ny * aso.Nr; % total number of elements
+            
+            % vector list of element edges (for 2D linear basis)
+            [aso.ye2, aso.re2] = meshgrid(aso.ye(1:(end-1)), aso.re);
+            aso.ye2 = aso.ye2(:); aso.re2 = aso.re2(:);
+            
+            % vectorized element edges for overall grid
             aso.edges = [repmat(aso.re(1:(end-1)),[Ny,1]), ...
                 repmat(aso.re(2:end),[Ny,1]), ...
                 reshape(repmat(aso.ye(1:(end-1)),[1,Nr]), [Ny*Nr,1]), ...
                 reshape(repmat(aso.ye(2:end),[1,Nr]), [Ny*Nr,1])];
-                % vectorized element edges for overall grid
             %-------------------------------------------------------------%
             
             %-- Compute differential operators ---------------------------%
@@ -89,6 +102,36 @@ classdef Aso2
         %   Timothy Sipkens, 2020-06-11
         function x = reshape(aso,x)
             x = reshape(x, [aso.Nr + 1, aso.Ny]);
+        end
+        %=================================================================%
+        
+        
+        
+        %== GRADIENTC ====================================================%
+        %   Cartesian gradients, interpolated from the ASO object.
+        %   Assumes a linear radial basis and uniform axial basis.
+        %   Timothy Sipkens, 2020-06-11
+        function [Dx, Dy, Dz, Dro] = gradientc(aso,xi,yi,zy,f)
+            
+            % Get position in cylindrical coordinates
+            ri = sqrt(xi.^2 + zy.^2); % radial position
+            q = atan2(xi, -zy); % angle, in coord. system from Sipkens et al.
+            
+            % Setup grid for interpolation
+            [y0, r0] = meshgrid(aso.ye, aso.re); % grid for input to interpolation
+            Dri = aso.reshape(aso.Dr * f); % reshape radial gradient
+            Dri = [Dri, Dri(:,end)]; % append constant slope data for last axial position
+            Dyi = aso.reshape(aso.Dy * f); % reshape axial gradient
+            Dyi = [Dyi, Dyi(:,end)]; % append constant slope data for last axial position
+            
+            % Interpolate r-gradient and convert to Cartesian coords.
+            Dro = interp2(y0, r0, Dri, yi, ri, 'linear' ,0);
+            Dx = sin(q) .* Dro; % get the x-gradient based on the angle
+            Dz = -cos(q) .* Dro; % get the y-gradient based on the angle
+            
+            % Interpolate y-gradient
+            Dy = interp2(y0, r0, Dyi, yi, ri, 'linear', 0);
+            
         end
         %=================================================================%
         

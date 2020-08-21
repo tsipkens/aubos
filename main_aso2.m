@@ -35,10 +35,10 @@ disp(' ');
 
 
 R = 1;
-Nr = 2;%min(round(size(Iref,1) .* 1.2), 250);
+Nr = min(round(size(Iref,1) .* 1.2), 250);
 Y = 4;
 % V = 4;
-Ny = 3;%min(round(size(Iref,2) .* 1.2), 400);
+Ny = min(round(size(Iref,2) .* 1.2), 400);
 aso2 = Aso2(R,Nr,Y,Ny);
 
 
