@@ -358,7 +358,7 @@ classdef Aso2
                 tools.textbar(ii/(length(aso.ye)-1));
             end
             
-            Ky = Ky * aso.Dy;
+            % Ky = Ky * aso.Dy;
             
             
         end
