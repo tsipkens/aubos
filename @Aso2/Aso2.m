@@ -111,7 +111,7 @@ classdef Aso2
         %   Cartesian gradients, interpolated from the ASO object.
         %   Assumes a linear radial basis and uniform axial basis.
         %   Timothy Sipkens, 2020-06-11
-        function [Dx, Dy, Dz, Dro] = gradientc(aso,xi,yi,zy,f)
+        function [Dx, Dy, Dz] = gradientc(aso,xi,yi,zy,f)
             
             % Get position in cylindrical coordinates
             ri = sqrt(xi.^2 + zy.^2); % radial position

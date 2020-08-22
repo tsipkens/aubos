@@ -62,6 +62,18 @@ x2 = x2(:);
 
 
 
+% FIG 2: Plot Cartesian gradients, at a line of constant y and z
+figure(2);
+[Dx,Dy,Dz] = aso2.gradientc(linspace(-1,1,400),...
+    0.*ones(1,400),-0.5.*ones(1,400),x2);
+plot(Dx);
+hold on;
+plot(Dy); plot(Dz);
+hold off;
+legend({'Dx', 'Dy', 'Dz'});
+
+
+
 
 
 
@@ -144,7 +156,7 @@ ylim([-2,2]);
 U = U(:);
 Y = Y(:);
 
-figure(2);
+figure(4);
 imagesc(reshape(U, size(Iref)));
 colormap('gray');
 axis image;
