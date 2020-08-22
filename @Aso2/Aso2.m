@@ -336,7 +336,9 @@ classdef Aso2
                      zeros(1,size(rj,2)) ... % if crosses in decline
                     ])';
                 Ky(idx_a, ((ii-1)*(aso.Nr+1)+1):(ii*(aso.Nr+1))) = sparse(Ky0);
+                % + remove derivative below
                 %}
+                
                 %{
                 Ky0 = ([zeros(1, size(rj,2)); ...
                      ry .* (ry ./ 2 - rjd0) ./ (rj0 - rjd0) .* and(rjd0 < ry, ry < rj0) - ...
@@ -350,12 +352,13 @@ classdef Aso2
                      zeros(1,size(rj,2)) ... % if crosses in decline
                     ])';
                 Ky(idx_a, ((ii-1)*(aso.Nr+1)+1):(ii*(aso.Nr+1))) = sparse(Ky0);
+                % + add derivative below
                 %}
                 
                 tools.textbar(ii/(length(aso.ye)-1));
             end
             
-            % Ky = Ky * aso.Dy;
+            Ky = Ky * aso.Dy;
             
             
         end
