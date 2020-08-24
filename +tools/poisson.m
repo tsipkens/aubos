@@ -1,16 +1,16 @@
 
-% POISSON Solve Poisson equation to get 2D refractive index field.
+% POISSON  Solve Poisson equation to get 2D refractive index field.
 % Includes subfunctions to calculate the Laplacian.
 % Author: Timothy Sipkens, 2020-02-27
 %=========================================================================%
 
-function n = poisson(b,Lb,dim1,dim2)
+function n = poisson(b,Lb,sz)
 
 %-- Inversion in the 2D plane --------------------------------------------%
-A = -gen_slaplacian(dim1,dim2,1,1);
-    % model in 2D is the Laplacian (generated as space matrix)
+%   Model in 2D is the Laplacian (generated as space matrix)
+A = -gen_slaplacian(sz(1), sz(2), 1, 1);
 
-n = (Lb*A)\(Lb*b); % direct inversion
+n = (Lb*A) \ (Lb*b); % direct inversion
 %-------------------------------------------------------------------------%
 
 
