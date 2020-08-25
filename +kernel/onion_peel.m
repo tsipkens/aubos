@@ -7,7 +7,7 @@ function f = onion_peel(b)
 
 n = size(b,1);
 
-W = abel.onion_peel_f(n); % get kernel/forward operator
+W = kernel.onion_peel_f(n); % get kernel/forward operator
 
 f = zeros(size(b));
 for kk=1:size(b,2)

@@ -215,15 +215,35 @@ drawnow;
 
 %-- HS + Poisson equation ------------------------------------------------%
 [u2,v2] = of.horn_schunck(Iref, Idef);
+% [u2,v2] = of.lucas_kanade(Iref, Idef);
 
-t0 = divergence(v2,u2);
-t1 = tools.poisson(-t0(:), speye(numel(u2)), size(u2));
+
+t0 = divergence(0.*v2,u2);
+t1 = tools.poisson(t0(:), speye(numel(u2)), size(u2));
 
 figure(25);
 imagesc(reshape(t1, size(u2)));
-colormap ocean;
+colormap(flipud(ocean));
 axis image;
 
+% must first cut image in half before applying Abel-type transform
+D_2pt = kernel.two_pt(size(u2, 1));
+D_2pt = kron(speye(size(u2, 2)), D_2pt);
+n_2pt = lsqlin(D_2pt, u2(:));
+
+figure(26);
+imagesc(reshape(n_2pt, size(u2)));
+colormap(flipud(ocean));
+axis image;
+
+% similar comment to above
+D_op = kernel.three_pt(size(u2, 1));
+D_op = kron(speye(size(u2, 2)), D_op);
+n_op = lsqlin(D_op, t1(:));
+
+figure(27);
+imagesc(reshape(n_op, size(u2)));
+colormap(flipud(ocean));
 
 
 %%
