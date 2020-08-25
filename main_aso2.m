@@ -189,7 +189,7 @@ set(gca,'YDir','normal');
 
 %%
 %-{
-disp('Computing inverses...');
+disp('Generating data...');
 
 % Sample inverse 
 rng(1);
@@ -212,7 +212,23 @@ drawnow;
 
 
 
+
+%-- HS + Poisson equation ------------------------------------------------%
+[u2,v2] = of.horn_schunck(Iref, Idef);
+
+t0 = divergence(v2,u2);
+t1 = tools.poisson(-t0(:), speye(numel(u2)), size(u2));
+
+figure(25);
+imagesc(reshape(t1, size(u2)));
+colormap ocean;
+axis image;
+
+
+
+%%
 %{
+disp('Computing inverses...');
 % Least-squares analysis
 figure(9);
 imagesc(It);
