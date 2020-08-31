@@ -146,6 +146,23 @@ classdef Camera
             %-------------------------------------------------------------%
 
         end
+        
+        
+        
+        %== PROJECT ======================================================%
+        %   Projects camera pixels to a given z-plane.
+        function [x1, y1] = project(cam, z1)
+            
+            o = [cam.x,cam.y,cam.z];
+            
+            % Collisions with z = z0 plane.
+            d = (z1 - o(3)) ./ (cam.rays' * [0 0 1]');
+            p1 = o(:) + bsxfun(@times, cam.rays, d');
+            x1 = p1(1,:);
+            y1 = p1(2,:);
+
+        end
+        
     end
     
     
