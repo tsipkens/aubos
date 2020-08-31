@@ -97,6 +97,7 @@ clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
 tools.plotcm(Nc, [], flipud(inferno)); % set color order
 hold on;
+xlim([-2,2]);
 
 % FIG 6: Plot linear basis functions.
 figure(6);
@@ -104,6 +105,7 @@ clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
 tools.plotcm(Nc, [], flipud(inferno)); % set color order
 hold on;
+xlim([-2,2]);
 
 
 hold on;
