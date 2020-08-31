@@ -22,7 +22,7 @@ x0_vec = x0 .* ones(Nm, 1);
 %   and differ in terms of the slope, mx.
 figure(2);
 clf;
-tools.plotcm(length(mx_vec), [], inferno); % set color order
+cmap_sweep(length(mx_vec), inferno); % set color order
 
 hold on;
 for ii=1:length(mx_vec) % loop through scenerios

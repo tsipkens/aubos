@@ -99,7 +99,7 @@ end
 figure(5);
 clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
-tools.plotcm(Nc, [], flipud(inferno)); % set color order
+cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
 xlim([-2,2]);
 
@@ -107,7 +107,7 @@ xlim([-2,2]);
 figure(6);
 clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
-tools.plotcm(Nc, [], flipud(inferno)); % set color order
+cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
 xlim([-2,2]);
 
@@ -145,7 +145,7 @@ colormap(flipud(ocean));
 % FIG 10: Plot position of cameras relative to ASO
 figure(10);
 aso.surf(x,0);
-tools.plotcm(Nc, [], flipud(inferno)); % set color order
+cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
 for cc=1:Nc
     plot(cam(cc).z, cam(cc).x,'.');
@@ -169,7 +169,7 @@ T_vec = 1 ./ freq_vec;
 figure(12);
 hold off;
 plot(aso.re, x, 'k--');
-tools.plotcm(length(freq_vec), [], flipud(inferno(1e3))); % set color order
+cmap_sweep(length(freq_vec), flipud(inferno(1e3))); % set color order
 
 err = [];
 for ii = 1:Nf
