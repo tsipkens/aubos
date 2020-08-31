@@ -49,7 +49,8 @@ end
 %=========================================================================%
 
 
-% Produce a plot of the phantom
+
+% FIG 3: Plot Phantom (2D slice through center of ASO)
 figure(3);
 aso.surf(x);
 colormap(flipud(ocean));
@@ -58,26 +59,31 @@ axis off;
 
 
 
-% positions along the center of the aso
-Nu = 400; % number of pixels in camera
-x0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
+%== Generate a fictitious "camera" =======================================%
+% 	Multiple camera positions are considered (contained in `oc`)
+%   OPTION 1 uses the camera class and a focal length.
+%   OPTION 2 considers only rays that pass close to the ASO. The output
+%       will differ from OPT. 1, producing a different set of rays that 
+%       results in higher resultion deflections in the vicinity of the ASO.
 
-Nc = 20;
+Nu = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
+
+Nc = 20; % number of camera positions
 oc = [fliplr(linspace(0, 0.8, Nc)); ...
     zeros(1, Nc); ...
-    -logspace(log10(1.1),log10(10),Nc)]; % vector of camera origin locations
+    -logspace(log10(1.1),log10(10),Nc)];
+    % vector of camera origin locations
 
-
-% define parameters for camera location
-%-{
+%{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
     cam(cc) = Camera(Nu, 1, oc(:,cc), 1e2);
 end
 %}
 
-%{
+%-{
 %-- OPTION 2: Manually assign parameters -----%
+x0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
 for cc=Nc:-1:1
     cam(cc).x = oc(1, cc);
     cam(cc).z = oc(3, cc);
@@ -87,11 +93,12 @@ for cc=Nc:-1:1
         cam(cc).z; % slope implied by camera location
 end
 %}
+%=========================================================================%
 
 
 
 
-% FIG 5: Plot uniform basis functions.
+% FIG 5: Initialize plot for uniform basis functions.
 figure(5);
 clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
@@ -99,7 +106,7 @@ tools.plotcm(Nc, [], flipud(inferno)); % set color order
 hold on;
 xlim([-2,2]);
 
-% FIG 6: Plot linear basis functions.
+% FIG 6: Initialize plot for linear basis functions.
 figure(6);
 clf;
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
