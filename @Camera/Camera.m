@@ -134,8 +134,8 @@ classdef Camera
             cam.my = cam.rays(2,:) ./ cam.rays(3,:);
 
             % Mid-plane slopes collisions
-            d = -o(3) ./ (cam.rays'*[0 0 1]');
-            cam.p0 = o(:) + bsxfun(@times,cam.rays,d');
+            d = -o(3) ./ (cam.rays' * [0 0 1]');
+            cam.p0 = o(:) + bsxfun(@times, cam.rays, d');
             cam.x0 = cam.p0(1,:);
             cam.y0 = cam.p0(2,:);
             %-------------------------------------------------------------%

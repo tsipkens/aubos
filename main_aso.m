@@ -69,14 +69,14 @@ oc = [fliplr(linspace(0, 0.8, Nc)); ...
 
 
 % define parameters for camera location
-%{
+%-{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
     cam(cc) = Camera(Nu, 1, oc(:,cc), 1e2);
 end
 %}
 
-%-{
+%{
 %-- OPTION 2: Manually assign parameters -----%
 for cc=Nc:-1:1
     cam(cc).x = oc(1, cc);
