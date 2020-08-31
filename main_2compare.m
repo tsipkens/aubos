@@ -14,7 +14,7 @@ addpath cmap;
 %%
 %== Generate background ==================================================%
 disp('Reading and transforming image...');
-Iref = tools.gen_bg('sines', [249,352], 5)  .* 255;
+Iref = tools.gen_bg('sines', [249,352], 10)  .* 255;
 
 % Plot background
 figure(1);
@@ -74,29 +74,12 @@ legend({'Dx', 'Dy', 'Dz'});
 
 
 % positions along center of aso
-Nu = size(Iref,1);
-x0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nu);
+Nu = size(Iref,1);  % first image dimension
+Nv = size(Iref,2);  % second image dimension
+oc = [0,2,20];      % camera origin
+f = 1e2;            % focal length
+cam = Camera(Nu, Nv, [0,2,20], 1e3); % generate a camera
 
-Nv = size(Iref,2);
-y0_vec = linspace(0, Y, Nv);
-
-[x0_vec2, y0_vec2] = ndgrid(x0_vec, y0_vec); % meshgrid to generate image dims.
-x0_vec2 = x0_vec2(:)'; y0_vec2 = y0_vec2(:)'; % must be row vectors
-
-% cam.x = 0.5;
-% cam.y = 7.5; % 3.5; % 7.5;
-% cam.z = 1.9;
-
-cam.x = 0;
-cam.y = 2; % 2; % 4;
-cam.z = 20;
-
-% cam.x = 0.5;
-% cam.y = 2; % 2; % 4.;
-% cam.z = 1.2;
-
-mx_vec = (x0_vec2 - cam.x) ./ cam.z;
-my_vec = (y0_vec2 - cam.y) ./ cam.z;
 
 figure(3);
 aso2.plot(x2);
@@ -112,19 +95,19 @@ axis image;
 yl2 = [];
 Kl2 = [];
 disp('Processing rays...');
-[Kl2, Kv2] = aso2.linear(mx_vec, x0_vec2, my_vec, y0_vec2);
+[Kl2, Kv2] = aso2.linear(cam.mx, cam.x0, cam.my, cam.y0);
 disp('Complete.');
 disp(' ');
 
 yl2 = Kl2 * x2; % yl2 is vertical deflections in image coordinate system
-yl2 = reshape(yl2, [length(x0_vec), length(y0_vec)]);
+yl2 = reshape(yl2, [Nu, Nv]);
 
 yv2 = Kv2 * x2;
-yv2 = reshape(yv2, [length(x0_vec), length(y0_vec)]);
+yv2 = reshape(yv2, [Nu, Nv]);
 
 
 figure(7);
-imagesc(y0_vec, x0_vec, yl2);
+imagesc(cam.y0, cam.x0, yl2);
 colormap(curl(255));
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
@@ -133,7 +116,7 @@ set(gca,'YDir','normal');
 ylim([-2,2]);
 
 figure(17);
-imagesc(y0_vec, x0_vec, yv2);
+imagesc(cam.y0, cam.x0, yv2);
 colormap(curl(255));
 y_max = max(max(abs(yv2)));
 caxis([-y_max, y_max]);
@@ -323,14 +306,14 @@ caxis([0,x_max]);
 
 
 
-figure(4);
-semilogx(lambda_vec, err, '.-');
-
-figure(5);
-loglog(res_norm, n_norm, '.-');
-
-figure(20);
-loglog(lambda_vec, ...
-    1/2.*log(lambda_vec), '.-');
+% figure(4);
+% semilogx(lambda_vec, err, '.-');
+% 
+% figure(5);
+% loglog(res_norm, n_norm, '.-');
+% 
+% figure(20);
+% loglog(lambda_vec, ...
+%     1/2.*log(lambda_vec), '.-');
 %}
 
