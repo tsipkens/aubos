@@ -20,6 +20,8 @@ figure(1);
 imagesc(Iref);
 colormap(gray);
 axis image;
+title('Background');
+
 disp('Complete.');
 disp(' ');
 %=========================================================================%
@@ -59,7 +61,7 @@ x2 = x2(:);
 
 
 % FIG 2: Plot Cartesian gradients in Aso, 
-% at a line of constant y and z
+% along a line of constant y and z
 figure(2);
 [Dx,Dy,Dz] = aso2.gradientc(linspace(-1, 1,400),...
     0.*ones(1,400),-0.5.*ones(1,400),x2);
@@ -67,7 +69,8 @@ plot(Dx);
 hold on;
 plot(Dy); plot(Dz);
 hold off;
-legend({'Dx', 'Dy', 'Dz'});
+title('Gradient along ray');
+legend({'Dx', 'Dy', 'Dz'})
 
 
 
@@ -100,12 +103,13 @@ aso2.plot(x2);
 % aso2.srays(x2, mv_vec, v0_vec2);
 colormap(flipud(ocean));
 axis image;
+title('Refractive index field for ASO');
 
 
 
 
 %%
-%-- Compute kernel and evaluate deflection field -------------------------%
+%== AUBOS operator =======================================================%
 disp('Processing rays...');
 [Kl2, Kv2] = aso2.linear(cam.mx, cam.x0, cam.my, cam.y0);
 disp('Complete.');
@@ -118,62 +122,73 @@ yv2 = Kv2 * x2;
 yv2 = reshape(yv2, [Nu, Nv]);
 
 
+% FIG 7: Radial deflection field
 figure(7);
-imagesc(y0_vec, x0_vec, yl2);
+imagesc(cam.y0, cam.x0, yl2);
 colormap(curl(255));
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
-ylim([-2,2]);
+colorbar;
+title('Radial deflection');
 
-figure(17);
-imagesc(y0_vec, x0_vec, yv2);
+% FIG 8: Axial deflection field
+figure(8);
+imagesc(cam.y0, cam.x0, yv2);
 colormap(curl(255));
 y_max = max(max(abs(yv2)));
 caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
-ylim([-2,2]);
+colorbar;
+title('Axial deflection');
 
-
-
-%%
-%-- Generate unified operator --------------------------------------------%
+% Gradient contribution to operator
 [Y,U] = gradient(Iref);
 U = U(:);
 Y = Y(:);
 
+% FIG 4: Plot gradient contributions to AUBOS operator
 figure(4);
 imagesc(reshape(U, size(Iref)));
 colormap('gray');
 axis image;
+title('Radial image gradient');
 
-C0 = 2e-4;
-A = -C0 .* (U .* Kl2); % compile unified operator
-    % .* avoids creating diagonal matrix from O * Iref(:)
+C0 = 2e-4; % scaling constant (i.e., epsilon > delta)
 
-A = -C0 .* (U .* Kl2 + Y .* Kv2); % compile unified operator
-    % .* avoids creating diagonal matrix from O * Iref(:)
+% Compile the unified operator
+% ".*" in operator cosntruction avoids creating diagonal matrix from O * Iref(:)
+A = -C0 .* (U .* Kl2 + Y .* Kv2); % incorporates axial contributions
+% A = -C0 .* U .* Kl2; % ignores axial contributions
+%=========================================================================%
 
     
 
 %%
 %-{
 %-- Generate It field ----------------------------------------------------%
-It0 = A * x2;
-It0 = reshape(It0, size(Iref));
+disp('Generating data...');
 
-Idef = Iref + It0;
-Idef = max(Idef, 0);
+It0 = A * x2; % use unified operator to generate perfect It
+It0 = reshape(It0, size(Iref)); % reshape according to image size
 
-figure(8);
+Idef = Iref + It0; % perfect deflected image
+Idef = max(Idef, 0); % check on positivity
+
+% FIG 10: Perfect It field
+figure(10);
 imagesc(It0);
 colormap(balanced(255));
 It_max = max(max(abs(It0)));
 caxis([-It_max, It_max]);
 axis image;
 set(gca,'YDir','normal');
+title('It');
+
+disp('Complete.');
+disp(' ');
 %}
 
 

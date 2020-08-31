@@ -47,7 +47,7 @@ aso2 = Aso2(R,Nr,Y,Ny);
 
 % x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % x2 = normpdf(re, 0, 0.2); % uniform Gaussian
-x2 = normpdf(re, 0, 0.4 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
+x2 = normpdf(re, 0, 0.3 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
 % x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
 x2 = x2(:);
@@ -89,7 +89,6 @@ axis image;
 
 
 %%
-
 %== AUBOS operator =======================================================%
 disp('Processing rays...');
 [Kl2, Kv2] = aso2.linear(cam.mx, cam.x0, cam.my, cam.y0);
@@ -111,6 +110,7 @@ y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
+colorbar;
 
 % FIG 8: Axial deflection field
 figure(8);
@@ -120,6 +120,7 @@ y_max = max(max(abs(yv2)));
 caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
+colorbar;
 
 % Gradient contribution to operator
 [Y,U] = gradient(Iref);
@@ -137,15 +138,8 @@ C0 = 2e-4; % scaling constant (i.e., epsilon > delta)
 % Compile the unified operator
 % ".*" in operator cosntruction avoids creating diagonal matrix from O * Iref(:)
 A = -C0 .* (U .* Kl2 + Y .* Kv2); % incorporates axial contributions
-A = -C0 .* U .* Kl2; % ignores axial contributions
+% A = -C0 .* U .* Kl2; % ignores axial contributions
 %=========================================================================%
-
-
-%%
-%-{
-% Optical flow operator.
-% O = of.gen1(size(Iref)); % differential operator for image
-% U = O * Iref(:); % differential operator applied to image
 
 
 
@@ -193,6 +187,8 @@ disp(' ');
 %=========================================================================%
 
 
+
+%%
 %{
 %-- HS + Poisson equation ------------------------------------------------%
 [u2,v2] = of.horn_schunck(Iref, Idef);
