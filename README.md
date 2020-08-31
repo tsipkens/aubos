@@ -17,15 +17,14 @@ git clone git://github.com/tsipkens/aubos --recurse-submodules
 which will automatically download the submodule. To be used directly, these packages should then be added to the MATLAB path at the beginning of any script using
 
 ```Matlab
-addpath('cmap');
+addpath cmap;
 ```
 
-In the place of the `cmap` package, one could also replace references in existing scripts to the colormaps that would otherwise be in that package.  
+Instead of the `cmap` package, one could also replace references in existing scripts to the colormaps that would otherwise be in that package. This would have to include removing any refrence to the `cmap_sweep` function (which allows for line plots to sweep through a colormap) that appears in some of the main scripts.   
 
 # Description
-This codebase has a dependency in the form of the `cmap` folder. 
 
-The codebase is broken up into a series of packages: 
+This codebase is broken up into a series of packages: 
 
 1. The `kernel` package includes functions to generate the typical forward and inverse operators for solving the Abel problem. Inputs vary depending on the operator, with some specifically built for deflectometry measurements, while others apply to the more generic problem and require that the data be transformed prior to use. 
 2. The `tools` package contains miscellaneous functions to aid in analysis. This includes a text-based toolbar function attributed to @sgrauer. 
@@ -33,8 +32,6 @@ The codebase is broken up into a series of packages:
 4. The `regularization` package contains tools to help during inversion, such as generating prior covariance matrices. 
 
 We refer the reader to individual functions for more information. 
-
---------
 
 ## Representing cameras
 
