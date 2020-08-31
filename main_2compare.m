@@ -24,20 +24,14 @@ disp(' ');
 %=========================================================================%
 
 
+
 %%
-
-
-
 R = 1;
 Nr = min(round(size(Iref,1) .* 1.2), 250);
 Y = 4;
 % V = 4;
 Ny = min(round(size(Iref,2) .* 1.2), 400);
 aso2 = Aso2(R,Nr,Y,Ny);
-
-
-
-
 
 
 
@@ -65,7 +59,6 @@ hold on;
 plot(Dy); plot(Dz);
 hold off;
 legend({'Dx', 'Dy', 'Dz'});
-
 
 
 
@@ -127,12 +120,6 @@ colorbar;
 U = U(:);
 Y = Y(:);
 
-% FIG 4: Plot gradient contributions to AUBOS operator
-figure(4);
-imagesc(reshape(U, size(Iref)));
-colormap('gray');
-axis image;
-
 C0 = 2e-4; % scaling constant (i.e., epsilon > delta)
 
 % Compile the unified operator
@@ -189,41 +176,61 @@ disp(' ');
 
 
 %%
-%{
-%-- HS + Poisson equation ------------------------------------------------%
-[u2,v2] = of.horn_schunck(Iref, Idef);
-% [u2,v2] = of.lucas_kanade(Iref, Idef);
+%-{
+%== OF + Poisson equation ================================================%
+%   Then uses Abel inversion operators for inverion.
+
+% Optical flow to get deflections
+[u_of, v_of] = tools.horn_schunck(Iref, Idef);
+% [u_of, v_of] = tools.lucas_kanade(Iref, Idef);
 
 
-t0 = divergence(0.*v2,u2);
-t1 = tools.poisson(t0(:), speye(numel(u2)), size(u2));
+%-- Divergence for the RHS of Poisson eq. --------------------------------%
+t0 = divergence(0.*v_of, u_of);
 
-figure(25);
-imagesc(reshape(t1, size(u2)));
+figure(20);
+imagesc(reshape(t0, size(u_of)));
 colormap(flipud(ocean));
 axis image;
+%-------------------------------------------------------------------------%
+
+%-- Solve Poisson equation -----------------------------------------------%
+t1 = tools.poisson(t0(:), speye(numel(u_of)), size(u_of));
+
+figure(21);
+imagesc(reshape(t1, size(u_of)));
+colormap(flipud(ocean));
+axis image;
+%-------------------------------------------------------------------------%
+
+
 
 % must first cut image in half before applying Abel-type transform
-D_2pt = kernel.two_pt(size(u2, 1));
-D_2pt = kron(speye(size(u2, 2)), D_2pt);
-n_2pt = lsqlin(D_2pt, u2(:));
+D_2pt = kernel.two_pt(size(u_of, 1));
+D_2pt = kron(speye(size(u_of, 2)), D_2pt);
+n_2pt = lsqlin(D_2pt, u_of(:));
 
-figure(26);
-imagesc(reshape(n_2pt, size(u2)));
+figure(22);
+imagesc(reshape(n_2pt, size(u_of)));
 colormap(flipud(ocean));
 axis image;
 
 % similar comment to above
-D_op = kernel.three_pt(size(u2, 1));
-D_op = kron(speye(size(u2, 2)), D_op);
+D_op = kernel.three_pt(size(u_of, 1));
+D_op = kron(speye(size(u_of, 2)), D_op);
 n_op = lsqlin(D_op, t1(:));
 
-figure(27);
-imagesc(reshape(n_op, size(u2)));
+figure(23);
+imagesc(reshape(n_op, size(u_of)));
 colormap(flipud(ocean));
+%=========================================================================%
+%}
+
+
 
 
 %%
+%{
 %{
 disp('Computing inverses...');
 % Least-squares analysis

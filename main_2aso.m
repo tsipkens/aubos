@@ -63,13 +63,17 @@ x2 = x2(:);
 % FIG 2: Plot Cartesian gradients in Aso, 
 % along a line of constant y and z
 figure(2);
-[Dx,Dy,Dz] = aso2.gradientc(linspace(-1, 1,400),...
-    0.*ones(1,400),-0.5.*ones(1,400),x2);
+y_ray = 0; z_ray = -0.2;
+[Dx,Dy,Dz] = aso2.gradientc(...
+    linspace(-1, 1,400),...  % x-positions
+    y_ray.*ones(1,400), ...  % y-positions
+    z_ray.*ones(1,400),x2); % z-positions
 plot(Dx);
 hold on;
 plot(Dy); plot(Dz);
 hold off;
-title('Gradient along ray');
+title(['Gradient along ray at y = ', ...
+    num2str(y_ray), ', z = ', num2str(z_ray)]);
 legend({'Dx', 'Dy', 'Dz'})
 
 
