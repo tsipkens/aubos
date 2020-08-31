@@ -14,18 +14,10 @@ addpath cmap;
 
 %%
 %== Generate background ==================================================%
-disp('Reading and transforming image...');
-%-- OPTION 1: Read in background -----------------------------------------%
-% Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :) + 10;
-% Iref = imread('data/bgs/sines5.png')';
-% Iref = imread('data/bgs/sines.png')';
-% Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
-% Iref = max(Iref, 1);
-% Iref = imresize(Iref, [249,352]); % reduce image size for test
-    % [249,352] -> 0.05
-
-%-- OPTION 2: Generate background ----------------------------------------%
-Iref = tools.gen_bg('sines', [249,352], 5) .* 255;
+disp('Generating background...');
+Iref = tools.gen_bg('sines', [249,352], 5) .* 255; % 1D sines
+% Iref = tools.gen_bg('sines2', [249,352], 10) .* 255; % overlapping 2D sines
+% Iref = tools.gen_bg('dots', [249,352]) .* 255; % dots background
 
 % Plot background
 figure(1);
