@@ -1,5 +1,6 @@
 
 % MAIN_2ASO  A script to demonstrate the 2D AUBOS approach, without inversion. 
+% Runtimes on the order of a few minutes (depending on hardware). 
 % Timothy Sipkens
 %=========================================================================%
 
@@ -12,25 +13,28 @@ addpath cmap;
 
 
 %%
-% Read in a background.
+%== Generate background ==================================================%
 disp('Reading and transforming image...');
+%-- OPTION 1: Read in background -----------------------------------------%
 % Iref = imread('data/bgs/dots.png'); Iref = Iref(500:end, 350:end, :) + 10;
 % Iref = imread('data/bgs/sines5.png')';
 % Iref = imread('data/bgs/sines.png')';
 % Iref = double(squeeze(Iref(:,:,1))); % reduce to grayscale
 % Iref = max(Iref, 1);
-
-Iref = tools.gen_bg('sines', [249,352], 5)  .* 255;
-
-Iref = imresize(Iref, [249,352]); % reduce image size for test
+% Iref = imresize(Iref, [249,352]); % reduce image size for test
     % [249,352] -> 0.05
 
+%-- OPTION 2: Generate background ----------------------------------------%
+Iref = tools.gen_bg('sines', [249,352], 5) .* 255;
+
+% Plot background
 figure(1);
 imagesc(Iref);
 colormap(gray);
 axis image;
 disp('Complete.');
 disp(' ');
+%=========================================================================%
 
 
 %%
