@@ -4,8 +4,8 @@
 % Sipkens et al. for non-parallel rays.
 %=========================================================================%
 
-clear; close all; clc;
-addpath cmap; % add colormaps folder
+clear; close all;
+addpath cmap; % add colormaps to path
 
 
 % Setup parameters

@@ -4,12 +4,8 @@
 % Timothy Sipkens
 %=========================================================================%
 
-clear;
-close all;
-
-
-addpath cmap;
-
+clear; close all;
+addpath cmap; % add colormaps to path
 
 
 %%

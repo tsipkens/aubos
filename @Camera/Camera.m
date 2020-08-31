@@ -95,29 +95,34 @@ classdef Camera
             cam.f = f; % focal length [px]
             cam.k = k(:); % radial distortion parameters (see [1] and [2])
             
-            cam.K = [f 0 w/2; 0 f h/2; 0 0 1]; % intrinsic matrix (see [1])
-
-            % Pixel indices
-            [cam.v, cam.u] = find(zeros([h w]) == 0); % sensor coords. (u,v) [px]
+            cam.K = [f, 0, w/2; ...
+                0, f, h/2; ...
+                0, 0, 1]; % intrinsic matrix (see [1])
+            
+            % Pixel indices, sensor coords. (u,v) [px]
+            % [cam.v, cam.u] = find(zeros([h, w]) == 0); % original
+            [cam.v, cam.u] = meshgrid(1:h, 1:w); % update swaps 1st incr. index
+            cam.v = cam.v(:); cam.u = cam.u(:);
             %-------------------------------------------------------------%
-
-
+            
+            
             %--- Camera model --------------------------------------------%
             % Normalized sensor points
-            p = cam.K \ [w-cam.u(:)+1 cam.v(:) ones(h*w,1)]'; % homogeneous coords. []
+            p = cam.K \ [w - cam.u(:) + 1 cam.v(:), ...
+                ones(h*w,1)]'; % homogeneous coords. []
             x = p(1,:); % u-coordinates []
             y = p(2,:); % v-coordinates []
             r = x.^2 + y.^2; % radius []
-
+            
             % Truncate polynomial
             if length(k) > 9, k = k(1:9); end
-
+            
             % Fixed variables for polynomial
             r2 = r' .^ (1:length(k))';
-
+            
             % Calculate inverse distortion coefficients
             b = cam.inverse_distortion(k);
-
+            
             % Simple camera with lens (per instructions)
             if length(b) > 1
                 xp = x .* (1 + sum(b .* r2));
@@ -126,13 +131,13 @@ classdef Camera
                 xp = x + x .* b .* r2;
                 yp = y + y .* b .* r2;
             end
-
+            
             % Modeled ray vectors and slopes (camera facing +z)
             cam.rays = [xp; yp; ones(1, h*w)] .* [-1 -1 1]';
             cam.rays = cam.rays ./ sqrt(sum(cam.rays.^2));
             cam.mx = cam.rays(1,:) ./ cam.rays(3,:);
             cam.my = cam.rays(2,:) ./ cam.rays(3,:);
-
+            
             % Mid-plane slopes collisions
             d = -o(3) ./ (cam.rays' * [0 0 1]');
             cam.p0 = o(:) + bsxfun(@times, cam.rays, d');
@@ -164,7 +169,7 @@ classdef Camera
             a = [varargin{:}];
             n = length(a);
             if n < 4
-                a = [a(:);zeros(4-n,1)];
+                a = [a(:); zeros(4-n,1)];
             elseif n > 9
                 a(10:n) = [];
                 n       = 9;
