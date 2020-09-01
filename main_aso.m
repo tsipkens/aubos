@@ -114,8 +114,8 @@ xlim([-2,2]);
 
 hold on;
 for cc=1:Nc % loop through multiple camera positions
-    Ku = kernel.uniform(aso, cam(cc).mx, cam(cc).x0);
-    Kl = kernel.linear(aso, cam(cc).mx, cam(cc).x0);
+    Ku = kernel.uniform(aso, cam(cc).x0, cam(cc).mx);
+    Kl = kernel.linear(aso, cam(cc).x0, cam(cc).mx);
     
     yu = Ku*x; % using uniform kernel
     yl = Kl*x; % using linear kernel
@@ -168,7 +168,7 @@ b1 = A1 \ x;
 
 % New kernel, evaluated analogous with Abel-type kernels, 
 % acts directly on deflections
-A2 = kernel.linear(aso.re, 0.*aso.re', aso.re');
+A2 = kernel.uniform(aso.re, aso.re', 0.*aso.re');
 b2 = A2 * x;
 
 % 3-pt kernel (operates on integrated deflections, thus gradient operator below)
@@ -185,7 +185,7 @@ hold on;
 plot(aso.re, b2);
 plot(aso.re, b3);
 plot(aso.re, b4);
-plot(aso.re, x);
+plot(aso.re, x, 'k');
 plot(cam(end).x0, yl, '--k');
 hold off
 xlim([0, max(aso.re)]);
@@ -193,15 +193,16 @@ xlim([0, max(aso.re)]);
 
 
 
-%%
+
 %== COMPARE INVERSE OPERATORS ============================================%
-b = b3 + 1e-2 .* randn(size(b2));
+b = b3 + 2e-1 .* randn(size(b2));
 
 % 2-pt kernel
 x1 = A1 * b;
 
 % New kernel
-x2 = A2 \ b;
+% Inverse is undefined at x0 = 0, where deflection is zero.
+x2 = A2(:, 2:end) \ b;
 
 % 3-pt kernel
 bi = cumsum(b); bi = bi - bi(end);
@@ -217,14 +218,14 @@ x5 = A5 * b;
 figure(21);
 plot(aso.re, x1);
 hold on;
-plot(aso.re, x2);
+plot(aso.re(2:end), x2);
 plot(aso.re, x3);
 plot(aso.re, x4);
 plot(aso.re, x5);
-plot(aso.re, x ,'k.');
+plot(aso.re, x, 'k--');
 hold on;
-plot(aso.re, b2);
-plot(aso.re, b, '.');
+plot(aso.re, b2, 'k');
+plot(aso.re, b, 'k.');
 hold off
 xlim([0, max(aso.re)]);
 %=========================================================================%

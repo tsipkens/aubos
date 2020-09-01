@@ -9,10 +9,19 @@
 %   x0      Intersect with line through center of aso
 %=========================================================================%
 
-function K = uniform(aso_re, m, x0)
+function K = uniform(aso_re, x0, m)
 
+%-- Parse inputs ---------------------------------------------------------%
 if isa(aso_re,'Aso'); re = aso_re.re; % if input is an Aso
 else; re = aso_re; end % if an input is edges
+
+if ~exist('x0', 'var'); x0 = []; end
+if isempty(x0); x0 = re'; end
+
+if ~exist('m', 'var'); m = []; end
+if isempty(m); m = zeros(size(x0)); end
+%-------------------------------------------------------------------------%
+
 
 Nr = length(re) - 1;
 dr = re(2:end) - re(1:(end-1));
