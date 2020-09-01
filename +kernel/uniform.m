@@ -24,7 +24,9 @@ rju = re(2:end); % r_{j+1}
 
 %-{
 Ka = @(m,x0,r) sqrt(r.^2 - x0.^2 ./ (1 + m.^2));
-Kb = @(m,x0,r) log(r + Ka(m,x0,r)); % function for indefinite integral
+Kb = @(m,x0,r) log(r + Ka(m, x0, r + eps));
+    % function for indefinite integral
+    % the + eps allows for finite value of kernel when r = x0
 
 K = real(2 .* x0 .* ( ... % real(.) removes values outside integral bounds
     Kb(m,x0,rju) - ...
@@ -47,7 +49,7 @@ K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
 %}
 
 
-K(abs(K)<300*eps) = 0; % remove numerical noise
+K(abs(K)<1e3*eps) = 0; % remove numerical noise
 K = sparse(K);
 
 end

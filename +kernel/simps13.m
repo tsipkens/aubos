@@ -1,5 +1,7 @@
 
-% SIMPS13  Inverse operator for Simpson's 1/3 rule (operates on deflections).
+% SIMPS13  Inverse operator for Simpson's 1/3 rule.
+% Inverse operator, i.e., acts on deflections (A*b).
+% Deflectometry operator, i.e., operates directly on deflections.
 % Author: Timothy Sipkens, 2020-02-18
 %=========================================================================%
 
@@ -19,5 +21,7 @@ for ii=1:n_r
     end
 end
 D = -1/(3*pi) .* D;
+
+D(1,1) = 0;
 
 end

@@ -1,68 +1,64 @@
 
-% THREE_PT  Three-point inverse Abel operator (operates on integrated deflections).
-% Author: DhrubajyotiDas
-% Modified by: Timothy Sipkens, 2020-02-25
+% THREE_PT  Three-point inverse Abel operator. 
+% Inverse operator, i.e., acts on data (A*b).
+% Non-deflectometry operator, i.e., operates on integrated deflections.
+% Author: Timothy Sipkens, 2020-02-25
+% Adapted from: DhrubajyotiDas, https://gist.github.com/DhrubajyotiDas/16d9381a78352f93bdfe
 %=========================================================================%
 
 function D = three_pt(n_r)
-% Main function: Do three-point Abel invertion
 
-% Main: Start
-D = zeros(n_r,n_r);
+D = zeros(n_r,n_r); % initialize array
 
-for ii = 1:n_r
-    for jj = 1:n_r
-        % D operator index start from 0
-        D(ii,jj) = op_d(ii-1,jj-1);
+for ii = 0:(n_r-1) % D operator index start from 0
+    for jj = 0:(n_r-1)
+        if jj<(ii-1)
+            D(ii+1,jj+1) = 0;
+        elseif jj==(ii-1)
+            D(ii+1,jj+1) = I0(ii,jj+1) - I1(ii,jj+1);
+        elseif jj==ii
+            D(ii+1,jj+1) = I0(ii,jj+1) - I1(ii,jj+1) + 2*I1(ii,jj);
+        elseif ii==0 && jj==1
+            D(ii+1,jj+1) = I0(ii,jj+1) - I1(ii,jj+1) + ...
+                2*I1(ii,jj) - 2*I1(ii,jj-1);
+        elseif jj>=(ii+1)
+            D(ii+1,jj+1) = I0(ii,jj+1) - I1(ii,jj+1) + ...
+                2*I1(ii,jj) - I0(ii,jj-1) - I1(ii,jj-1);
+        end
     end
 end
 
 end
 
 
-function D = op_d(ii,jj)
-% Calculate three-point abel inversion operator Di,j
-% The index i,j start from 0.
-% The formula followed Dasch 1992 (Applied Optics) which contains several typos.
-% One correction is done in function op1 follow Martin's PhD thesis
+function out = I0(ii, jj)
 
-if jj<ii-1
-    D = 0;
-elseif jj==ii-1
-    D = op0(ii,jj+1)-op1(ii,jj+1);
+if jj<ii || (jj==ii && ii==0)
+    out = 0;
+elseif (jj==ii && ii~=0)
+    out = log((sqrt((2*jj+1)^2 - 4*ii^2) + 2*jj + 1) / (2*jj));
+elseif jj>ii
+    out = log((sqrt((2*jj+1)^2 - 4*ii^2) + 2*jj + 1) / ...
+        (sqrt((2*jj-1)^2 - 4*ii^2) + 2*jj - 1));
+end
+
+out = out ./ (2*pi);
+
+end
+
+
+function out = I1(ii, jj)
+
+if jj<ii
+    out = 0;
 elseif jj==ii
-    D = op0(ii,jj+1)-op1(ii,jj+1)+2*op1(ii,jj);
-elseif ii==0&&jj==1
-    D = op0(ii,jj+1)-op1(ii,jj+1)+2*op1(ii,jj)-2*op1(ii,jj-1);
-elseif jj>=ii+1
-    D = op0(ii,jj+1)-op1(ii,jj+1)+2*op1(ii,jj)-op0(ii,jj-1)-op1(ii,jj-1);
-end
-
-end
-
-
-function I0 = op0(i,j)
-% Define operator op0
-
-if j<i || (j==i&&i==0)
-    I0 = 0;
-elseif (j==i&&i~=0)
-    I0 = log((((2*j+1)^2-4*i^2)^0.5+2*j+1)/(2*j))/(2*pi);
-elseif j>i
-    I0 = log((((2*j+1)^2-4*i^2)^0.5+2*j+1)/(((2*j-1)^2-4*i^2)^0.5+2*j-1))/(2*pi);
-end
-
-end
-
-function I1 = op1(i,j)
-% Define operator op1
-
-if j<i
-    I1 = 0;
-elseif j==i
-    I1 = ((2*j+1)^2-4*i^2)^0.5/(2*pi)-2*j*op0(i,j);
-elseif j>i
-    I1 = (((2*j+1)^2-4*i^2)^0.5-((2*j-1)^2-4*i^2)^0.5)/(2*pi)-2*j*op0(i,j);
+    out = 1 / (2*pi) * ...
+        sqrt((2*jj + 1)^2 - 4*ii^2) - ...
+        2*jj * I0(ii,jj);
+elseif jj>ii
+    out = 1/(2*pi) * ...
+        (sqrt((2*jj+1)^2-4*ii^2) - sqrt((2*jj-1)^2-4*ii^2)) - ...
+        2*jj * I0(ii,jj);
 end
 
 end

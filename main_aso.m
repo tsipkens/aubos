@@ -159,43 +159,73 @@ colormap(flipud(ocean));
 
 
 %%
-%== INVERSE PROCEDURES ===================================================%
-A = kernel.simps13(length(x));
-b0 = 0.* A \ x;
+%== COMPARE FORWARD OPERATORS ============================================%
+% NOTE: Inverse procedure using simps13 is unstable.
 
+% 2-pt kernel, acts directly on deflections
+A1 = kernel.two_pt(length(x));
+b1 = A1 \ x;
 
-A = kernel.two_pt(length(x));
-b1 = A \ x;
+% New kernel, evaluated analogous with Abel-type kernels, 
+% acts directly on deflections
+A2 = kernel.linear(aso.re, 0.*aso.re', aso.re');
+b2 = A2 * x;
 
+% 3-pt kernel (operates on integrated deflections, thus gradient operator below)
+A3 = kernel.three_pt(length(x));
+b3 = gradient(A3 \ x);
 
-A = kernel.linear(aso.re, 0.*aso.re', aso.re');
-b2 = A * x;
-
-
-A = kernel.three_pt(length(x));
-b3 = gradient(A \ x);
-
-
-b = b2 + 1e-1 .* randn(size(b0));
-
+% Onion peeling kernel (forward operator, operates on integrated deflections)
+A4 = kernel.onion_peel(length(x));
+b4 = gradient(A4 * x);
 
 figure(20);
-plot(aso.re, b0);
-hold on;
 plot(aso.re, b1);
+hold on;
 plot(aso.re, b2);
 plot(aso.re, b3);
+plot(aso.re, b4);
 plot(aso.re, x);
-plot(aso.re, b, '.');
 plot(cam(end).x0, yl, '--k');
 hold off
 xlim([0, max(aso.re)]);
-
 %=========================================================================%
 
 
 
+%%
+%== COMPARE INVERSE OPERATORS ============================================%
+b = b3 + 1e-2 .* randn(size(b2));
 
+% 2-pt kernel
+x1 = A1 * b;
 
+% New kernel
+x2 = A2 \ b;
 
+% 3-pt kernel
+bi = cumsum(b); bi = bi - bi(end);
+x3 = A3 * bi;
+
+% Onion peeling kernel
+x4 = A4 \ bi;
+
+% Simpson 1-3 (simiar to how 2-pt method operators)
+A5 = kernel.simps13(length(x));
+x5 = A5 * b;
+
+figure(21);
+plot(aso.re, x1);
+hold on;
+plot(aso.re, x2);
+plot(aso.re, x3);
+plot(aso.re, x4);
+plot(aso.re, x5);
+plot(aso.re, x ,'k.');
+hold on;
+plot(aso.re, b2);
+plot(aso.re, b, '.');
+hold off
+xlim([0, max(aso.re)]);
+%=========================================================================%
 
