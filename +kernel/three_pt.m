@@ -5,7 +5,7 @@
 %=========================================================================%
 
 function D = three_pt(n_r)
-% Main function : Do three-point Abel invertion
+% Main function: Do three-point Abel invertion
 
 % Main: Start
 D = zeros(n_r,n_r);
@@ -42,27 +42,28 @@ end
 
 
 function I0 = op0(i,j)
-    % Define operator op0
+% Define operator op0
 
-    if j<i || (j==i&&i==0)
-        I0 = 0;
-    elseif (j==i&&i~=0)
-        I0 = log((((2*j+1)^2-4*i^2)^0.5+2*j+1)/(2*j))/(2*pi);
-    elseif j>i
-        I0 = log((((2*j+1)^2-4*i^2)^0.5+2*j+1)/(((2*j-1)^2-4*i^2)^0.5+2*j-1))/(2*pi);
-    end
+if j<i || (j==i&&i==0)
+    I0 = 0;
+elseif (j==i&&i~=0)
+    I0 = log((((2*j+1)^2-4*i^2)^0.5+2*j+1)/(2*j))/(2*pi);
+elseif j>i
+    I0 = log((((2*j+1)^2-4*i^2)^0.5+2*j+1)/(((2*j-1)^2-4*i^2)^0.5+2*j-1))/(2*pi);
+end
+
 end
 
 function I1 = op1(i,j)
-    % Define operator op1
+% Define operator op1
 
-    if j<i
-        I1 = 0;
-    elseif j==i
-        I1 = ((2*j+1)^2-4*i^2)^0.5/(2*pi)-2*j*op0(i,j);
-    elseif j>i
-        I1 = (((2*j+1)^2-4*i^2)^0.5-((2*j-1)^2-4*i^2)^0.5)/(2*pi)-2*j*op0(i,j);
-    end
+if j<i
+    I1 = 0;
+elseif j==i
+    I1 = ((2*j+1)^2-4*i^2)^0.5/(2*pi)-2*j*op0(i,j);
+elseif j>i
+    I1 = (((2*j+1)^2-4*i^2)^0.5-((2*j-1)^2-4*i^2)^0.5)/(2*pi)-2*j*op0(i,j);
+end
 
 end
 

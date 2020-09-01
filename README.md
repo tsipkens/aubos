@@ -22,7 +22,7 @@ addpath cmap;
 
 Instead of the `cmap` package, one could also replace references in existing scripts to the colormaps that would otherwise be in that package. This would have to include removing any refrence to the `cmap_sweep` function (which allows for line plots to sweep through a colormap) that appears in some of the main scripts.   
 
-# Description
+# General description
 
 This codebase is broken up into a series of packages: 
 
@@ -33,7 +33,7 @@ This codebase is broken up into a series of packages:
 
 We refer the reader to individual functions for more information. 
 
-## Representing cameras
+### Representing cameras
 
 Imaging inherently requires the use of cameras. Multiple options exist for defining a camera within this program. In any case, one must define the initial trajectories for rays leaving the camera, which will then be used with other components of this codebase. Each ray should be represented by a series of four parameters: 
 
