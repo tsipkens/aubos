@@ -207,13 +207,19 @@ axis image;
 % Only consider data above r = 0
 idx_xp = cam.x0>0;
 t2 = t1(idx_xp);
+t2 = flipud(reshape(t2, ceil(size(u_of)./[2,1])));
+t2 = t2(:);
 x2 = cam.x0(idx_xp);
+
+t3 = u_of(idx_xp);
+t3 = flipud(reshape(t3, ceil(size(u_of)./[2,1])));
+t3 = t3(:);
 
 
 %-- Two-pt. kernel on upper half of data ---------------------------------%
 D_2pt = kernel.two_pt(ceil(size(u_of, 1)/2));
 D_2pt = kron(speye(size(u_of, 2)), D_2pt);
-n_2pt = lsqlin(D_2pt, -u_of(idx_xp));
+n_2pt = lsqlin(D_2pt, t3);
 
 figure(22);
 imagesc(reshape(n_2pt, ceil(size(u_of)./[2,1])));
