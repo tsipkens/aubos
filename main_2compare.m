@@ -186,7 +186,7 @@ disp(' ');
 
 
 %-- Divergence for the RHS of Poisson eq. --------------------------------%
-t0 = -divergence(0.*v_of, u_of);
+t0 = divergence(0.*v_of, u_of);
 
 figure(20);
 imagesc(reshape(t0, size(u_of)));

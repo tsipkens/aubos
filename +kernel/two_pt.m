@@ -20,13 +20,15 @@ for ii=1:n_r
             D(ii,jj) = A(ii,jj)-jj*B(ii,jj);
         elseif jj>ii
             if jj==2
-                D(ii,jj) = 1/pi*(A(ii,jj)-jj*B(ii,jj)-1);
+                D(ii,jj) = (A(ii,jj)-jj*B(ii,jj)-1);
             else
-                D(ii,jj) = 1/pi*(A(ii,jj)-A(ii,jj-1)-...
+                D(ii,jj) = (A(ii,jj)-A(ii,jj-1)-...
                     jj*B(ii,jj)+(jj-2)*B(ii,jj-1));
             end
         end
     end
 end
+
+D = 1/pi .* D;
 
 end

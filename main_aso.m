@@ -155,3 +155,47 @@ hold off;
 view([0,90]);
 colormap(flipud(ocean));
 
+
+
+
+%%
+%== INVERSE PROCEDURES ===================================================%
+A = kernel.simps13(length(x));
+b0 = 0.* A \ x;
+
+
+A = kernel.two_pt(length(x));
+b1 = A \ x;
+
+
+A = kernel.linear(aso.re, 0.*aso.re', aso.re');
+b2 = A * x;
+
+
+A = kernel.three_pt(length(x));
+b3 = gradient(A \ x);
+
+
+b = b2 + 1e-1 .* randn(size(b0));
+
+
+figure(20);
+plot(aso.re, b0);
+hold on;
+plot(aso.re, b1);
+plot(aso.re, b2);
+plot(aso.re, b3);
+plot(aso.re, x);
+plot(aso.re, b, '.');
+plot(cam(end).x0, yl, '--k');
+hold off
+xlim([0, max(aso.re)]);
+
+%=========================================================================%
+
+
+
+
+
+
+
