@@ -186,7 +186,7 @@ disp(' ');
 
 
 %-- Divergence for the RHS of Poisson eq. --------------------------------%
-t0 = divergence(0.*v_of, u_of);
+t0 = -divergence(0.*v_of, u_of);
 
 figure(20);
 imagesc(reshape(t0, size(u_of)));
@@ -204,29 +204,39 @@ axis image;
 %-------------------------------------------------------------------------%
 
 
+% Only consider data above r = 0
+idx_xp = cam.x0>0;
+t2 = t1(idx_xp);
+x2 = cam.x0(idx_xp);
 
-% must first cut image in half before applying Abel-type transform
-D_2pt = kernel.two_pt(size(u_of, 1));
+
+%-- Two-pt. kernel on upper half of data ---------------------------------%
+D_2pt = kernel.two_pt(ceil(size(u_of, 1)/2));
 D_2pt = kron(speye(size(u_of, 2)), D_2pt);
-n_2pt = lsqlin(D_2pt, u_of(:));
+n_2pt = lsqlin(D_2pt, -u_of(idx_xp));
 
 figure(22);
-imagesc(reshape(n_2pt, size(u_of)));
+imagesc(reshape(n_2pt, ceil(size(u_of)./[2,1])));
 colormap(flipud(ocean));
 axis image;
+%-------------------------------------------------------------------------%
 
-% similar comment to above
-D_op = kernel.three_pt(size(u_of, 1));
+
+%-- Three-pt. kernel -----------------------------------------------------%
+D_op = kernel.three_pt(ceil(size(u_of, 1)/2));
 D_op = kron(speye(size(u_of, 2)), D_op);
-n_op = lsqlin(D_op, t1(:));
+n_op = lsqlin(D_op, t2);
 
 figure(23);
-imagesc(reshape(n_op, size(u_of)));
+imagesc(reshape(n_op, ceil(size(u_of)./[2,1])));
 colormap(flipud(ocean));
+axis image;
+%-------------------------------------------------------------------------%
+
 %=========================================================================%
 %}
 
-
+%%
 
 
 %%
