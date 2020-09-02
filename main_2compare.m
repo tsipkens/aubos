@@ -12,7 +12,7 @@ addpath cmap; % add colormaps to path
 %== Generate background ==================================================%
 disp('Reading and transforming image...');
 Iref = tools.gen_bg('sines', [249,352], 10)  .* 255;
-Iref = tools.gen_bg('sines2', [249,352], 10)  .* 255;
+% Iref = tools.gen_bg('sines2', [249,352], 10)  .* 255;
 
 % Plot background
 figure(1);
@@ -194,8 +194,9 @@ colormap(flipud(ocean));
 axis image;
 %-------------------------------------------------------------------------%
 
+
 %-- Solve Poisson equation -----------------------------------------------%
-t1 = tools.poisson(t0(:), speye(numel(u_of)), size(u_of));
+t1 = tools.poisson(t0(:), speye(numel(u_of)), [Nu,Nv]);
 
 figure(21);
 imagesc(reshape(t1, size(u_of)));
@@ -204,78 +205,70 @@ axis image;
 %-------------------------------------------------------------------------%
 
 
-% Only consider data above r = 0
-idx_xp = cam.x0>0;
-t2 = t1(idx_xp);
-t2 = flipud(reshape(t2, ceil(size(u_of)./[2,1])));
+%-- Only consider data above r = 0 ---------------------------------------%
+idx_xp = cam.x0>=0;
+new_sz = ceil([(Nu+1)/2,Nv]);
+t2 = -t1(idx_xp);
+t2 = flipud(reshape(t2, new_sz));
 t2 = t2(:);
-x2 = cam.x0(idx_xp);
 
-t3 = u_of(idx_xp);
-t3 = flipud(reshape(t3, ceil(size(u_of)./[2,1])));
-t3 = t3(:);
+xa = round(flipud(reshape(cam.x0(idx_xp), new_sz)), 7);
+ya = round(reshape(cam.y0(idx_xp), new_sz), 7);
+
+t3 = -u_of(idx_xp);
+t3 = flipud(reshape(t3, new_sz));
+t4 = t3(:);
+%-------------------------------------------------------------------------%
 
 
 %-- Two-pt. kernel on upper half of data ---------------------------------%
-D_2pt = kernel.two_pt(ceil(size(u_of, 1)/2));
-D_2pt = kron(speye(size(u_of, 2)), D_2pt);
-n_2pt = lsqlin(D_2pt, t3);
+D_2pt = kernel.two_pt(size(t3, 1));
+D_2pt = kron(speye(size(t3, 2)), D_2pt);
+n_2pt = D_2pt * t4;
+n_2pta = interp2(ya, xa, reshape(n_2pt, new_sz), ...
+    aso2.ye2, aso2.re2);
+
 
 figure(22);
-imagesc(reshape(n_2pt, ceil(size(u_of)./[2,1])));
-colormap(flipud(ocean));
+% imagesc(reshape(n_2pt ./ aso2.dr(1) ./ aso2.dy(1), size(t3)));
+aso2.plot(n_2pta);
 axis image;
+colormap(flipud(ocean));
+colorbar;
 %-------------------------------------------------------------------------%
 
 
 %-- Three-pt. kernel -----------------------------------------------------%
-D_op = kernel.three_pt(ceil(size(u_of, 1)/2));
-D_op = kron(speye(size(u_of, 2)), D_op);
-n_op = lsqlin(D_op, t2);
+D_3pt = kernel.three_pt(size(t3, 1));
+D_3pt = kron(speye(size(t3, 2)), D_3pt);
+n_3pt = D_3pt * t2;
+n_3pta = interp2(ya, xa, reshape(n_3pt, new_sz), ...
+    aso2.ye2, aso2.re2);
 
 figure(23);
-imagesc(reshape(n_op, ceil(size(u_of)./[2,1])));
+aso2.plot(n_3pta);
+% imagesc(reshape(n_3pt, size(t3)));
 colormap(flipud(ocean));
 axis image;
 %-------------------------------------------------------------------------%
 
+
 %=========================================================================%
 %}
 
-%%
+
+
 
 
 %%
-%{
-%{
-disp('Computing inverses...');
-% Least-squares analysis
-figure(9);
-imagesc(It);
-colormap(curl(255));
-It_max = max(max(abs(It)));
-caxis([-It_max, It_max]);
-axis image;
-
-
-n1 = ((Lb*A1)' * (Lb*A1)) \ ((Lb*A1)' * (Lb*It1));
-n = zeros(size(x2));
-n(idx_nmissed) = n1;
-
-figure(12);
-aso2.surf(n,0);
-colormap(ocean);
-axis image;
-view([0,90]);
-%}
-
-
+%-{
+%== Inversion with the new transform =====================================$
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 
 % tools.textbar(0);
 n_tk2_vec = {};
 err = []; n_norm = []; res_norm = []; pr_norm = [];
-lambda_vec = 5e2; %logspace(-8, -3, 26);
+lambda_vec = 5e2; % logspace(-8, -3, 26);
 for ii=1:length(lambda_vec)
     A_tk2 = [Le*A; lambda_vec(ii).*L_tk2];
     b_tk2 = [Le*b; sparse(zeros(size(A,2),1))];
@@ -306,7 +299,7 @@ disp(' ');
 
 
 
-figure(13);
+figure(24);
 x_max = max(max(abs([x2, n_tk2])));
 
 subplot(2,1,2);
@@ -324,17 +317,8 @@ colorbar;
 axis image;
 view([0,90]);
 caxis([0,x_max]);
+%=========================================================================%
 %}
 
 
-% figure(4);
-% semilogx(lambda_vec, err, '.-');
-% 
-% figure(5);
-% loglog(res_norm, n_norm, '.-');
-% 
-% figure(20);
-% loglog(lambda_vec, ...
-%     1/2.*log(lambda_vec), '.-');
-%}
 
