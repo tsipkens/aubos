@@ -1,7 +1,7 @@
 
 % THREE_PT  Three-point inverse Abel operator. 
 % Inverse operator, i.e., acts on data (A*b).
-% Non-deflectometry operator, i.e., operates on integrated deflections.
+% Indirect/non-deflectometry operator, i.e., operates on integrated deflections.
 % Author: Timothy Sipkens, 2020-02-25
 % Adapted from: DhrubajyotiDas, https://gist.github.com/DhrubajyotiDas/16d9381a78352f93bdfe
 %=========================================================================%

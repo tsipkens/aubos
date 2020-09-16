@@ -222,6 +222,7 @@ t4 = t3(:);
 
 
 %-- Two-pt. kernel on upper half of data ---------------------------------%
+%   Direct approach.
 D_2pt = kernel.two_pt(size(t3, 1));
 D_2pt = kron(speye(size(t3, 2)), D_2pt);
 n_2pt = D_2pt * t4;
@@ -238,14 +239,33 @@ colorbar;
 %-------------------------------------------------------------------------%
 
 
+%-- Simpson 13 kernel on upper half of data ------------------------------%
+%   Direct approach.
+D_s13 = kernel.simps13(size(t3, 1));
+D_s13 = kron(speye(size(t3, 2)), D_s13);
+n_s13 = D_s13 * t4;
+n_s13a = interp2(ya, xa, reshape(n_s13, new_sz), ...
+    aso2.ye2, aso2.re2);
+
+
+figure(23);
+% imagesc(reshape(n_2pt ./ aso2.dr(1) ./ aso2.dy(1), size(t3)));
+aso2.plot(n_s13a);
+axis image;
+colormap(flipud(ocean));
+colorbar;
+%-------------------------------------------------------------------------%
+
+
 %-- Three-pt. kernel -----------------------------------------------------%
+%   Indirect approach.
 D_3pt = kernel.three_pt(size(t3, 1));
 D_3pt = kron(speye(size(t3, 2)), D_3pt);
 n_3pt = D_3pt * t2;
 n_3pta = interp2(ya, xa, reshape(n_3pt, new_sz), ...
     aso2.ye2, aso2.re2);
 
-figure(23);
+figure(24);
 aso2.plot(n_3pta);
 % imagesc(reshape(n_3pt, size(t3)));
 colormap(flipud(ocean));
@@ -299,7 +319,7 @@ disp(' ');
 
 
 
-figure(24);
+figure(25);
 x_max = max(max(abs([x2, n_tk2])));
 
 subplot(2,1,2);

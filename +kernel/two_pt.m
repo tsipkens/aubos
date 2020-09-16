@@ -1,7 +1,7 @@
 
 % TWO_PT  Two-point inverse Abel operator.
 % Inverse operator, i.e., acts on deflections (A*b).
-% Deflectometry operator, i.e., operates directly on deflections.
+% Direct/deflectometry operator, i.e., operates directly on deflections.
 % More details are provided by Kohle and Agrawal, Appl. Opt. (2009).
 % Author: Timothy Sipkens, 2020-02-25
 %=========================================================================%

@@ -1,7 +1,7 @@
 
 % ONION_PEEL  Onion peeling version of the abel operator assuming uniform annuli.
 % Forward operator, i.e., acts on refractive index (A*x).
-% Integrated operator, i.e., outputs integrated deflections.
+% Indirect/integrated operator, i.e., outputs integrated deflections.
 % Author: Timothy Sipkens, 2020-02-18
 %=========================================================================%
 
