@@ -1,6 +1,8 @@
 
 % MAIN_2ASO  A script to demonstrate the 2D AUBOS approach, without inversion. 
-% Runtimes on the order of a few minutes (depending on hardware). 
+% Runtimes on the order of a few minutes (depending on hardware).
+% Instead of a proper camera model, this script considers rays that
+% transect the z = 0 plane close to the ASO.
 % Timothy Sipkens
 %=========================================================================%
 
