@@ -193,9 +193,8 @@ xlim([0, max(aso.re)]);
 
 
 
-
 %== COMPARE INVERSE OPERATORS ============================================%
-b = b3 + 2e-1 .* randn(size(b2));
+b = b2 + 2e-1 .* randn(size(b2));
 
 % 2-pt kernel
 x1 = A1 * b;
