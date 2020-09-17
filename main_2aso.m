@@ -86,20 +86,26 @@ legend({'Dx', 'Dy', 'Dz'})
 Nu = size(Iref,1);
 Nv = size(Iref,2);
 
+% Camera origin
+% cam.x = 0.5; cam.y = 7.5; cam.z = 1.9;
+% cam.x = 0; cam.y = 2; cam.z = 20;
+cam.x = 0.5; cam.y = 2; cam.z = 1.2;
+
+
+%{
+%-- OPTION 2: Manually assign parameters -----%
 % Select only rays that would pass close to ASO
 x0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nu);
 y0_vec = linspace(0, Y, Nv);
 [cam.x0, cam.y0] = ndgrid(x0_vec, y0_vec); % meshgrid to generate image dims.
 cam.x0 = cam.x0(:)'; cam.y0 = cam.y0(:)'; % must be row vectors
 
-% Camera origin
-% cam.x = 0.5; cam.y = 7.5; cam.z = 1.9;
-cam.x = 0; cam.y = 2; cam.z = 20;
-% cam.x = 0.5; cam.y = 2; cam.z = 1.2;
-
 % Slope of rays
 cam.mx = (cam.x0 - cam.x) ./ cam.z;
 cam.my = (cam.y0 - cam.y) ./ cam.z;
+%}
+
+
 
 % FIG 3: Plot refractive index for ASO
 figure(3);

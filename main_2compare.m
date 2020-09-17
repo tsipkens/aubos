@@ -1,5 +1,6 @@
 
 % MAIN_2COMPARE  Compares multiple inversion approaches to the 2D axisymmetric problem. 
+% Relative to main_2aso, this script uses a camera model with a focal length. 
 % Timothy Sipkens, 2020-08-31
 %=========================================================================%
 
@@ -62,14 +63,13 @@ legend({'Dx', 'Dy', 'Dz'});
 
 
 
-
-
+%-- OPTION 2: Manually assign parameters -----%
 % positions along center of aso
 Nu = size(Iref,1);  % first image dimension
 Nv = size(Iref,2);  % second image dimension
 oc = [0,2,20];      % camera origin
 f = 1e2;            % focal length
-cam = Camera(Nu, Nv, [0,2,20], 2e3); % generate a camera
+cam = Camera(Nu, Nv, oc, 2e3); % generate a camera
 
 
 figure(3);
@@ -207,7 +207,8 @@ axis image;
 
 %-- Only consider data above r = 0 ---------------------------------------%
 idx_xp = cam.x0>=0;
-new_sz = ceil([(Nu+1)/2,Nv]);
+ta = reshape(cam.x0, [Nu,Nv]);  ta = ta(:,1);  Nu_a = sum(ta>0);
+new_sz = ceil([Nu_a,Nv]);
 t2 = -t1(idx_xp);
 t2 = flipud(reshape(t2, new_sz));
 t2 = t2(:);
