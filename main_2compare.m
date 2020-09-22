@@ -67,9 +67,9 @@ legend({'Dx', 'Dy', 'Dz'});
 % positions along center of aso
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
-oc = [0,2,20];      % camera origin
+oc = [0.3,2,15];      % camera origin
 f = 1e2;            % focal length
-cam = Camera(Nu, Nv, oc, 2e3); % generate a camera
+cam = Camera(Nu, Nv, oc, 1.5e3); % generate a camera
 
 
 figure(3);
@@ -165,12 +165,14 @@ Idef = Idef0 + pois_level .* ...
 Iref = Idef - It;
 b = It(:); % data is vectorized It
 
-% FIG 14: Corrupted It field
+% FIG 11: Corrupted It field
 figure(11);
 imagesc(It);
 colormap(balanced);
 It_max = max(max(abs(It)));
 caxis([-It_max, It_max]);
+axis image;
+set(gca,'YDir','normal');
 drawnow;
 disp('Complete.');
 disp(' ');
@@ -182,6 +184,7 @@ disp(' ');
 %-{
 %== OF + Poisson equation ================================================%
 %   Then uses Abel inversion operators for inverion.
+disp('Performing traditional inversion approaches...');
 
 % Optical flow to get deflections
 [u_of, v_of] = tools.horn_schunck(Iref, Idef);
@@ -214,19 +217,20 @@ title('Poisson eq. solution');
 
 
 %-- Only consider data above r = 0 ---------------------------------------%
-idx_xp = cam.x0>=0;
-n_half = reshape(cam.x0, [Nu,Nv]);  n_half = n_half(:,1);  Nu_a = sum(n_half>=0);
-new_sz = ceil([Nu_a,Nv]);
+idx_xp = round(cam.x0,8)>=0; % removes eps that could remain
+x_half = reshape(cam.x0, [Nu,Nv]); 
+x_half = x_half(:,1);
+Nu_a = sum(x_half>=0); % number of x entries above zero
 
-xa = round(flipud(reshape(cam.x0(idx_xp), new_sz)), 7);
-ya = round(reshape(cam.y0(idx_xp), new_sz), 7);
+xa = round(flipud(reshape(cam.x0(idx_xp), [Nu_a,Nv])), 7);
+ya = round(reshape(cam.y0(idx_xp), [Nu_a,Nv]), 7);
 
 pois_half = -pois0(idx_xp);
-pois_half = flipud(reshape(pois_half, new_sz));
+pois_half = flipud(reshape(pois_half, [Nu_a,Nv]));
 pois_half = pois_half(:);
 
 u_half = -u_of(idx_xp);
-u_half = flipud(reshape(u_half, new_sz));
+u_half = flipud(reshape(u_half, [Nu_a,Nv]));
 u_half2 = u_half(:);
 %-------------------------------------------------------------------------%
 
@@ -236,7 +240,7 @@ u_half2 = u_half(:);
 D_2pt = kernel.two_pt(size(u_half, 1));
 D_2pt = kron(speye(size(u_half, 2)), D_2pt);
 n_2pt = D_2pt * u_half2;
-n_2pta = interp2(ya, xa, reshape(n_2pt, new_sz), ...
+n_2pta = interp2(ya, xa, reshape(n_2pt, [Nu_a,Nv]), ...
     aso2.ye2, aso2.re2);
 
 
@@ -254,7 +258,7 @@ colorbar;
 D_s13 = kernel.simps13(size(u_half, 1));
 D_s13 = kron(speye(size(u_half, 2)), D_s13);
 n_s13 = D_s13 * u_half2;
-n_s13a = interp2(ya, xa, reshape(n_s13, new_sz), ...
+n_s13a = interp2(ya, xa, reshape(n_s13, [Nu_a,Nv]), ...
     aso2.ye2, aso2.re2);
 
 
@@ -272,7 +276,7 @@ colorbar;
 D_3pt = kernel.three_pt(size(u_half, 1));
 D_3pt = kron(speye(size(u_half, 2)), D_3pt);
 n_3pt = D_3pt * pois_half;
-n_3pta = interp2(ya, xa, reshape(n_3pt, new_sz), ...
+n_3pta = interp2(ya, xa, reshape(n_3pt, [Nu_a,Nv]), ...
     aso2.ye2, aso2.re2);
 
 figure(24);
@@ -283,7 +287,8 @@ axis image;
 colorbar;
 %-------------------------------------------------------------------------%
 
-
+disp('Complete.');
+disp(' ');
 %=========================================================================%
 %}
 
@@ -294,6 +299,8 @@ colorbar;
 %%
 %-{
 %== Inversion with the new transform =====================================$
+disp('Performing unified inversion...');
+
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 
 % tools.textbar(0);
@@ -352,6 +359,9 @@ colorbar;
 axis image;
 view([0,90]);
 caxis([0,x_max]);
+
+disp('Complete.');
+disp(' ');
 %=========================================================================%
 %}
 
