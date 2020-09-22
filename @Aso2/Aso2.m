@@ -468,6 +468,12 @@ classdef Aso2
             plot3(x2', y2', z2', 'r');
             hold off;
             
+            % Format z-axis characteristics
+            ax = gca;
+            ax.ZAxis.Visible = 'off';
+            ax.GridLineStyle = 'none';
+            ax.Color = 'none';
+            
             if nargout==0; clear h; end % suppress output if none required
         end
     end
