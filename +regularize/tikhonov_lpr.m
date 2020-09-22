@@ -34,6 +34,7 @@ switch order
         I1 = speye(n,n);
         E1 = sparse(1:n-1,2:n,1,n,n);
         D1 = E1-I1;
+        % D1(end,end) = 0; % force zero in bottom row
         
         m = x_length/n;
         I2 = speye(m,m);
@@ -42,8 +43,12 @@ switch order
         
         Lpr0 = kron(I2,D1) + kron(D2,I1);
         
-        Lpr0 = Lpr0 - spdiags(sum(Lpr0,2),0,x_length,x_length);
+        % Uncomment to have no slope of the bottom.
+        % Lpr0 = Lpr0 - spdiags(sum(Lpr0,2),0,x_length,x_length);
         % Lpr0(end,:) = [];
+        
+        % Uncomment to have zeros on bottom row.
+        Lpr0(end,end) = -1; % force zero in last entry
         
     case 2 % 2nd order Tikhonov
         I1 = speye(n,n);
@@ -56,7 +61,12 @@ switch order
         D2 = E2+E2'-I2;
         
         Lpr0 = kron(I2,D1) + kron(D2,I1);
-        Lpr0 = Lpr0 - spdiags(sum(Lpr0,2),0,x_length,x_length);
+        
+        vec1 = sum(Lpr0,2);
+        vec1(n:n:end) = vec1(n:n:end) + 1; % to zero top row
+        
+        % No slope at edge
+        Lpr0 = Lpr0 - spdiags(vec1,0,x_length,x_length);
         
         % i0 = [(0:n:(x_length-n))+1, (n:n:x_length)];
         % Li = sparse(i0, i0, ones(size(i0)), x_length, x_length);
