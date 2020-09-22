@@ -66,8 +66,8 @@ axis off;
 Nu = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
 
 Nc = 20; % number of camera positions
-oc = [fliplr(linspace(0, 0.8, Nc)); ...
-    zeros(1, Nc); ...
+oc = [zeros(1, Nc); ...
+    fliplr(linspace(0, 0.8, Nc)); ...
     -logspace(log10(1.1),log10(10),Nc)];
     % vector of camera origin locations
 
@@ -80,13 +80,13 @@ end
 
 %-{
 %-- OPTION 2: Manually assign parameters -----%
-x0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
+y0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
 for cc=Nc:-1:1
-    cam(cc).x = oc(1, cc);
+    cam(cc).y = oc(2, cc);
     cam(cc).z = oc(3, cc);
     
-    cam(cc).x0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
-    cam(cc).mx = (cam(cc).x - cam(cc).x0) ./ ...
+    cam(cc).y0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
+    cam(cc).my = (cam(cc).y - cam(cc).y0) ./ ...
         cam(cc).z; % slope implied by camera location
 end
 %}
@@ -114,14 +114,14 @@ xlim([-2,2]);
 
 hold on;
 for cc=1:Nc % loop through multiple camera positions
-    Ku = kernel.uniform(aso, cam(cc).x0, cam(cc).mx);
-    Kl = kernel.linear(aso, cam(cc).x0, cam(cc).mx);
+    Ku = kernel.uniform(aso, cam(cc).y0, cam(cc).my);
+    Kl = kernel.linear(aso, cam(cc).y0, cam(cc).my);
     
-    yu = Ku*bet; % using uniform kernel
-    yl = Kl*bet; % using linear kernel
+    bu = Ku*bet; % using uniform kernel
+    bl = Kl*bet; % using linear kernel
     
-    figure(5); plot(cam(cc).x0, yu); % add line to FIG 5
-    figure(6); plot(cam(cc).x0, yl); % add line to FIG 6
+    figure(5); plot(cam(cc).y0, bu); % add line to FIG 5
+    figure(6); plot(cam(cc).y0, bl); % add line to FIG 6
 end
 figure(5); hold off;
 figure(6); hold off;
@@ -132,12 +132,12 @@ figure(6); hold off;
 % This demonstating the degree to which the rays are parallel.
 % Use first camera in cam structure. 
 figure(3);
-aso.srays(bet, cam(1).mx(1:10:end), cam(1).x0(1:10:end));
+aso.srays(bet, cam(1).my(1:10:end), cam(1).y0(1:10:end));
 colormap(flipud(ocean));
 
 % Use last camera in cam structure. 
 figure(4);
-aso.srays(bet, cam(end).mx(1:10:end), cam(end).x0(1:10:end));
+aso.srays(bet, cam(end).my(1:10:end), cam(end).y0(1:10:end));
 colormap(flipud(ocean));
 
 
@@ -148,9 +148,9 @@ aso.surf(bet,0);
 cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
 for cc=1:Nc
-    plot(cam(cc).z, cam(cc).x,'.');
+    plot(cam(cc).z, cam(cc).y,'.');
 end
-plot([cam(cc).z], [cam(cc).x], 'k-');
+plot([cam(cc).z], [cam(cc).y], 'k-');
 hold off;
 view([0,90]);
 colormap(flipud(ocean));
@@ -186,7 +186,7 @@ plot(aso.re, b2);
 plot(aso.re, b3);
 plot(aso.re, b4);
 plot(aso.re, bet, 'k');
-plot(cam(end).x0, yl, '--k');
+plot(cam(end).y0, bl, '--k');
 hold off
 xlim([0, max(aso.re)]);
 %=========================================================================%
