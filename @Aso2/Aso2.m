@@ -459,7 +459,7 @@ classdef Aso2
             [h,x1,y1,z1] = aso.surf(bet,f_grid); % generate surface plot
             
             y2 = linspace(-aso.R, aso.R, 150);
-            x2 = (mx(1:10:end)').*y2 + x0(1:10:end)';
+            x2 = (mx(1:(5*aso.Nr):end)').*y2 + x0(1:(5*aso.Nr):end)';
             
             y2 = y2.*ones(size(x2)); % if necessary, will out y1 to have correct dimension
             
