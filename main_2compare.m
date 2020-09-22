@@ -12,12 +12,12 @@ addpath cmap; % add colormaps to path
 %%
 %== Generate background ==================================================%
 disp('Reading and transforming image...');
-Iref = tools.gen_bg('sines', [249,352], 10)  .* 255;
-% Iref = tools.gen_bg('sines2', [249,352], 10)  .* 255;
+Iref0 = tools.gen_bg('sines', [250,352], 10)  .* 255;
+% Iref = tools.gen_bg('sines2', [250,352], 10)  .* 255;
 
 % Plot background
 figure(1);
-imagesc(Iref);
+imagesc(Iref0);
 colormap(gray);
 axis image;
 disp('Complete.');
@@ -28,10 +28,10 @@ disp(' ');
 
 %%
 R = 1;
-Nr = min(round(size(Iref,1) .* 1.2), 250);
+Nr = min(round(size(Iref0,1) .* 1.2), 250);
 Y = 4;
 % V = 4;
-Ny = min(round(size(Iref,2) .* 1.2), 400);
+Ny = min(round(size(Iref0,2) .* 1.2), 400);
 aso2 = Aso2(R,Nr,Y,Ny);
 
 
@@ -40,12 +40,12 @@ aso2 = Aso2(R,Nr,Y,Ny);
 %== Case studies / phantoms ==============================================%
 [ye, re] = meshgrid(aso2.ye(1:(end-1)), aso2.re);
 
-% x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
-% x2 = normpdf(re, 0, 0.2); % uniform Gaussian
-x2 = normpdf(re, 0, 0.3 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
-% x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
+% bet2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
+% bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
+% bet2 = normpdf(re, 0, 0.3 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
+bet2 = mvnpdf([re(:), ye(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
-x2 = x2(:);
+bet2 = bet2(:);
 %=========================================================================%
 %}
 
@@ -54,7 +54,7 @@ x2 = x2(:);
 % FIG 2: Plot Cartesian gradients, at a line of constant y and z
 figure(2);
 [Dx,Dy,Dz] = aso2.gradientc(linspace(-1,1,400),...
-    0.*ones(1,400),-0.5.*ones(1,400),x2);
+    0.*ones(1,400),-0.5.*ones(1,400),bet2);
 plot(Dx);
 hold on;
 plot(Dy); plot(Dz);
@@ -65,15 +65,15 @@ legend({'Dx', 'Dy', 'Dz'});
 
 %-- OPTION 2: Manually assign parameters -----%
 % positions along center of aso
-Nu = size(Iref,1);  % first image dimension
-Nv = size(Iref,2);  % second image dimension
+Nu = size(Iref0,1);  % first image dimension
+Nv = size(Iref0,2);  % second image dimension
 oc = [0,2,20];      % camera origin
 f = 1e2;            % focal length
 cam = Camera(Nu, Nv, oc, 2e3); % generate a camera
 
 
 figure(3);
-aso2.plot(x2);
+aso2.plot(bet2);
 % aso2.srays(x2, mv_vec, v0_vec2);
 colormap(flipud(ocean));
 axis image;
@@ -88,10 +88,10 @@ disp('Processing rays...');
 disp('Complete.');
 disp(' ');
 
-yl2 = Kl2 * x2; % yl2 is vertical deflections in image coordinate system
+yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
 yl2 = reshape(yl2, [Nu, Nv]);
 
-yv2 = Kv2 * x2;
+yv2 = Kv2 * bet2;
 yv2 = reshape(yv2', [Nu, Nv]);
 
 
@@ -116,7 +116,7 @@ set(gca,'YDir','normal');
 colorbar;
 
 % Gradient contribution to operator
-[Y,U] = gradient(Iref);
+[Y,U] = gradient(Iref0);
 U = U(:);
 Y = Y(:);
 
@@ -135,11 +135,11 @@ A = -C0 .* (U .* Kl2 + Y .* Kv2); % incorporates axial contributions
 %== Generate data ========================================================%
 disp('Generating data...');
 
-It0 = A * x2; % use unified operator to generate perfect It
-It0 = reshape(It0, size(Iref)); % reshape according to image size
+It0 = A * bet2; % use unified operator to generate perfect It
+It0 = reshape(It0, size(Iref0)); % reshape according to image size
 
-Idef = Iref + It0; % perfect deflected image
-Idef = max(Idef, 0); % check on positivity
+Idef0 = Iref0 + It0; % perfect deflected image
+Idef0 = max(Idef0, 0); % check on positivity
 
 % FIG 10: Perfect It field
 figure(10);
@@ -153,13 +153,16 @@ set(gca,'YDir','normal');
 
 % Sample and add noise to It field 
 rng(1);
-pois_level = 1e-3; % poissson noise level
+pois_level = 1e-3; % 1e-3; % poissson noise level
 e_e0 = pois_level .* ...
-    sqrt(max(Idef + Iref, max(max(Iref)).*1e-4)); % magnitude of noise
-e_e = e_e0 .* randn(size(Iref)); % realization of noise
+    sqrt(max(Idef0 + Iref0, max(max(Iref0)).*1e-4)); % magnitude of noise
+e_e = e_e0 .* randn(size(Iref0)); % realization of noise
 Le = spdiags(1 ./ e_e0(:), ...
-    0, numel(Idef), numel(Idef)); % data covariance
+    0, numel(Idef0), numel(Idef0)); % data covariance
 It = It0 + e_e; % corrupt It field
+Idef = Idef0 + pois_level .* ...
+    sqrt(max(Idef0, max(max(Iref0)).*5e-5));
+Iref = Idef - It;
 b = It(:); % data is vectorized It
 
 % FIG 14: Corrupted It field
@@ -186,54 +189,60 @@ disp(' ');
 
 
 %-- Divergence for the RHS of Poisson eq. --------------------------------%
-t0 = divergence(0.*v_of, u_of);
+div0 = divergence(v_of, u_of);
 
 figure(20);
-imagesc(reshape(t0, size(u_of)));
+imagesc(reshape(div0, size(u_of)));
 colormap(flipud(ocean));
 axis image;
+colorbar;
+title('Divergence');
 %-------------------------------------------------------------------------%
 
 
 %-- Solve Poisson equation -----------------------------------------------%
-t1 = tools.poisson(t0(:), speye(numel(u_of)), [Nu,Nv]);
+pois0 = tools.poisson(div0(:), speye(numel(u_of)), [Nu,Nv]);
+pois0 = -cumsum(u_of);
 
 figure(21);
-imagesc(reshape(t1, size(u_of)));
+imagesc(reshape(pois0, size(u_of)));
 colormap(flipud(ocean));
 axis image;
+colorbar;
+title('Poisson eq. solution');
 %-------------------------------------------------------------------------%
 
 
 %-- Only consider data above r = 0 ---------------------------------------%
 idx_xp = cam.x0>=0;
-ta = reshape(cam.x0, [Nu,Nv]);  ta = ta(:,1);  Nu_a = sum(ta>0);
+n_half = reshape(cam.x0, [Nu,Nv]);  n_half = n_half(:,1);  Nu_a = sum(n_half>=0);
 new_sz = ceil([Nu_a,Nv]);
-t2 = -t1(idx_xp);
-t2 = flipud(reshape(t2, new_sz));
-t2 = t2(:);
 
 xa = round(flipud(reshape(cam.x0(idx_xp), new_sz)), 7);
 ya = round(reshape(cam.y0(idx_xp), new_sz), 7);
 
-t3 = -u_of(idx_xp);
-t3 = flipud(reshape(t3, new_sz));
-t4 = t3(:);
+pois_half = -pois0(idx_xp);
+pois_half = flipud(reshape(pois_half, new_sz));
+pois_half = pois_half(:);
+
+u_half = -u_of(idx_xp);
+u_half = flipud(reshape(u_half, new_sz));
+u_half2 = u_half(:);
 %-------------------------------------------------------------------------%
 
 
 %-- Two-pt. kernel on upper half of data ---------------------------------%
 %   Direct approach.
-D_2pt = kernel.two_pt(size(t3, 1));
-D_2pt = kron(speye(size(t3, 2)), D_2pt);
-n_2pt = D_2pt * t4;
+D_2pt = kernel.two_pt(size(u_half, 1));
+D_2pt = kron(speye(size(u_half, 2)), D_2pt);
+n_2pt = D_2pt * u_half2;
 n_2pta = interp2(ya, xa, reshape(n_2pt, new_sz), ...
     aso2.ye2, aso2.re2);
 
 
 figure(22);
 % imagesc(reshape(n_2pt ./ aso2.dr(1) ./ aso2.dy(1), size(t3)));
-aso2.plot(n_2pta);
+aso2.plot(n_2pta ./ C0);
 axis image;
 colormap(flipud(ocean));
 colorbar;
@@ -242,16 +251,16 @@ colorbar;
 
 %-- Simpson 13 kernel on upper half of data ------------------------------%
 %   Direct approach.
-D_s13 = kernel.simps13(size(t3, 1));
-D_s13 = kron(speye(size(t3, 2)), D_s13);
-n_s13 = D_s13 * t4;
+D_s13 = kernel.simps13(size(u_half, 1));
+D_s13 = kron(speye(size(u_half, 2)), D_s13);
+n_s13 = D_s13 * u_half2;
 n_s13a = interp2(ya, xa, reshape(n_s13, new_sz), ...
     aso2.ye2, aso2.re2);
 
 
 figure(23);
 % imagesc(reshape(n_2pt ./ aso2.dr(1) ./ aso2.dy(1), size(t3)));
-aso2.plot(n_s13a);
+aso2.plot(n_s13a ./ C0);
 axis image;
 colormap(flipud(ocean));
 colorbar;
@@ -260,17 +269,18 @@ colorbar;
 
 %-- Three-pt. kernel -----------------------------------------------------%
 %   Indirect approach.
-D_3pt = kernel.three_pt(size(t3, 1));
-D_3pt = kron(speye(size(t3, 2)), D_3pt);
-n_3pt = D_3pt * t2;
+D_3pt = kernel.three_pt(size(u_half, 1));
+D_3pt = kron(speye(size(u_half, 2)), D_3pt);
+n_3pt = D_3pt * pois_half;
 n_3pta = interp2(ya, xa, reshape(n_3pt, new_sz), ...
     aso2.ye2, aso2.re2);
 
 figure(24);
-aso2.plot(n_3pta);
+aso2.plot(n_3pta ./ C0);
 % imagesc(reshape(n_3pt, size(t3)));
 colormap(flipud(ocean));
 axis image;
+colorbar;
 %-------------------------------------------------------------------------%
 
 
@@ -292,19 +302,21 @@ err = []; n_norm = []; res_norm = []; pr_norm = [];
 lambda_vec = 5e2; % logspace(-8, -3, 26);
 for ii=1:length(lambda_vec)
     A_tk2 = [Le*A; lambda_vec(ii).*L_tk2];
-    b_tk2 = [Le*b; sparse(zeros(size(A,2),1))];
+    b_tk2 = [Le*b; sparse(zeros(size(L_tk2,1), 1))];
     
     tic;
     n_tk2_vec{ii} = lsqlin(A_tk2, b_tk2);
+    % n_tk2_vec{ii} = (A_tk2' * A_tk2) \ (A_tk2' * b_tk2);
+    % n_tk2_vec{ii} = pcg(A_tk2, b_tk2);
     toc;
     
     % tic;
     % n_tk2_vec2{ii} = regularize.mart(A_tk2, b_tk2);
     % toc;
     
-    err(ii) = norm(n_tk2_vec{ii} - x2);
+    err(ii) = norm(n_tk2_vec{ii} - bet2);
     n_norm(ii) = norm(n_tk2_vec{ii});
-    res_norm(ii) = norm(Le*A*n_tk2_vec{ii} - Le*b);
+    res_norm(ii) = norm(Le*(A*n_tk2_vec{ii} - b));
     pr_norm(ii) = norm((lambda_vec(ii).*L_tk2) * ...
     	n_tk2_vec{ii});
     
@@ -321,7 +333,7 @@ disp(' ');
 
 
 figure(25);
-x_max = max(max(abs([x2, n_tk2])));
+x_max = max(max(abs([bet2, n_tk2])));
 
 subplot(2,1,2);
 aso2.plot(n_tk2, 0);
@@ -329,10 +341,10 @@ colormap(flipud(ocean));
 colorbar;
 axis image;
 view([0,90]);
-caxis([0,x_max]);
+% caxis([0,x_max]);
 
 subplot(2,1,1);
-aso2.plot(x2, 0);
+aso2.plot(bet2, 0);
 colormap(flipud(ocean));
 colorbar;
 axis image;

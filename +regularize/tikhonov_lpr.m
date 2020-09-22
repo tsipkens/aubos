@@ -43,7 +43,7 @@ switch order
         Lpr0 = kron(I2,D1) + kron(D2,I1);
         
         Lpr0 = Lpr0 - spdiags(sum(Lpr0,2),0,x_length,x_length);
-        Lpr0(end,:) = [];
+        % Lpr0(end,:) = [];
         
     case 2 % 2nd order Tikhonov
         I1 = speye(n,n);
