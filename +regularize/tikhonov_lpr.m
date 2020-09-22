@@ -34,12 +34,12 @@ switch order
         I1 = speye(n,n);
         E1 = sparse(1:n-1,2:n,1,n,n);
         D1 = E1-I1;
-
+        
         m = x_length/n;
         I2 = speye(m,m);
         E2 = sparse(1:m-1,2:m,1,m,m);
         D2 = E2-I2;
-
+        
         Lpr0 = kron(I2,D1) + kron(D2,I1);
         
         Lpr0 = Lpr0 - spdiags(sum(Lpr0,2),0,x_length,x_length);
@@ -49,12 +49,12 @@ switch order
         I1 = speye(n,n);
         E1 = sparse(1:n-1,2:n,1,n,n);
         D1 = E1+E1'-I1;
-
+        
         m = x_length/n;
         I2 = speye(m,m);
         E2 = sparse(1:m-1,2:m,1,m,m);
         D2 = E2+E2'-I2;
-
+        
         Lpr0 = kron(I2,D1) + kron(D2,I1);
         Lpr0 = Lpr0 - spdiags(sum(Lpr0,2),0,x_length,x_length);
         
