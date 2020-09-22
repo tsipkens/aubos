@@ -144,7 +144,15 @@ classdef Camera
             cam.x0 = cam.p0(1,:);
             cam.y0 = cam.p0(2,:);
             %-------------------------------------------------------------%
-
+            
+            %-- Switch x and y for ray slopes ----------------------------%
+            %   For compatibility.
+            t0 = cam.x0;
+            cam.x0 = cam.y0; cam.y0 = t0;
+            
+            t0 = cam.mx;
+            cam.mx = cam.my; cam.my = t0;
+            %-------------------------------------------------------------%
         end
         
         

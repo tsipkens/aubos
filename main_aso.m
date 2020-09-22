@@ -71,14 +71,14 @@ oc = [zeros(1, Nc); ...
     -logspace(log10(1.1),log10(10),Nc)];
     % vector of camera origin locations
 
-%{
+%-{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
     cam(cc) = Camera(Nu, 1, oc(:,cc), 1e2);
 end
 %}
 
-%-{
+%{
 %-- OPTION 2: Manually assign parameters -----%
 y0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
 for cc=Nc:-1:1
