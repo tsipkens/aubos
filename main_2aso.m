@@ -49,7 +49,7 @@ aso2 = Aso2(R,Nr,Y,Ny);
 
 %-{
 %== Case studies / phantoms ==============================================%
-[ye, re] = meshgrid(aso2.ye(1:(end-1)), aso2.re);
+[ye, re] = meshgrid(aso2.xe(1:(end-1)), aso2.re);
 
 % bet2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
@@ -112,7 +112,7 @@ cam.my = (cam.y0 - cam.y) ./ cam.z;
 % FIG 3: Plot refractive index for ASO
 figure(3);
 aso2.plot(bet2);
-% aso2.srays(x2, mv_vec, v0_vec2);
+% aso2.srays(bet2, mv_vec, v0_vec2);
 colormap(flipud(ocean));
 axis image;
 title('Refractive index field for ASO');

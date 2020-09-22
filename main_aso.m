@@ -23,25 +23,25 @@ aso = Aso(R, Nr); % generate an axis-symmetric object
 pha_no = 1;
 switch pha_no
     case 1 % gaussian
-        x = normpdf(aso.re,0,0.3);
+        bet = normpdf(aso.re,0,0.3);
         
     case 2 % gaussian with central dip
-        x = (1+1.2) .* normpdf(aso.re,0,0.25) - ...
+        bet = (1+1.2) .* normpdf(aso.re,0,0.25) - ...
             1.2.*normpdf(aso.re,0,0.15);
         
     case 3 % approx. cylinder, sigmoid function softens transition
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
-        x = f_sigmoid(aso.re - 0.35);
+        bet = f_sigmoid(aso.re - 0.35);
         
     case 4 % cone
-        x = 1-aso.re;
+        bet = 1-aso.re;
         
     case 5 % ring, e.g. looking through a cup, sigmoid softens transition
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
-        x = f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33);
+        bet = f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33);
         
     case 6 % half circle
-        x = sqrt(max(0.7.^2 - aso.re.^2, 0));
+        bet = sqrt(max(0.7.^2 - aso.re.^2, 0));
 end
 %=========================================================================%
 
@@ -49,7 +49,7 @@ end
 
 % FIG 3: Plot Phantom (2D slice through center of ASO)
 figure(3);
-aso.surf(x);
+aso.surf(bet);
 colormap(flipud(ocean));
 axis off;
 
@@ -117,8 +117,8 @@ for cc=1:Nc % loop through multiple camera positions
     Ku = kernel.uniform(aso, cam(cc).x0, cam(cc).mx);
     Kl = kernel.linear(aso, cam(cc).x0, cam(cc).mx);
     
-    yu = Ku*x; % using uniform kernel
-    yl = Kl*x; % using linear kernel
+    yu = Ku*bet; % using uniform kernel
+    yl = Kl*bet; % using linear kernel
     
     figure(5); plot(cam(cc).x0, yu); % add line to FIG 5
     figure(6); plot(cam(cc).x0, yl); % add line to FIG 6
@@ -132,19 +132,19 @@ figure(6); hold off;
 % This demonstating the degree to which the rays are parallel.
 % Use first camera in cam structure. 
 figure(3);
-aso.srays(x, cam(1).mx(1:10:end), cam(1).x0(1:10:end));
+aso.srays(bet, cam(1).mx(1:10:end), cam(1).x0(1:10:end));
 colormap(flipud(ocean));
 
 % Use last camera in cam structure. 
 figure(4);
-aso.srays(x, cam(end).mx(1:10:end), cam(end).x0(1:10:end));
+aso.srays(bet, cam(end).mx(1:10:end), cam(end).x0(1:10:end));
 colormap(flipud(ocean));
 
 
 
 % FIG 10: Plot position of cameras relative to ASO
 figure(10);
-aso.surf(x,0);
+aso.surf(bet,0);
 cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
 for cc=1:Nc
@@ -163,21 +163,21 @@ colormap(flipud(ocean));
 % NOTE: Inverse procedure using simps13 is unstable.
 
 % 2-pt kernel, acts directly on deflections
-A1 = kernel.two_pt(length(x));
-b1 = A1 \ x;
+A1 = kernel.two_pt(length(bet));
+b1 = A1 \ bet;
 
 % New kernel, evaluated analogous with Abel-type kernels, 
 % acts directly on deflections
 A2 = kernel.uniform(aso.re, aso.re', 0.*aso.re');
-b2 = A2 * x;
+b2 = A2 * bet;
 
 % 3-pt kernel (operates on integrated deflections, thus gradient operator below)
-A3 = kernel.three_pt(length(x));
-b3 = gradient(A3 \ x);
+A3 = kernel.three_pt(length(bet));
+b3 = gradient(A3 \ bet);
 
 % Onion peeling kernel (forward operator, operates on integrated deflections)
-A4 = kernel.onion_peel(length(x));
-b4 = gradient(A4 * x);
+A4 = kernel.onion_peel(length(bet));
+b4 = gradient(A4 * bet);
 
 figure(20);
 plot(aso.re, b1);
@@ -185,7 +185,7 @@ hold on;
 plot(aso.re, b2);
 plot(aso.re, b3);
 plot(aso.re, b4);
-plot(aso.re, x, 'k');
+plot(aso.re, bet, 'k');
 plot(cam(end).x0, yl, '--k');
 hold off
 xlim([0, max(aso.re)]);
@@ -197,31 +197,31 @@ xlim([0, max(aso.re)]);
 b = b2 + 2e-1 .* randn(size(b2));
 
 % 2-pt kernel
-x1 = A1 * b;
+bet1 = A1 * b;
 
 % New kernel
 % Inverse is undefined at x0 = 0, where deflection is zero.
-x2 = A2(:, 2:end) \ b;
+bet2 = A2(:, 2:end) \ b;
 
 % 3-pt kernel
 bi = cumsum(b); bi = bi - bi(end);
-x3 = A3 * bi;
+bet3 = A3 * bi;
 
 % Onion peeling kernel
-x4 = A4 \ bi;
+bet4 = A4 \ bi;
 
 % Simpson 1-3 (simiar to how 2-pt method operators)
-A5 = kernel.simps13(length(x));
-x5 = A5 * b;
+A5 = kernel.simps13(length(bet));
+bet5 = A5 * b;
 
 figure(21);
-plot(aso.re, x1);
+plot(aso.re, bet1);
 hold on;
-plot(aso.re(2:end), x2);
-plot(aso.re, x3);
-plot(aso.re, x4);
-plot(aso.re, x5);
-plot(aso.re, x, 'k--');
+plot(aso.re(2:end), bet2);
+plot(aso.re, bet3);
+plot(aso.re, bet4);
+plot(aso.re, bet5);
+plot(aso.re, bet, 'k--');
 hold on;
 plot(aso.re, b2, 'k');
 plot(aso.re, b, 'k.');

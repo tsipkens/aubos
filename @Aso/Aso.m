@@ -43,7 +43,7 @@ classdef Aso
         %== SURF =========================================================%
         %   Plot the axis-symmetric object as a surface. 
         %   Timothy Sipkens, 2020-06-09
-        function [h,t,r,z0] = surf(aso, x, f_grid)
+        function [h,t,r,z0] = surf(aso, bet, f_grid)
             
             if ~exist('f_grid','var'); f_grid = []; end
             if isempty(f_grid); f_grid = 1; end
@@ -54,7 +54,7 @@ classdef Aso
             r = aso.re(i); % radii to plot
             x0 = r.*cos(t); % x values for plot
             y0 = r.*sin(t); % y values for plot
-            z0 = x(i); % z value for plot, given by input data
+            z0 = bet(i); % z value for plot, given by input data
             
             h = surf(x0,y0,z0); % generate the surface plot
             h.EdgeColor = 'none'; % remove default edges on plot
@@ -77,14 +77,14 @@ classdef Aso
         %   Plot the axis-symmetric object as a series of annuli.
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = plot(aso, x)
+        function h = plot(aso, bet)
             [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
             
             x0 = aso.re(i) .* cos(t);
             y0 = aso.re(i) .* sin(t);
-            z0 = x(i);
+            z0 = bet(i);
             
-            h = contourf(x0, y0, z0, sort(x), ...
+            h = contourf(x0, y0, z0, sort(bet), ...
                 'edgecolor','none');
             axis image;
             
@@ -102,12 +102,12 @@ classdef Aso
         %   Plot aso as a surface, with rays overlaid.
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = srays(aso, x, m, x0)
+        function h = srays(aso, bet, my, y0)
             
-            [h,t0,r0,z0] = aso.surf(x); % generate surface plot
+            [h,t0,r0,z0] = aso.surf(bet); % generate surface plot
             
             x1 = linspace(-aso.R, aso.R, 150);
-            y1 = (m').*x1 + x0';
+            y1 = (my').*x1 + y0';
             r1 = sqrt(x1.^2 + y1.^2);
             t1 = atan2(y1, x1);
             t1(t1<0) = t1(t1<0) + 2*pi;

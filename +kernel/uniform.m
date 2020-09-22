@@ -5,21 +5,21 @@
 %
 % Inputs:
 %   aso_re  Axis-symmetric object or edges of the annuli
-%   m       Set of slopes for the rays
-%   x0      Intersect with line through center of aso
+%   my      Set of slopes for the rays
+%   y0      Intersect with line through center of aso
 %=========================================================================%
 
-function K = uniform(aso_re, x0, m)
+function K = uniform(aso_re, y0, my)
 
 %-- Parse inputs ---------------------------------------------------------%
 if isa(aso_re,'Aso'); re = aso_re.re; % if input is an Aso
 else; re = aso_re; end % if an input is edges
 
-if ~exist('x0', 'var'); x0 = []; end
-if isempty(x0); x0 = re'; end
+if ~exist('y0', 'var'); y0 = []; end
+if isempty(y0); y0 = re'; end
 
-if ~exist('m', 'var'); m = []; end
-if isempty(m); m = zeros(size(x0)); end
+if ~exist('my', 'var'); my = []; end
+if isempty(my); my = zeros(size(y0)); end
 %-------------------------------------------------------------------------%
 
 
@@ -37,9 +37,9 @@ Kb = @(m,x0,r) log(r + Ka(m, x0, r + eps));
     % function for indefinite integral
     % the + eps allows for finite value of kernel when r = x0
 
-K = real(2 .* x0 .* ( ... % real(.) removes values outside integral bounds
-    Kb(m,x0,rju) - ...
-    Kb(m,x0,rj)))';
+K = real(2 .* y0 .* ( ... % real(.) removes values outside integral bounds
+    Kb(my,y0,rju) - ...
+    Kb(my,y0,rj)))';
     % uniform basis kernel function at specified m and u0
 
 D = (eye(Nr+1, Nr+1) - diag(ones(Nr, 1), 1));

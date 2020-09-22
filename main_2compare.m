@@ -29,20 +29,19 @@ disp(' ');
 %%
 R = 1;
 Nr = min(round(size(Iref0,1) .* 1.2), 250);
-Y = 4;
-% V = 4;
-Ny = min(round(size(Iref0,2) .* 1.2), 400);
-aso2 = Aso2(R,Nr,Y,Ny);
+X = 4;
+Nx = min(round(size(Iref0,2) .* 1.2), 400);
+aso2 = Aso2(R, Nr, X, Nx);
 
 
 
 %-{
 %== Case studies / phantoms ==============================================%
-[ye, re] = meshgrid(aso2.ye(1:(end-1)), aso2.re);
+[xe, re] = meshgrid(aso2.xe(1:(end-1)), aso2.re);
 
 % bet2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
-bet2 = normpdf(re, 0, 0.3 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
+bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(X + 4)); % spreading Gaussian jet 2
 % bet2 = mvnpdf([re(:), ye(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
 bet2 = bet2(:);
@@ -53,8 +52,8 @@ bet2 = bet2(:);
 
 % FIG 2: Plot Cartesian gradients, at a line of constant y and z
 figure(2);
-[Dx,Dy,Dz] = aso2.gradientc(linspace(-1,1,400),...
-    0.*ones(1,400),-0.5.*ones(1,400),bet2);
+[Dx, Dy, Dz] = aso2.gradientc(linspace(-1,1,400), ...
+    0.*ones(1,400), -0.5.*ones(1,400), bet2);
 plot(Dx);
 hold on;
 plot(Dy); plot(Dz);
@@ -116,15 +115,15 @@ set(gca,'YDir','normal');
 colorbar;
 
 % Gradient contribution to operator
-[Y,U] = gradient(Iref0);
+[V, U] = gradient(Iref0);
 U = U(:);
-Y = Y(:);
+V = V(:);
 
 C0 = 2e-4; % scaling constant (i.e., epsilon > delta)
 
 % Compile the unified operator
 % ".*" in operator cosntruction avoids creating diagonal matrix from O * Iref(:)
-A = -C0 .* (U .* Kl2 + Y .* Kv2); % incorporates axial contributions
+A = -C0 .* (U .* Kl2 + V .* Kv2); % incorporates axial contributions
 % A = -C0 .* U .* Kl2; % ignores axial contributions
 %=========================================================================%
 
@@ -241,7 +240,7 @@ D_2pt = kernel.two_pt(size(u_half, 1));
 D_2pt = kron(speye(size(u_half, 2)), D_2pt);
 n_2pt = D_2pt * u_half2;
 n_2pta = interp2(ya, xa, reshape(n_2pt, [Nu_a,Nv]), ...
-    aso2.ye2, aso2.re2);
+    aso2.xe2, aso2.re2);
 
 
 figure(22);
@@ -259,7 +258,7 @@ D_s13 = kernel.simps13(size(u_half, 1));
 D_s13 = kron(speye(size(u_half, 2)), D_s13);
 n_s13 = D_s13 * u_half2;
 n_s13a = interp2(ya, xa, reshape(n_s13, [Nu_a,Nv]), ...
-    aso2.ye2, aso2.re2);
+    aso2.xe2, aso2.re2);
 
 
 figure(23);
@@ -277,7 +276,7 @@ D_3pt = kernel.three_pt(size(u_half, 1));
 D_3pt = kron(speye(size(u_half, 2)), D_3pt);
 n_3pt = D_3pt * pois_half;
 n_3pta = interp2(ya, xa, reshape(n_3pt, [Nu_a,Nv]), ...
-    aso2.ye2, aso2.re2);
+    aso2.xe2, aso2.re2);
 
 figure(24);
 aso2.plot(n_3pta ./ C0);
