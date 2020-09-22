@@ -51,12 +51,12 @@ aso2 = Aso2(R,Nr,Y,Ny);
 %== Case studies / phantoms ==============================================%
 [ye, re] = meshgrid(aso2.ye(1:(end-1)), aso2.re);
 
-% x2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
-% x2 = normpdf(re, 0, 0.2); % uniform Gaussian
-x2 = normpdf(re, 0, 0.3 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
-% x2 = mvnpdf([re(:), ve(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
+% bet2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
+% bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
+% bet2 = normpdf(re, 0, 0.3 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
+bet2 = mvnpdf([re(:), ye(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
-x2 = x2(:);
+bet2 = bet2(:);
 %=========================================================================%
 %}
 
@@ -69,7 +69,7 @@ y_ray = 0; z_ray = -0.2;
 [Dx,Dy,Dz] = aso2.gradientc(...
     linspace(-1, 1,400),...  % x-positions
     y_ray.*ones(1,400), ...  % y-positions
-    z_ray.*ones(1,400),x2); % z-positions
+    z_ray.*ones(1,400),bet2); % z-positions
 plot(Dx);
 hold on;
 plot(Dy); plot(Dz);
@@ -90,11 +90,11 @@ Nv = size(Iref,2);
 
 % Camera origin
 % cam.x = 0.5; cam.y = 7.5; cam.z = 1.9;
-% cam.x = 0; cam.y = 2; cam.z = 20;
-cam.x = 0.5; cam.y = 2; cam.z = 1.2;
+cam.x = 0; cam.y = 2; cam.z = 20;
+% cam.x = 0.5; cam.y = 2; cam.z = 1.2;
 
 
-%{
+%-{
 %-- OPTION 2: Manually assign parameters -----%
 % Select only rays that would pass close to ASO
 x0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nu);
@@ -111,7 +111,7 @@ cam.my = (cam.y0 - cam.y) ./ cam.z;
 
 % FIG 3: Plot refractive index for ASO
 figure(3);
-aso2.plot(x2);
+aso2.plot(bet2);
 % aso2.srays(x2, mv_vec, v0_vec2);
 colormap(flipud(ocean));
 axis image;
@@ -127,10 +127,10 @@ disp('Processing rays...');
 disp('Complete.');
 disp(' ');
 
-yl2 = Kl2 * x2; % yl2 is vertical deflections in image coordinate system
+yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
 yl2 = reshape(yl2, [Nu, Nv]);
 
-yv2 = Kv2 * x2;
+yv2 = Kv2 * bet2;
 yv2 = reshape(yv2, [Nu, Nv]);
 
 
@@ -183,7 +183,7 @@ A = -C0 .* (U .* Kl2 + Y .* Kv2); % incorporates axial contributions
 %-- Generate It field ----------------------------------------------------%
 disp('Generating data...');
 
-It0 = A * x2; % use unified operator to generate perfect It
+It0 = A * bet2; % use unified operator to generate perfect It
 It0 = reshape(It0, size(Iref)); % reshape according to image size
 
 Idef = Iref + It0; % perfect deflected image
