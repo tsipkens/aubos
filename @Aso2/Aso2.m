@@ -111,11 +111,11 @@ classdef Aso2
         %   Cartesian gradients, interpolated from the ASO object.
         %   Assumes a linear radial basis and uniform axial basis.
         %   Timothy Sipkens, 2020-06-11
-        function [Dx, Dy, Dz] = gradientc(aso, xi, yi, zx, f)
+        function [Dx, Dy, Dz] = gradientc(aso, xi, yi, zi, f)
             
             % Get position in cylindrical coordinates
-            ri = sqrt(xi.^2 + zx.^2); % radial position
-            q = atan2(xi, -zx); % angle, in coord. system from Sipkens et al.
+            ri = sqrt(yi.^2 + zi.^2); % radial position
+            q = atan2(yi, -zi); % angle, in coord. system from Sipkens et al.
             
             % Setup grid for interpolation
             [x0, r0] = meshgrid(aso.xe, aso.re); % grid for input to interpolation
@@ -125,12 +125,12 @@ classdef Aso2
             Dxi = [Dxi, Dxi(:,end)]; % append constant slope data for last axial position
             
             % Interpolate r-gradient and convert to Cartesian coords.
-            Dro = interp2(x0, r0, Dri, yi, ri, 'linear' ,0);
-            Dy = sin(q) .* Dro; % get the x-gradient based on the angle
-            Dz = -cos(q) .* Dro; % get the y-gradient based on the angle
+            Dro = interp2(x0, r0, Dri, xi, ri, 'linear' ,0);
+            Dy = sin(q) .* Dro; % get the y-gradient based on the angle
+            Dz = -cos(q) .* Dro; % get the z-gradient based on the angle
             
-            % Interpolate y-gradient
-            Dx = interp2(x0, r0, Dxi, yi, ri, 'linear', 0);
+            % Interpolate x-gradient
+            Dx = interp2(x0, r0, Dxi, xi, ri, 'linear', 0);
             
         end
         %=================================================================%

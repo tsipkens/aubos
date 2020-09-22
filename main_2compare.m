@@ -41,24 +41,12 @@ aso2 = Aso2(R, Nr, X, Nx);
 
 % bet2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
-bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(X + 4)); % spreading Gaussian jet 2
-% bet2 = mvnpdf([re(:), ye(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
+% bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(X + 4)); % spreading Gaussian jet 2
+bet2 = mvnpdf([re(:), xe(:)], [0,2], [0.3^2,0; 0,0.3^2]); % sphere
 
 bet2 = bet2(:);
 %=========================================================================%
 %}
-
-
-
-% FIG 2: Plot Cartesian gradients, at a line of constant y and z
-figure(2);
-[Dx, Dy, Dz] = aso2.gradientc(linspace(-1,1,400), ...
-    0.*ones(1,400), -0.5.*ones(1,400), bet2);
-plot(Dx);
-hold on;
-plot(Dy); plot(Dz);
-hold off;
-legend({'Dx', 'Dy', 'Dz'});
 
 
 
