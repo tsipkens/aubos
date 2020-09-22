@@ -42,8 +42,8 @@ aso2 = Aso2(R,Nr,Y,Ny);
 
 % bet2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
 % bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
-% bet2 = normpdf(re, 0, 0.3 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
-bet2 = mvnpdf([re(:), ye(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
+bet2 = normpdf(re, 0, 0.3 .* (ye + 4)./(Y + 4)); % spreading Gaussian jet 2
+% bet2 = mvnpdf([re(:), ye(:)], [0,2], [0.3^2,0; 0,0.3^2]); % NOTE: change V = 4 above
 
 bet2 = bet2(:);
 %=========================================================================%
@@ -299,7 +299,9 @@ L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 % tools.textbar(0);
 n_tk2_vec = {};
 err = []; n_norm = []; res_norm = []; pr_norm = [];
-lambda_vec = 5e2; % logspace(-8, -3, 26);
+
+% (1st Tikhonov, ~2e1), (2nd  Tikhonoc, ~5e2)
+lambda_vec = 2e2; % logspace(-8, -3, 26);
 for ii=1:length(lambda_vec)
     A_tk2 = [Le*A; lambda_vec(ii).*L_tk2];
     b_tk2 = [Le*b; sparse(zeros(size(L_tk2,1), 1))];
@@ -341,7 +343,7 @@ colormap(flipud(ocean));
 colorbar;
 axis image;
 view([0,90]);
-% caxis([0,x_max]);
+% caxis([-inf,x_max]);
 
 subplot(2,1,1);
 aso2.plot(bet2, 0);
