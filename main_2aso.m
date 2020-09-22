@@ -83,9 +83,9 @@ Nu = size(Iref,1);
 Nv = size(Iref,2);
 
 % Camera origin
-% cam.y = 0.5; cam.x = 7.5; cam.z = 1.9;
-cam.y = 0; cam.x = 2; cam.z = 40;
-% cam.y = 0.5; cam.x = 2; cam.z = 1.2;
+% cam.x = 7.5; cam.y = 0.5; cam.z = 1.9;
+cam.x = 2; cam.y = 0; cam.z = 40;
+% cam.x = 2; cam.y = 0.5; cam.z = 1.2;
 
 
 %-{
@@ -141,7 +141,7 @@ caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
 colorbar;
-title('Radial deflection');
+title('Radial deflection, {\epsilon_y}');
 
 % FIG 8: Axial deflection field
 figure(8);
@@ -152,7 +152,7 @@ caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
 colorbar;
-title('Axial deflection');
+title('Axial deflection, {\epsilon_x}');
 
 % Gradient contribution to operator
 [Iv, Iu] = gradient(Iref);
@@ -170,7 +170,7 @@ C0 = 2e-4; % scaling constant (i.e., epsilon > delta)
 
 % Compile the unified operator
 % ".*" in operator cosntruction avoids creating diagonal matrix from O * Iref(:)
-disp('Generate unified operator...');
+disp('Compiling unified operator...');
 A = -C0 .* (Iu .* Kl2 + Iv .* Kx2); % incorporates axial contributions
 % A = -C0 .* Y .* Kl2; % ignores axial contributions
 disp('Complete.');

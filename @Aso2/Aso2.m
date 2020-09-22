@@ -439,7 +439,7 @@ classdef Aso2
                 hold off;
             end
             
-            xlabel('Axial, v');
+            xlabel('Axial, x');
             ylabel('Radial, r');
             
             if nargout==0; clear h; end % suppress output if none required
