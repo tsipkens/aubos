@@ -24,6 +24,8 @@ classdef Aso
     
     methods
         function aso = Aso(R, Nr)
+            if nargin==0; return; end % return empty object
+            
             aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
             

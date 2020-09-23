@@ -45,6 +45,8 @@ classdef Aso2
     
     methods
         function aso = Aso2(R, Nr, X, Nx)
+            if nargin==0; return; end % return empty object
+            
             %-- Radial positions and discretization ----------------------%
             aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
