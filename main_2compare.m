@@ -51,17 +51,16 @@ bet2 = bet2(:);
 
 
 %-- OPTION 2: Manually assign parameters -----%
-% positions along center of aso
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
-oc = [0.3,2,15];      % camera origin
-f = 1e2;            % focal length
+oc = [0.3,2,15];     % camera origin
+f = 1e2;             % focal length
 cam = Camera(Nu, Nv, oc, 1.5e3); % generate a camera
 
 
 figure(3);
-aso2.plot(bet2);
-% aso2.srays(x2, mv_vec, v0_vec2);
+% aso2.plot(bet2);
+aso2.srays(bet2, cam.mx, cam.x0);
 colormap(flipud(ocean));
 axis image;
 
@@ -71,20 +70,20 @@ axis image;
 %%
 %== AUBOS operator =======================================================%
 disp('Processing rays...');
-[Kl2, Kv2] = aso2.linear(cam.mx, cam.x0, cam.my, cam.y0);
+[Kl2, Ky2] = aso2.linear(cam.my, cam.y0, cam.mx, cam.x0);
 disp('Complete.');
 disp(' ');
 
 yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
 yl2 = reshape(yl2, [Nu, Nv]);
 
-yv2 = Kv2 * bet2;
+yv2 = Ky2 * bet2;
 yv2 = reshape(yv2', [Nu, Nv]);
 
 
 % FIG 7: Radial deflection field
 figure(7);
-imagesc(cam.y0, cam.x0, yl2);
+imagesc(cam.x0, cam.y0, yl2);
 colormap(curl(255));
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
@@ -94,7 +93,7 @@ colorbar;
 
 % FIG 8: Axial deflection field
 figure(8);
-imagesc(cam.y0, cam.x0, yv2);
+imagesc(cam.x0, cam.y0, yv2);
 colormap(curl(255));
 y_max = max(max(abs(yv2)));
 caxis([-y_max, y_max]);
@@ -111,7 +110,7 @@ C0 = 2e-4; % scaling constant (i.e., epsilon > delta)
 
 % Compile the unified operator
 % ".*" in operator cosntruction avoids creating diagonal matrix from O * Iref(:)
-A = -C0 .* (U .* Kl2 + V .* Kv2); % incorporates axial contributions
+A = -C0 .* (U .* Kl2 + V .* Ky2); % incorporates axial contributions
 % A = -C0 .* U .* Kl2; % ignores axial contributions
 %=========================================================================%
 
@@ -130,7 +129,7 @@ Idef0 = max(Idef0, 0); % check on positivity
 
 % FIG 10: Perfect It field
 figure(10);
-imagesc(It0);
+imagesc(cam.x0, cam.y0, It0);
 colormap(balanced(255));
 It_max = max(max(abs(It0)));
 caxis([-It_max, It_max]);
@@ -154,7 +153,7 @@ b = It(:); % data is vectorized It
 
 % FIG 11: Corrupted It field
 figure(11);
-imagesc(It);
+imagesc(cam.x0, cam.y0, It);
 colormap(balanced);
 It_max = max(max(abs(It)));
 caxis([-It_max, It_max]);
@@ -204,13 +203,13 @@ title('Poisson eq. solution');
 
 
 %-- Only consider data above r = 0 ---------------------------------------%
-idx_xp = round(cam.x0,8)>=0; % removes eps that could remain
-x_half = reshape(cam.x0, [Nu,Nv]); 
+idx_xp = round(cam.y0,8)>=0; % removes eps that could remain
+x_half = reshape(cam.y0, [Nu,Nv]); 
 x_half = x_half(:,1);
 Nu_a = sum(x_half>=0); % number of x entries above zero
 
-xa = round(flipud(reshape(cam.x0(idx_xp), [Nu_a,Nv])), 7);
-ya = round(reshape(cam.y0(idx_xp), [Nu_a,Nv]), 7);
+xa = round(flipud(reshape(cam.y0(idx_xp), [Nu_a,Nv])), 7);
+ya = round(reshape(cam.x0(idx_xp), [Nu_a,Nv]), 7);
 
 pois_half = -pois0(idx_xp);
 pois_half = flipud(reshape(pois_half, [Nu_a,Nv]));

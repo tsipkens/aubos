@@ -151,7 +151,7 @@ classdef Camera
             cam.x0 = cam.y0; cam.y0 = t0;
             
             t0 = cam.mx;
-            cam.mx = cam.my; cam.my = t0;
+            cam.mx = -cam.my; cam.my = t0;
             %-------------------------------------------------------------%
         end
         

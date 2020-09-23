@@ -84,7 +84,7 @@ Nv = size(Iref,2);
 
 % Camera origin
 % cam.x = 7.5; cam.y = 0.5; cam.z = 1.9;
-cam.x = 2; cam.y = 0; cam.z = 40;
+cam.x = 2; cam.y = 0; cam.z = 20;
 % cam.x = 2; cam.y = 0.5; cam.z = 1.2;
 
 
@@ -105,8 +105,8 @@ cam.mx = (cam.x0 - cam.x) ./ cam.z;
 
 % FIG 3: Plot refractive index for ASO
 figure(3);
-aso2.plot(bet2);
-% aso2.srays(bet2, mv_vec, v0_vec2);
+% aso2.plot(bet2);
+aso2.srays(bet2, cam.mx, cam.x0); view(2);
 colormap(flipud(ocean));
 axis image;
 title('Refractive index field for ASO');
