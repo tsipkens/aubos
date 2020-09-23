@@ -111,9 +111,9 @@ classdef Aso2
         
         %== GRADIENTC ====================================================%
         %   Cartesian gradients, interpolated from the ASO object.
-        %   Assumes a linear radial basis and uniform axial basis.
+        %   Assumes a linear basis.
         %   Timothy Sipkens, 2020-06-11
-        function [Dx, Dy, Dz] = gradientc(aso, xi, yi, zi, f)
+        function [Dx, Dy, Dz] = gradientc(aso, xi, yi, zi, bet)
             
             % Get position in cylindrical coordinates
             ri = sqrt(yi.^2 + zi.^2); % radial position
@@ -121,9 +121,9 @@ classdef Aso2
             
             % Setup grid for interpolation
             [x0, r0] = meshgrid(aso.xe, aso.re); % grid for input to interpolation
-            Dri = aso.reshape(aso.Dr * f); % reshape radial gradient
+            Dri = aso.reshape(aso.Dr * bet); % reshape radial gradient
             Dri = [Dri, Dri(:,end)]; % append constant slope data for last axial position
-            Dxi = aso.reshape(aso.Dx * f); % reshape axial gradient
+            Dxi = aso.reshape(aso.Dx * bet); % reshape axial gradient
             Dxi = [Dxi, Dxi(:,end)]; % append constant slope data for last axial position
             
             % Interpolate r-gradient and convert to Cartesian coords.
@@ -136,6 +136,28 @@ classdef Aso2
             
         end
         %=================================================================%
+        
+        
+        
+        %== INTERPC ====================================================%
+        %   Interpolate discrete function defined on an ASO to Cartesian
+        %   coordinates. Assumes a linear basis and uniform axial basis.
+        %   Timothy Sipkens, 2020-06-11
+        function [f] = interpc(aso, xi, yi, zi, bet)
+            
+            % Get position in cylindrical coordinates
+            ri = sqrt(yi.^2 + zi.^2); % radial position
+            
+            % Setup grid for interpolation
+            [x0, r0] = meshgrid(aso.xe(1:end-1), aso.re); % grid for input to interpolation
+            bet = reshape(bet, [aso.Nr+1, aso.Nx]);
+            
+            % Interpolate r-gradient and convert to Cartesian coords.
+            f = interp2(x0, r0, bet, xi, ri, 'linear' ,0);
+            
+        end
+        %=================================================================%
+        
         
         
         
