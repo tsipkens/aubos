@@ -53,8 +53,8 @@ bet2 = bet2(:);
 %-- OPTION 2: Manually assign parameters -----%
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
-oc = [0.3,2,15];     % camera origin
-f = 1e2;             % focal length [px]
+oc = [0.1,2,15];     % camera origin
+f = 1.5e3;             % focal length [px]
 cam = Camera(Nu, Nv, oc, f); % generate a camera
 
 
