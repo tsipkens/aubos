@@ -117,7 +117,7 @@ title('Refractive index field for ASO');
 %%
 %== AUBOS operator =======================================================%
 disp('Processing rays...');
-[Kl2, Kx2] = aso2.linear(cam.my, cam.y0, cam.mx, cam.x0);
+[Kl2, Kx2] = kernel2.linear2(aso, cam.my, cam.y0, cam.mx, cam.x0);
 disp('Complete.');
 disp(' ');
 

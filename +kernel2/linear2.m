@@ -1,5 +1,5 @@
 
-% LINEAR  Evaluates kernel/operator for a linear basis representation of a 2D ASO.
+% LINEAR 2 Evaluates kernel/operator for a linear basis representation of a 2D ASO.
 %   Linear basis is applied in radial direction. 
 %   Uniform basis is applied in axial direction.
 %   Timothy Sipkens, 2020-06-10
@@ -20,7 +20,7 @@
 %
 %=========================================================================%
 
-function [K,Kx] = linear(aso2, my, y0, mx, x0)
+function [K,Kx] = linear2(aso2, my, y0, mx, x0)
 
 if aso2.N<3; error('Aso does not have enough annuli for linear basis.'); end
 
