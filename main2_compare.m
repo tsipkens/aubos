@@ -70,7 +70,7 @@ axis image;
 %%
 %== AUBOS operator =======================================================%
 disp('Processing rays...');
-[Kl2, Ky2] = kernel2.linear2(aso2, cam.my, cam.y0, cam.mx, cam.x0);
+[Kl2, Ky2] = kernel2.linear(aso2, cam.my, cam.y0, cam.mx, cam.x0);
 disp('Complete.');
 disp(' ');
 
