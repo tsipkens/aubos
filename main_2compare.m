@@ -54,8 +54,8 @@ bet2 = bet2(:);
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
 oc = [0.3,2,15];     % camera origin
-f = 1e2;             % focal length
-cam = Camera(Nu, Nv, oc, 1.5e3); % generate a camera
+f = 1e2;             % focal length [px]
+cam = Camera(Nu, Nv, oc, f); % generate a camera
 
 
 figure(3);
