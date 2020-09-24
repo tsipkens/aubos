@@ -6,7 +6,7 @@
 
 This program is designed to analyze background-oriented schlieren data for axisymmetric objects, primarily using a generalization of the Abel transform. The focus is placed on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of Bayesian inference and priors. 
 
-### Installation note
+## Installation note
 
 This program has a single dependency that are included as submodules: the `cmap` package available at https://github.com/tsipkens/cmap. As a result, this folder will initially be empty. The submodules can be downloaded manually from the above sources and placed in the `cmap/` folder. If cloning using git, clone the repository using 
 
@@ -22,7 +22,33 @@ addpath cmap;
 
 Instead of the `cmap` package, one could also replace references in existing scripts to the colormaps that would otherwise be in that package. This would have to include removing any refrence to the `cmap_sweep` function (which allows for line plots to sweep through a colormap) that appears in some of the main scripts.   
 
-# General description
+## Components
+
+This codebase can be divided into three components. 
+
+### A. Evaluating transforms directly
+
+The first is a simple evaluation of the mathematical kernels associated with projecting axisymmetric objects, using the functions in the `+transforms` folder. For example, the Abel transform, 
+
+![](https://latex.codecogs.com/svg.latex?{\epsilon}=\frac{1}{\pi}\int_{y_0}^{R}{\frac{{\delta}(r)r}{\sqrt{y_0^2-r^2}}\text{d}y_0})
+
+can be evaluated using
+
+```Matlab
+transform.abel(y0, r_vec)
+```
+
+at the range of radii given in `r_vec`. Use of this codebase to evaluate these transforms is demonstrated in the `main_transforms` script. 
+
+### B. Consider 1D (only radial) axisymmetric objects
+
+The `Aso` class is used to handle axisymmetric objects that are only defined with respect to radial positon (i.e., do not have axial variations). The functions in the `+kernel` folder are built to evaluate the transforms from A for these objects. 
+
+### C. Consider 2D (radial and axial positions) axisymmetric objects
+
+The `Aso2` class is used to handle axisymmetric objects that are only defined with respect to radial positon (i.e., do not have axial variations). The functions in the `+kernel2` folder are built to evaluate the transforms from A for these objects. 
+
+### Summary of structure
 
 This codebase is broken up into a series of packages: 
 
@@ -32,6 +58,8 @@ This codebase is broken up into a series of packages:
 4. The `regularization` package contains tools to help during inversion, such as generating prior covariance matrices. 
 
 We refer the reader to individual functions for more information. 
+
+## Description
 
 ### Representing cameras
 
