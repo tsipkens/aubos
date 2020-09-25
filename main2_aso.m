@@ -29,29 +29,36 @@ disp(' ');
 %=========================================================================%
 
 
+
 %%
-
-
-
 % Axisymmetric target object information and creation
 R = 1;
 Nr = min(round(size(Iref,1) .* 1.2), 250);
-Iv = 4;
+V = 4;
 Nx = min(round(size(Iref,2) .* 1.2), 400);
-aso2 = Aso2(R, Nr, Iv, Nx);
-
+aso2 = Aso2(R, Nr, V, Nx);
 
 
 
 %-{
-%== Case studies / phantoms ==============================================%
+%== Case studies / phantoms for dn/dr ====================================%
+%   Evaluated as ASO radial element edges.
 [xe, re] = meshgrid(aso2.xe(1:(end-1)), aso2.re);
 
-% bet2 = normpdf(re, 0, 0.5 .* (6 .* xe + 4)./(6 .* X + 4)); % spreading Gaussian jet
-% bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
-bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(Iv + 4)); % spreading Gaussian jet 2
-% bet2 = mvnpdf([re(:), xe(:)], [0,2], [0.3^2,0; 0,0.3^2]); % sphere
-
+pha_no = 4;
+switch pha_no
+    case 1
+        bet2 = normpdf(re, 0, 0.5 .* (6 .* xe + 4)./(6 .* X + 4)); % spreading Gaussian jet
+    case 2
+        bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
+    case 3
+        bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(Iv + 4)); % spreading Gaussian jet 2
+    case 4
+        V = 4;
+        aso2 = Aso2(R, Nr, V, Nx);
+        bet2 = mvnpdf([re(:), xe(:)], ...
+            [0,2], [0.3^2,0; 0,0.3^2]); % sphere
+end
 bet2 = bet2(:);
 %=========================================================================%
 %}
@@ -83,16 +90,23 @@ Nu = size(Iref,1);
 Nv = size(Iref,2);
 
 % Camera origin
-% cam.x = 7.5; cam.y = 0.5; cam.z = 1.9;
-cam.x = 2; cam.y = 0; cam.z = 20;
-% cam.x = 2; cam.y = 0.5; cam.z = 1.2;
+cam_no = 2;
+switch cam_no
+    case 1
+        cam.x = 3.5; % 7.5;
+        cam.y = 0.5; cam.z = 1.9;
+    case 2
+        cam.x = 2; cam.y = 0; cam.z = 20;
+	case 3
+        cam.x = 2; cam.y = 0.5; cam.z = 1.2;
+end
 
 
 %-{
 %-- OPTION 2: Manually assign parameters -----%
 % Select only rays that would pass close to ASO
 y0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nu);
-x0_vec = linspace(0, Iv, Nv);
+x0_vec = linspace(0, V, Nv);
 [cam.y0, cam.x0] = ndgrid(y0_vec, x0_vec); % meshgrid to generate image dims.
 cam.y0 = cam.y0(:)'; cam.x0 = cam.x0(:)'; % must be row vectors
 
@@ -117,7 +131,7 @@ title('Refractive index field for ASO');
 %%
 %== AUBOS operator =======================================================%
 disp('Processing rays...');
-[Kl2, Kx2] = kernel2.linear(aso, cam.my, cam.y0, cam.mx, cam.x0);
+[Kl2, Kx2] = kernel2.linear(aso2, cam.my, cam.y0, cam.mx, cam.x0);
 disp('Complete.');
 disp(' ');
 
