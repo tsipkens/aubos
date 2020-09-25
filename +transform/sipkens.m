@@ -3,12 +3,12 @@
 % Author: Timothy Sipkens, 2020-06-11
 %=========================================================================%
 
-function K = sipkens(m,u0,r)
+function K = sipkens(my, y0, r)
 
-r(r<u0/sqrt(1+m^2)) = NaN; % blank out irrelevant radii for u0 and m
+r(r<y0/sqrt(1+my^2)) = NaN; % blank out irrelevant radii for u0 and m
 
-K = 2 .* u0 ./ ...
-    sqrt(r.^2 - u0.^2 ./ (1 + m.^2));
+K = 2 .* y0 ./ ...
+    sqrt(r.^2 - y0.^2 ./ (1 + my.^2));
     % forward transform
 
 end
