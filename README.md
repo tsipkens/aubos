@@ -75,7 +75,7 @@ We refer the reader to individual functions for more information.
 
 The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
 
-![](docs\01_coordinate.png)
+![coord](docs/01_coordinate.png)
 
 The positive *z*-direction is chosen to proceed forward, away from the camera, and perpindicular to the imaging plane. The origin is placed at the middle of the axisymmetric target object (ASO), such that *z* = 0 represents the distance from the camera lens to the center of the ASO along the imaging axis. 
 
