@@ -13,7 +13,7 @@ addpath cmap; % add colormaps to path
 %== Generate background ==================================================%
 disp('Reading and transforming image...');
 Iref0 = tools.gen_bg('sines', [250,352], 10)  .* 255;
-% Iref = tools.gen_bg('sines2', [250,352], 10)  .* 255;
+% Iref0 = tools.gen_bg('sines2', [250,352], 10)  .* 255;
 
 % Plot background
 figure(1);
@@ -53,8 +53,8 @@ bet2 = bet2(:);
 %-- OPTION 2: Manually assign parameters -----%
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
-oc = [0.1,2,15];     % camera origin
-f = 1.5e3;             % focal length [px]
+oc = [0.25,2,10];     % camera origin
+f = 1e3;             % focal length [px]
 cam = Camera(Nu, Nv, oc, f); % generate a camera
 
 
@@ -177,36 +177,34 @@ disp('Performing traditional inversion approaches...');
 % [u_of, v_of] = tools.lucas_kanade(Iref, Idef);
 
 
-%-- Divergence for the RHS of Poisson eq. --------------------------------%
+%-- Solve Poisson equation -----------------------------------------------%
+%{
+% OPTION 1: Divergence and Poisson eq. solve.
 div0 = divergence(v_of, u_of);
-
 figure(20);
-imagesc(reshape(div0, size(u_of)));
+imagesc(div0);
 colormap(flipud(ocean));
 axis image;
 colorbar;
 title('Divergence');
-%-------------------------------------------------------------------------%
+pois0 = tools.poisson(div0);
+%}
 
-
-%-- Solve Poisson equation -----------------------------------------------%
-pois0 = tools.poisson(div0(:), speye(numel(u_of)), [Nu,Nv]);
+% OPTION 2: Integrate in y-direction.
 pois0 = -cumsum(u_of);
 
 figure(21);
 imagesc(reshape(pois0, size(u_of)));
 colormap(flipud(ocean));
-axis image;
+axis image; 
 colorbar;
 title('Poisson eq. solution');
 %-------------------------------------------------------------------------%
 
 
 %-- Only consider data above r = 0 ---------------------------------------%
-idx_xp = round(cam.y0,8)>=0; % removes eps that could remain
-x_half = reshape(cam.y0, [Nu,Nv]); 
-x_half = x_half(:,1);
-Nu_a = sum(x_half>=0); % number of x entries above zero
+idx_xp = round(cam.y0,6)>=0; % removes eps that could remain
+Nu_a = sum(idx_xp) ./ Nv; % number of x entries above zero
 
 xa = round(flipud(reshape(cam.y0(idx_xp), [Nu_a,Nv])), 7);
 ya = round(reshape(cam.x0(idx_xp), [Nu_a,Nv]), 7);
