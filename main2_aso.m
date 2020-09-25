@@ -101,7 +101,7 @@ end
 
 
 %-{
-%-- OPTION 2: Manually assign parameters -----%
+%-- Manually assign parameters -------------------%
 % Select only rays that would pass close to ASO
 y0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nu);
 x0_vec = linspace(0, V, Nv);

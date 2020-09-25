@@ -61,14 +61,14 @@ bet2 = bet2(:);
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
 
-cam_no = 1;
+cam_no = 2;
 switch cam_no
     case 1
-        oc = [0.25,2,3];     % camera origin
-        f = 3e2;             % focal length [px]
+        oc = [0.25,2,2.5];  % camera origin
+        f = 2e2;            % focal length [px]
     case 2
-        oc = [0.25,2,10];     % camera origin
-        f = 1e3;             % focal length [px]
+        oc = [0,2,20];      % camera origin
+        f = 1.7e3;          % focal length [px]
 end
 cam = Camera(Nu, Nv, oc, f); % generate a camera
 
@@ -251,6 +251,7 @@ aso2.plot(n_2pta ./ C0);
 axis image;
 colormap(flipud(ocean));
 colorbar;
+title('Two point');
 %-------------------------------------------------------------------------%
 
 
@@ -269,6 +270,7 @@ aso2.plot(n_s13a ./ C0);
 axis image;
 colormap(flipud(ocean));
 colorbar;
+title('Simpson 13');
 %-------------------------------------------------------------------------%
 
 
@@ -286,6 +288,7 @@ aso2.plot(n_3pta ./ C0);
 colormap(flipud(ocean));
 axis image;
 colorbar;
+title('Three point');
 %-------------------------------------------------------------------------%
 
 disp('Complete.');
@@ -344,6 +347,7 @@ disp(' ');
 
 figure(25);
 x_max = max(max(abs([bet2, n_tk2])));
+x_min = min(min([bet2, n_tk2]));
 
 subplot(2,1,2);
 aso2.plot(n_tk2, 0);
@@ -351,7 +355,7 @@ colormap(flipud(ocean));
 colorbar;
 axis image;
 view([0,90]);
-% caxis([-inf,x_max]);
+caxis([x_min,x_max]);
 
 subplot(2,1,1);
 aso2.plot(bet2, 0);
@@ -359,8 +363,9 @@ colormap(flipud(ocean));
 colorbar;
 axis image;
 view([0,90]);
-caxis([0,x_max]);
+caxis([x_min,x_max]);
 
+title('AUBOS');
 disp('Complete.');
 disp(' ');
 %=========================================================================%
