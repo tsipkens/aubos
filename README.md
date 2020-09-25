@@ -73,6 +73,14 @@ We refer the reader to individual functions for more information.
 
 ## Description
 
+### General descritpion
+
+The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
+
+![](docs\01_coordinate.png)
+
+The positive *z*-direction is chosen to proceed forward, away from the camera, and perpindicular to the imaging plane. The origin is placed at the middle of the axisymmetric target object (ASO), such that *z* = 0 represents the distance from the camera lens to the center of the ASO along the imaging axis. 
+
 ### Representing cameras
 
 Imaging inherently requires the use of cameras. Multiple options exist for defining a camera within this program. In any case, one must define the initial trajectories for rays leaving the camera, which will then be used with other components of this codebase. Each ray should be represented by a series of four parameters: 
