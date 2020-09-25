@@ -63,7 +63,8 @@ switch order
         Lpr0 = kron(I2,D1) + kron(D2,I1);
         
         vec1 = sum(Lpr0,2);
-        vec1(n:n:end) = vec1(n:n:end) + 1; % to zero top row
+        vec1(n:n:end) = vec1(n:n:end) + 1; % to zero at r = R
+        % vec1(1:n:end) = vec1(1:n:end) + 1; % to zero at r = 0
         
         % No slope at edge
         Lpr0 = Lpr0 - spdiags(vec1,0,x_length,x_length);
