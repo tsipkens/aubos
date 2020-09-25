@@ -30,7 +30,7 @@ This codebase can be divided into three components, each designed to examine dif
 
 The first component involves simple evaluation of the mathematical transforms associated with projecting axisymmetric objects. Coded versions of the kernels that make up these transforms are provided in the `+transforms` folder and are relatively straightforward. For example, kernel of the Abel transform is simply,
 
-![](https://latex.codecogs.com/svg.latex?{\frac{{\delta}(r)r}{\sqrt{y_0^2-r^2}}), 
+![](https://latex.codecogs.com/svg.latex?{\frac{{\delta}(r)r}{\sqrt{y_0^2-r^2}})
 
 and can be evaluated using
 
@@ -40,7 +40,7 @@ K = transform.abel(y0, r_vec);
 
 using the range of radii given in `r_vec` for a ray passing through *z* = 0 at *y*<sub>0</sub>. The new transform described by Sipkens et al. (2020), which has a kernel of
 
-![](https://latex.codecogs.com/svg.latex?{\frac{{\delta}(r)r}{\sqrt{r^2-(1+m_{\text{y}}^2)y_0^2}}),
+![](https://latex.codecogs.com/svg.latex?{\frac{{\delta}(r)r}{\sqrt{r^2-(1+m_{\text{y}}^2)y_0^2}})
 
 can similarly be evaluated using,
 
@@ -72,8 +72,6 @@ This codebase is broken up into a series of packages:
 We refer the reader to individual functions for more information. 
 
 ## Description
-
-### General descritpion
 
 The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
 
