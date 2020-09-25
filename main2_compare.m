@@ -39,22 +39,37 @@ aso2 = Aso2(R, Nr, X, Nx);
 %== Case studies / phantoms ==============================================%
 [xe, re] = meshgrid(aso2.xe(1:(end-1)), aso2.re);
 
-% bet2 = normpdf(re, 0, 0.5 .* (6 .* ve + 4)./(6 .* V + 4)); % spreading Gaussian jet
-% bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
-% bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(X + 4)); % spreading Gaussian jet 2
-bet2 = mvnpdf([re(:), xe(:)], [0,2], [0.3^2,0; 0,0.3^2]); % sphere
-
+pha_no = 3;
+switch pha_no
+    case 1
+        bet2 = normpdf(re, 0, 0.5 .* (6 .* xe + 4)./(6 .* X + 4)); % spreading Gaussian jet
+    case 2
+        bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
+    case 3
+        bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(X + 4)); % spreading Gaussian jet 2
+    case 4
+        bet2 = mvnpdf([re(:), xe(:)], ...
+            [0,2], [0.3^2,0; 0,0.3^2]); % sphere
+end
 bet2 = bet2(:);
 %=========================================================================%
 %}
 
 
 
-%-- OPTION 2: Manually assign parameters -----%
+%-- Model a camera ------------------------------%
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
-oc = [0.25,2,10];     % camera origin
-f = 1e3;             % focal length [px]
+
+cam_no = 1;
+switch cam_no
+    case 1
+        oc = [0.25,2,3];     % camera origin
+        f = 3e2;             % focal length [px]
+    case 2
+        oc = [0.25,2,10];     % camera origin
+        f = 1e3;             % focal length [px]
+end
 cam = Camera(Nu, Nv, oc, f); % generate a camera
 
 
@@ -163,6 +178,8 @@ drawnow;
 disp('Complete.');
 disp(' ');
 %=========================================================================%
+
+
 
 
 

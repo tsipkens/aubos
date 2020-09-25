@@ -34,9 +34,9 @@ disp(' ');
 % Axisymmetric target object information and creation
 R = 1;
 Nr = min(round(size(Iref,1) .* 1.2), 250);
-V = 4;
+X = 4;
 Nx = min(round(size(Iref,2) .* 1.2), 400);
-aso2 = Aso2(R, Nr, V, Nx);
+aso2 = Aso2(R, Nr, X, Nx);
 
 
 
@@ -52,10 +52,8 @@ switch pha_no
     case 2
         bet2 = normpdf(re, 0, 0.2); % uniform Gaussian
     case 3
-        bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(Iv + 4)); % spreading Gaussian jet 2
+        bet2 = normpdf(re, 0, 0.3 .* (xe + 4)./(X + 4)); % spreading Gaussian jet 2
     case 4
-        V = 4;
-        aso2 = Aso2(R, Nr, V, Nx);
         bet2 = mvnpdf([re(:), xe(:)], ...
             [0,2], [0.3^2,0; 0,0.3^2]); % sphere
 end
