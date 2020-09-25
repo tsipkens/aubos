@@ -1,6 +1,6 @@
 # AUBOS
 
-**(*A*xisymmetric *U*nified *B*ackground *O*riented *S*chlieren)**
+**(*A*xisymmetric *U*nified *B*ackground-*O*riented *S*chlieren)**
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
@@ -20,39 +20,51 @@ which will automatically download the submodule. To be used directly, these pack
 addpath cmap;
 ```
 
-Instead of the `cmap` package, one could also replace references in existing scripts to the colormaps that would otherwise be in that package. This would have to include removing any refrence to the `cmap_sweep` function (which allows for line plots to sweep through a colormap) that appears in some of the main scripts.   
+Instead of the `cmap` package, one could also replace references in existing scripts to the colormaps that would otherwise be in that package. This would have to include removing any reference to the `cmap_sweep` function (which allows for line plots to sweep through a colormap) that appears in some of the main scripts.   
 
 ## Components
 
-This codebase can be divided into three components. 
+This codebase can be divided into three components, each designed to examine different components of the axisymmetric schlieren problem. 
 
 ### A. Evaluating transforms directly
 
-The first is a simple evaluation of the mathematical kernels associated with projecting axisymmetric objects, using the functions in the `+transforms` folder. For example, the Abel transform, 
+The first component involves simple evaluation of the mathematical transforms associated with projecting axisymmetric objects. Coded versions of the kernels that make up these transforms are provided in the `+transforms` folder and are relatively straightforward. For example, kernel of the Abel transform is simply,
 
-![](https://latex.codecogs.com/svg.latex?{\epsilon}=\frac{1}{\pi}\int_{y_0}^{R}{\frac{{\delta}(r)r}{\sqrt{y_0^2-r^2}}\text{d}y_0})
+![](https://latex.codecogs.com/svg.latex?{\frac{{\delta}(r)r}{\sqrt{y_0^2-r^2}}), 
 
-can be evaluated using
+and can be evaluated using
 
 ```Matlab
-transform.abel(y0, r_vec)
+K = transform.abel(y0, r_vec);
 ```
 
-at the range of radii given in `r_vec`. Use of this codebase to evaluate these transforms is demonstrated in the `main_transforms` script. 
+using the range of radii given in `r_vec` for a ray passing through *z* = 0 at *y*<sub>0</sub>. The new transform described by Sipkens et al. (2020), which has a kernel of
+
+![](https://latex.codecogs.com/svg.latex?{\frac{{\delta}(r)r}{\sqrt{r^2-(1+m_{\text{y}}^2)y_0^2}}),
+
+can similarly be evaluated using,
+
+```Matlab
+K = transform.sipkens(my, y0, r_vec);
+```
+
+where the added *m*<sub>y</sub> parameter describes the slope of the line in the *y*-direction. 
+
+Use of this codebase to evaluate these transforms is demonstrated in the `main_transforms` script. 
 
 ### B. Consider 1D (only radial) axisymmetric objects
 
-The `Aso` class is used to handle axisymmetric objects that are only defined with respect to radial positon (i.e., do not have axial variations). The functions in the `+kernel` folder are built to evaluate the transforms from A for these objects. 
+The `Aso` class is used to handle axisymmetric objects that are only defined with respect to radial position (i.e., do not have axial variations). The functions in the `+kernel` folder are built to evaluate the transforms from A for these objects. 
 
 ### C. Consider 2D (radial and axial positions) axisymmetric objects
 
-The `Aso2` class is used to handle axisymmetric objects that are only defined with respect to radial positon (i.e., do not have axial variations). The functions in the `+kernel2` folder are built to evaluate the transforms from A for these objects. 
+The `Aso2` class is used to handle axisymmetric objects that has both radial and axial variations. The functions in the `+kernel2` folder are built to evaluate the transforms from Section [A]() above for these objects. Solving these problems generally takes much longer than the 1D case considered above. 
 
 ### Summary of structure
 
 This codebase is broken up into a series of packages: 
 
-1. The `kernel` package includes functions to generate the typical forward and inverse operators for solving the Abel problem. Inputs vary depending on the operator, with some specifically built for deflectometry measurements, while others apply to the more generic problem and require that the data be transformed prior to use. 
+1. The `kernel` package includes functions to generate the typical forward and inverse operators for solving the Abel problem. 
 2. The `tools` package contains miscellaneous functions to aid in analysis. This includes a text-based toolbar function attributed to @sgrauer. 
 3. The `transforms` package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al.
 4. The `regularization` package contains tools to help during inversion, such as generating prior covariance matrices. 
