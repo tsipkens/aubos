@@ -14,6 +14,7 @@ addpath cmap; % add colormaps to path
 disp('Reading and transforming image...');
 Iref0 = tools.gen_bg('sines', [250,352], 10)  .* 255;
 % Iref0 = tools.gen_bg('sines2', [250,352], 10)  .* 255;
+% Iref0 = tools.gen_bg('dots', [250,352], 10)  .* 255;
 
 % Plot background
 figure(1);
@@ -64,11 +65,11 @@ Nv = size(Iref0,2);  % second image dimension
 cam_no = 2;
 switch cam_no
     case 1
-        oc = [0.25,2,2.5];  % camera origin
-        f = 2e2;            % focal length [px]
+        oc = [0.5,3,2.5];  % camera origin
+        f = 1.5e2;            % focal length [px]
     case 2
         oc = [0,2,20];      % camera origin
-        f = 1.7e3;          % focal length [px]
+        f = 1.8e3;          % focal length [px]
 end
 cam = Camera(Nu, Nv, oc, f); % generate a camera
 
@@ -151,6 +152,11 @@ caxis([-It_max, It_max]);
 axis image;
 set(gca,'YDir','normal');
 
+% add camera position to FIG 10
+hold on;
+plot(oc(2), oc(1), 'ok');
+hold off;
+
 
 % Sample and add noise to It field 
 rng(1);
@@ -212,7 +218,9 @@ pois0 = -cumsum(u_of);
 
 figure(21);
 imagesc(reshape(pois0, size(u_of)));
-colormap(flipud(ocean));
+colormap(flipud(balanced));
+pois_max = max(abs(pois0(:)));
+caxis([-pois_max, pois_max]);
 axis image; 
 colorbar;
 title('Poisson eq. solution');
@@ -373,3 +381,18 @@ disp(' ');
 
 
 
+
+%-- Recalse recosntructions to have same scale --------------%
+n_maxmax = max(max([ ...
+    n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
+    n_3pta(:) ./ C0, n_tk2(:), bet2(:)]));
+n_minmin = min(min([ ...
+    n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
+    n_3pta(:) ./ C0, n_tk2(:), bet2(:)]));
+
+figure(25); subplot(2,1,2); caxis([n_minmin, n_maxmax]);
+figure(25); subplot(2,1,1); caxis([n_minmin, n_maxmax]);
+figure(22); caxis([n_minmin, n_maxmax]);
+figure(23); caxis([n_minmin, n_maxmax]);
+figure(24); caxis([n_minmin, n_maxmax]);
+%------------------------------------------------------------%
