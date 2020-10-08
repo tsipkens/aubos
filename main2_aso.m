@@ -104,7 +104,7 @@ end
 %-- Manually assign parameters -------------------%
 % Select only rays that would pass close to ASO
 y0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nu);
-x0_vec = linspace(0, V, Nv);
+x0_vec = linspace(0, X, Nv);
 [cam.y0, cam.x0] = ndgrid(y0_vec, x0_vec); % meshgrid to generate image dims.
 cam.y0 = cam.y0(:)'; cam.x0 = cam.x0(:)'; % must be row vectors
 

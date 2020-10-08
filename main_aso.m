@@ -170,6 +170,7 @@ b1 = A1 \ bet;
 % acts directly on deflections
 A2 = kernel.uniform(aso.re, aso.re', 0.*aso.re');
 b2 = A2 * bet;
+A2b = inv(kernel.linear_ind(length(bet), 1:length(bet)));
 
 % 3-pt kernel (operates on integrated deflections, thus gradient operator below)
 A3 = kernel.three_pt(length(bet));
@@ -202,6 +203,7 @@ bet1 = A1 * b;
 % New kernel
 % Inverse is undefined at x0 = 0, where deflection is zero.
 bet2 = A2(:, 2:end) \ b;
+bet2b = A2b * b;
 
 % 3-pt kernel
 bi = cumsum(b); bi = bi - bi(end);
@@ -218,6 +220,7 @@ figure(21);
 plot(aso.re, bet1);
 hold on;
 plot(aso.re(2:end), bet2);
+plot(aso.re, bet2b);
 plot(aso.re, bet3);
 plot(aso.re, bet4);
 plot(aso.re, bet5);
