@@ -272,6 +272,39 @@ classdef Aso2
             
             if nargout==0; clear h; end % suppress output if none required
         end
+        
+        
+        
+        %== PLOT_SLICE ===================================================%
+        %   Plot a slice through the ASO.
+        %   Plots slide closest to x0, rather than interpolating.
+        %   Timothy Sipkens, 2020-10-19
+        function [h,idx] = plot_slice(aso, bet, x0)
+            
+            %-- Parse inputs, assign x0 index ----------------------------%
+            if ~exist('x0','var'); x0 = []; end
+            if isempty(x0) % if empty, use midpoint
+                x0 = aso.xe(floor((aso.Nx + 1) / 2));
+            end
+            [~,idx] = min(abs(x0 - aso.xe)); % find index closest to x0
+            %-------------------------------------------------------------%
+            
+            
+            bet = aso.reshape(bet); % reshape beta to rectangle
+            
+            % if x0 is not exact match, display actual slice location
+            if aso.xe(idx)~=x0
+                disp(['Showing closest slice: x = ', ...
+                    num2str(aso.xe(idx))]);
+                disp(' ');
+            end
+            
+            % output plot
+            h = plot(aso.re, bet(:, idx));
+            
+            if nargout==0; clear h; end
+            
+        end
     end
 end
 
