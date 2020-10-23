@@ -63,7 +63,7 @@ axis off;
 %       will differ from OPT. 1, producing a different set of rays that 
 %       results in higher resultion deflections in the vicinity of the ASO.
 
-Nu = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
+Nv = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
 
 Nc = 20; % number of camera positions
 oc = [zeros(1, Nc); ...
@@ -80,12 +80,12 @@ end
 
 %-{
 %-- OPTION 2: Manually assign parameters -----%
-y0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
+y0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nv);
 for cc=Nc:-1:1
     cam(cc).y = oc(2, cc);
     cam(cc).z = oc(3, cc);
     
-    cam(cc).y0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nu);
+    cam(cc).y0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nv);
     cam(cc).my = (cam(cc).y - cam(cc).y0) ./ ...
         cam(cc).z; % slope implied by camera location
 end
@@ -140,6 +140,16 @@ figure(4);
 aso.srays(bet, cam(end).my(1:10:end), cam(end).y0(1:10:end));
 colormap(flipud(ocean));
 
+% Show two distorted images for first and last cameras. 
+figure(9);
+v = 1:Nv;
+Iref = sin(0.3 .* v);
+bdef1 = (kernel.linear(aso, cam(1).y0, cam(1).my) * bet)';
+bdef2 = (kernel.linear(aso, cam(end).y0, cam(end).my) * bet)';
+Idef1 = sin(0.3 .* (v + bdef1));
+Idef2 = sin(0.3 .* (v + bdef2));
+imagesc([Iref; Idef1; Idef2]);
+colormap(gray);
 
 
 % FIG 10: Plot position of cameras relative to ASO
