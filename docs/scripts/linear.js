@@ -12,8 +12,6 @@ var Kc = function(m, x0, r1, r2, r3) {
   // the + eps allows for finite value of kernel when r3 = x0
 }
 var linear = function(re, y0, my) {
-  Nr = re.length - 1;
-
   var K = Array(re.length)
   for (ii = 0; ii < re.length; ii++) {
     K[ii] = Array(y0.length)
@@ -80,7 +78,7 @@ for (ii = 0; ii < re_vec.length; ii++) {
 }
 
 var yc = 0
-var zc_vec = [20, 4, 2.5, 2, 1.6, 1.3, 1.2, 1.1, 1, 0.9, 0.8]
+var zc_vec = [20, 4, 2.5, 2, 1.6, 1.35, 1.2, 1.1, 1, 0.9, 0.8]
 var xl = Array(zc_vec.length)
 
 // transfer to data structure
