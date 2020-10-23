@@ -59,4 +59,6 @@ a {
 hr {
   border: none;
   border-top: 1px solid #DDDDDD;
+  margin-top: 35px;
+  margin-bottom: 35px;
 }
