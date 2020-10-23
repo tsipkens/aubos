@@ -1,7 +1,7 @@
 body {
   margin: auto 0px;
   padding: 0px;
-  font-family: 'Roboto', serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 10pt;
 }
 
@@ -44,7 +44,7 @@ body {
 /* For main components */
 div.main {
   margin: 0 auto;
-  width: 500px;
+  width: 600px;
   padding-top: 100px;
 }
 
