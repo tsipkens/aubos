@@ -39,7 +39,7 @@
       <p align="justify">
         A viz for the Abel transform and new transform from Sipkens et al. Increasing
         slope of the rays is represented by progressively lighter colours. The
-        Abel transform is shown as a white dashed line. 
+        Abel transform is shown as a white dashed line.
       </p>
 
       <div class="control">
@@ -51,7 +51,7 @@
       </div>
 
       <!-- Create a div where the graph will take place -->
-      <div id="my_dataviz"></div>
+      <div id="my_dataviz" style="margin-top:10px"></div>
 
       <hr>
 
@@ -60,20 +60,36 @@
 
       <p align="justify">
         Now consider projecting a phantom, with the radial dependence of the phantom
-        shown in the upper panel. The range of colours progress from cameras far
-        from to ASO (dark colours, equivalent to the Abel case) to cameras close to the
-        ASO (light colours).
+        shown in the upper panel.
+      </p>
+
+      <p align="justify">
+        The y<sub>c</sub> controls adjusts whether the height of the camera
+        above the ASO. The y<sub>c</sub> = 0 case corresponds to a camera looking
+        directly at the ASO and yields a symmetric deflection field.
+        Large values of y<sub>c</sub> move the camera above
+        the ASO and stretch the effect of the ASO in the negative direction,
+        as more of those rays still pass through the ASO.
+      </p>
+
+      <p align="justify">
+        The range of colours progress from cameras far
+        from the ASO (dark colours, equivalent to the Abel case) to cameras close to the
+        ASO (light colours). Progressing from darkest to lightest, the distance from
+        the center of the ASO to the camera origin is z<sub>c</sub> =
+        20, 4, 2.5, 2, 1.6, 1.3, 1.2, 1.1, 1, 0.9, and 0.8 a.u., where the
+        z<sub>c</sub> = 20 case closely corresponds to symmetric Abel case.
       </p>
 
       <div class="control">
-        <b>Camera position </b> |
+        <b>Vertical camera position </b> |
         <input type="range" name="ycSlider" id="ycSlider"
           min="1" max="9" value="5" style="height:6px;"
           onchange="displayycval(this.value);"> |
         <i>y</i><sub>c</sub> = <output id="ycval">-</output>
       </div>
 
-      <div id="my_beta"></div>
+      <div id="my_beta" style="margin-top:10px"></div>
       <div id="my_dataviz2"></div>
 
       <hr>
