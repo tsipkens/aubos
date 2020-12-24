@@ -85,10 +85,9 @@ axis image;
 
 %%
 %== AUBOS operator =======================================================%
-disp('Processing rays...');
+tools.textheader('Processing rays');
 [Kl2, Ky2] = kernel2.linear(aso2, cam.my, cam.y0, cam.mx, cam.x0);
-disp('Complete.');
-disp(' ');
+tools.textheader;
 
 yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
 yl2 = reshape(yl2, [Nu, Nv]);
@@ -135,7 +134,7 @@ A = -C0 .* (U .* Kl2 + V .* Ky2); % incorporates axial contributions
 
 %%
 %== Generate data ========================================================%
-disp('Generating data...');
+tools.textheader('Generating data');
 
 It0 = A * bet2; % use unified operator to generate perfect It
 It0 = reshape(It0, size(Iref0)); % reshape according to image size
@@ -181,8 +180,8 @@ caxis([-It_max, It_max]);
 axis image;
 set(gca,'YDir','normal');
 drawnow;
-disp('Complete.');
-disp(' ');
+
+tools.textheader;
 %=========================================================================%
 
 
@@ -193,7 +192,7 @@ disp(' ');
 %-{
 %== OF + Poisson equation ================================================%
 %   Then uses Abel inversion operators for inverion.
-disp('Performing traditional inversion approaches...');
+tools.textheader('Conventional BOS');
 
 % Optical flow to get deflections
 [u_of, v_of] = tools.horn_schunck(Iref, Idef);
@@ -213,6 +212,7 @@ title('Divergence');
 pois0 = tools.poisson(div0);
 %}
 
+%-{
 % OPTION 2: Integrate in y-direction.
 pois0 = -cumsum(u_of);
 
@@ -224,6 +224,7 @@ caxis([-pois_max, pois_max]);
 axis image; 
 colorbar;
 title('Poisson eq. solution');
+%}
 %-------------------------------------------------------------------------%
 
 
@@ -299,8 +300,7 @@ colorbar;
 title('Three point');
 %-------------------------------------------------------------------------%
 
-disp('Complete.');
-disp(' ');
+tools.textheader();
 %=========================================================================%
 %}
 
@@ -311,7 +311,7 @@ disp(' ');
 %%
 %-{
 %== Inversion with the new transform =====================================$
-disp('Performing unified inversion...');
+tools.textheader('AUBOS');
 
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 
@@ -348,8 +348,7 @@ end
 [~, ii_min] = min(err);
 n_tk2 = n_tk2_vec{ii_min};
 
-disp('Complete.');
-disp(' ');
+tools.textheader();
 
 
 
@@ -374,15 +373,13 @@ view([0,90]);
 caxis([x_min,x_max]);
 
 title('AUBOS');
-disp('Complete.');
-disp(' ');
 %=========================================================================%
 %}
 
 
 
 
-%-- Recalse recosntructions to have same scale --------------%
+%-- Rescale recosntructions ----------------------------------%
 n_maxmax = max(max([ ...
     n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
     n_3pta(:) ./ C0, n_tk2(:), bet2(:)]));
@@ -396,3 +393,22 @@ figure(22); caxis([n_minmin, n_maxmax]);
 figure(23); caxis([n_minmin, n_maxmax]);
 figure(24); caxis([n_minmin, n_maxmax]);
 %------------------------------------------------------------%
+
+
+%%
+%-- Quantitative comparisons --------------------------------%
+e.aubos = norm(n_tk2 - bet2) / length(bet2) ./ mean(bet2);
+
+f_nan = isnan(n_s13a);
+
+e.s13 = norm(n_s13a(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.threept = norm(n_3pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.twopt = norm(n_2pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+
+e  % display e
+%------------------------------------------------------------%
+
+
+
+
+
