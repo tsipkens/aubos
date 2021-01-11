@@ -64,10 +64,10 @@ The `Aso2` class is used to handle axisymmetric objects that has both radial and
 
 This codebase is broken up into a series of packages: 
 
-1. The `kernel` package includes functions to generate the typical forward and inverse operators for solving the Abel problem. 
-2. The `tools` package contains miscellaneous functions to aid in analysis. This includes a text-based toolbar function attributed to @sgrauer. 
-3. The `transforms` package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al.
-4. The `regularization` package contains tools to help during inversion, such as generating prior covariance matrices. 
+1. The **kernel** package includes functions to generate the typical forward and inverse operators for solving the Abel problem. 
+2. The **tools** package contains miscellaneous functions to aid in analysis. This includes a text-based toolbar function attributed to @sgrauer. 
+3. The **transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al.
+4. The **regularization** package contains tools to help during inversion, such as generating prior covariance matrices. 
 
 We refer the reader to individual functions for more information. 
 
@@ -88,7 +88,7 @@ Imaging inherently requires the use of cameras. Multiple options exist for defin
 3. `mx` - The slope of the ray in the *x*-*z* plane. This acts as an input to the transform defined by Sipkens et al. in the associated work. 
 4. `my` - The slope of the ray in the *y*-*z* plane. This determines how quickly the ray traverses the axial direction. The `my = 0` case corresponds to rays that do not traverse axially (as would be required for the Abel inversion scenerio).
 
-We provide two example ways of how one can define these properties as is relevant to this codebase. 
+We provide two examples of how one can define these properties. 
 
 The first involves manually setting the camera properties.  Within the examples provided with this codebase, this is used extensively whenever one wants to focus on the deflection field for only rays in the proximity of the ASO (in other words, ignoring the larger field of view that may be relevant to a real camera). In this case, one can set a camera position and, assuming a pinhole camera, fine the trajector of rays that would original from the pinhole camera and transect the *z* = 0 plane at certain positions. 
 
@@ -96,11 +96,11 @@ While the above treatment is useful within the context of visualizing theoretica
 
 --------
 
-##### Acknowledgements
+### Acknowledgements
 
 This code contains several excerpts from a previous, private codebase by Samuel Grauer (@sgrauer) that were modified for use with this program. 
 
-##### References
+### References
 
 [Grauer, S. J., & Steinberg, A. M. (2020). Fast and robust volumetric refractive index measurement by unified background-oriented schlieren tomography. Experiments in Fluids, 61(3), 1-17.][GrauerSteinberg20]
 
