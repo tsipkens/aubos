@@ -1,8 +1,11 @@
 
-% ASO  A class to handle spatial information for an axis-symmetric object (aso).
+% ASO  A class to handle spatial information for 1D axisymmetric objects.
+% Such an object has no axial dependence, which is useful in demonstrating
+% and testing kernels. This class provides the basics for discretizing the
+% space and plotting functions on the space. 
+% 
 % Author: Timothy Sipkens, 2020-05-20
 %=========================================================================%
-
 
 classdef Aso
     
@@ -12,59 +15,29 @@ classdef Aso
         re    = [];     % annuli edges
         
         R     = [];     % outer radius of object
-        Nr     = [];     % number of annuli
+        Nr    = [];     % number of annuli
+        
+        grad  = [];     % gradient operator
     end
     
     
     
     methods
-        function aso = Aso(R,Nr)
+        function aso = Aso(R, Nr)
+            if nargin==0; return; end % return empty object
+            
             aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
             
             aso.re = linspace(0, R, Nr+1)'; % linearily space edges from 0 -> R
             aso.r  = (aso.re(2:end) + aso.re(1:(end-1))) ./ 2; % annuli centers
             aso.dr = aso.re(2:end) - aso.re(1:(end-1)); % annuli width
-        end
-        
-        
-        
-        %== GRAD =========================================================%
-        %   Radial gradient operator, assuming no slope at outer radius.
-        %   Timothy Sipkens, 2020-06-10
-        function D = grad(aso)
-            D = (eye(aso.Nr+1, aso.Nr+1) - diag(ones(aso.Nr, 1), 1));
+            
+            % Evaluate the radial gradient, assuming no slope at outer radius.
+            D = speye(aso.Nr+1, aso.Nr+1) - ...
+                spdiags(ones(aso.Nr+1, 1), 1, aso.Nr+1, aso.Nr+1);
             D(end, :) = []; % remove final row
-            D = D ./  aso.dr; % divide by element area
-        end
-        
-        
-        
-        %== UNIFORM =======================================================%
-        %   Evaluates kernel/operator for a uniform basis representation of an ASO.
-        %   Not recommended due to noise properties.
-        %   Timothy Sipkens, 2020-06-10
-        %
-        % Inputs:
-        %   aso     Axis-symmetric object
-        %   m       Set of slopes for the rays
-        %   u0      Intersect with line through center of aso
-        function K = uniform(aso,m,u0)
-            K = kernel.uniform(aso,m,u0);
-        end
-        
-        
-        
-        %== LINEAR =======================================================%
-        %   Bridge function from Aso to kernel.
-        %   Timothy Sipkens, 2020-06-10
-        %
-        % Inputs:
-        %   aso     Axis-symmetric object
-        %   m       Set of slopes for the rays
-        %   u0      Intersect with line through center of aso
-        function K = linear(aso,m,u0)
-            K = kernel.linear(aso,m,u0);
+            aso.grad = D ./  aso.dr; % divide by element area
         end
         
         
@@ -72,7 +45,7 @@ classdef Aso
         %== SURF =========================================================%
         %   Plot the axis-symmetric object as a surface. 
         %   Timothy Sipkens, 2020-06-09
-        function [h,t,r,z0] = surf(aso,x,f_grid)
+        function [h,t,r,z0] = surf(aso, bet, f_grid)
             
             if ~exist('f_grid','var'); f_grid = []; end
             if isempty(f_grid); f_grid = 1; end
@@ -83,7 +56,7 @@ classdef Aso
             r = aso.re(i); % radii to plot
             x0 = r.*cos(t); % x values for plot
             y0 = r.*sin(t); % y values for plot
-            z0 = x(i); % z value for plot, given by input data
+            z0 = bet(i); % z value for plot, given by input data
             
             h = surf(x0,y0,z0); % generate the surface plot
             h.EdgeColor = 'none'; % remove default edges on plot
@@ -106,14 +79,15 @@ classdef Aso
         %   Plot the axis-symmetric object as a series of annuli.
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = plot(aso,x)
+        function h = plot(aso, bet)
             [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
             
-            x0 = aso.re(i).*cos(t);
-            y0 = aso.re(i).*sin(t);
-            z0 = x(i);
+            x0 = aso.re(i) .* cos(t);
+            y0 = aso.re(i) .* sin(t);
+            z0 = bet(i);
             
-            h = contourf(x0,y0,z0,sort(x),'edgecolor','none');
+            h = contourf(x0, y0, z0, sort(bet), ...
+                'edgecolor','none');
             axis image;
             
             hold on;
@@ -130,12 +104,12 @@ classdef Aso
         %   Plot aso as a surface, with rays overlaid.
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = srays(aso,x,m,u0)
+        function h = srays(aso, bet, my, y0)
             
-            [h,t0,r0,z0] = aso.surf(x); % generate surface plot
+            [h,t0,r0,z0] = aso.surf(bet); % generate surface plot
             
             x1 = linspace(-aso.R, aso.R, 150);
-            y1 = (m').*x1 + u0';
+            y1 = (my').*x1 + y0';
             r1 = sqrt(x1.^2 + y1.^2);
             t1 = atan2(y1, x1);
             t1(t1<0) = t1(t1<0) + 2*pi;

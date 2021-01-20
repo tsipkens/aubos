@@ -1,152 +1,244 @@
 
-% Simulate and invert an axis-symmetric Schlieren object.
-% Timothy Sipkens, 2020-05-20
+% MAIN_ASO  Demonstrate use of ASO class. 
+% This involves simulating and inverting phantoms defined on a 1D 
+% axisymmetric object (i.e., % only a radial object, with no axial 
+% considerations). 
+% 
+% Author: Timothy Sipkens, 2020-05-20
 %=========================================================================%
 
 
-clear;
-close all;
+clear; close all;
+addpath cmap; % add colormaps to path
 
 
-addpath('cmap');
-cmi = load_cmap('inferno',255);
-cmo = load_cmap('ocean',255);
-cmh = load_cmap('haline',255);
 
 R = 1;
+Nr = 125;
+aso = Aso(R, Nr); % generate an axis-symmetric object
 
 
-
-
-%%
-%-{
-u0 = 0.6;
-nm = 21;
-m_vec =  linspace(0,3,nm);
-r_vec = linspace(0,R,450); % vector of radii
-u0_vec = u0 .* ones(nm,1);
-
-%-- FIG 2: Plot kernel across and range of slopes -----------%
-figure(2);
-clf;
-tools.plotcm(length(m_vec), [], cmi); % set color order
-
-hold on;
-for ii=1:length(m_vec) % loop through scenerios
-    plot(r_vec, kernel.fun(m_vec(ii), u0_vec(ii), r_vec));
+%== Case studies / phantoms for dn/dr ====================================%
+%   Evaluated as ASO radial element edges.
+pha_no = 1;
+switch pha_no
+    case 1 % gaussian
+        bet = normpdf(aso.re,0,0.3);
+        
+    case 2 % gaussian with central dip
+        bet = (1+1.2) .* normpdf(aso.re,0,0.25) - ...
+            1.2.*normpdf(aso.re,0,0.15);
+        
+    case 3 % approx. cylinder, sigmoid function softens transition
+        f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
+        bet = f_sigmoid(aso.re - 0.35);
+        
+    case 4 % cone
+        bet = 1-aso.re;
+        
+    case 5 % ring, e.g. looking through a cup, sigmoid softens transition
+        f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
+        bet = f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33);
+        
+    case 6 % half circle
+        bet = sqrt(max(0.7.^2 - aso.re.^2, 0));
 end
-
-plot(r_vec, kernel.fun_abel(u0_vec(ii), r_vec), 'w:'); % Abel kernel
-ylims = ylim;
-plot([u0,u0],ylims,'k'); % add u0 to plot
-hold off;
-ylim([0,20]);
-
-ylabel('Kernel, {\it{K}}');
-xlabel('Radius, {\it{r}}');
-l = legend(num2str(m_vec','%5.2f'),'Location','eastoutside');
-title(l,'m')
-l.Title.Visible = 'on';
-%------------------------------------------------------------%
-%}
+%=========================================================================%
 
 
 
-%%
-
-aso = Aso(R,60); % generate an axis-symmetric object
-
-%-- Case studies / phantoms for dn/dr ------------------------------%
-% x = normpdf(aso.re,0,0.35); % gaussian
-x = (1+1.2) .* normpdf(aso.re,0,0.35) - 1.2.*normpdf(aso.re,0,0.25); % gaussian with central dip
-% x = double(aso.re<0.35); % cylinder
-% x = 1-aso.re; % cone
-% x = double(and(aso.re<0.35,aso.re>0.33)); % ring
-% x = sqrt(max(0.7.^2 - aso.re.^2, 0)); % half circle
-%-------------------------------------------------------------------%
-
-
+% FIG 3: Plot Phantom (2D slice through center of ASO)
 figure(3);
-aso.surf(x);
-colormap(cmo);
+aso.surf(bet);
+colormap(flipud(ocean));
 axis off;
 
 
 
-%%
-% positions along center of aso
-nu = 400; % number of positions
-u0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), nu);
+
+%== Generate a fictitious "camera" =======================================%
+% 	Multiple camera positions are considered (contained in `oc`)
+%   OPTION 1 uses the camera class and a focal length.
+%   OPTION 2 considers only rays that pass close to the ASO. The output
+%       will differ from OPT. 1, producing a different set of rays that 
+%       results in higher resultion deflections in the vicinity of the ASO.
+
+Nv = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
+
+Nc = 20; % number of camera positions
+oc = [zeros(1, Nc); ...
+    fliplr(linspace(0, 0.8, Nc)); ...
+    -logspace(log10(1.1),log10(10),Nc)];
+    % vector of camera origin locations
+
+%{
+%-- OPTION 1: Use tools.Camera ---------------%
+for cc=Nc:-1:1
+    cam(cc) = Camera(Nu, 1, oc(:,cc), 1e2);
+end
+%}
+
+%-{
+%-- OPTION 2: Manually assign parameters -----%
+y0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nv);
+for cc=Nc:-1:1
+    cam(cc).y = oc(2, cc);
+    cam(cc).z = oc(3, cc);
+    
+    cam(cc).y0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nv);
+    cam(cc).my = (cam(cc).y - cam(cc).y0) ./ ...
+        cam(cc).z; % slope implied by camera location
+end
+%}
+%=========================================================================%
 
 
-% define parameters for camera location
-nc = 20;
-zc_vec = logspace(log10(1.1),log10(10),nc); % vector of z locations for camera
-% zc_vec = linspace(1.1,10,nc);
-uc_vec = fliplr(linspace(0, 0.5, nc)); % vector of u locations for camera
-% uc_vec = 0.5 .* ones(nc,1); % alternate u locations, where u is constant
-cam(nc).z = 0; cam(nc).u = 0; % pre-allocate camera structs
 
 
-% intialize Fig. 5 for uniform basis functions
+% FIG 5: Initialize plot for uniform basis functions.
 figure(5);
 clf;
-ylabel(['Deflection, ',char(949),'_u']); xlabel('Vertical position, u_0');
-tools.plotcm(nc, [], flipud(cmi)); % set color order
+ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
+cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
+xlim([-2,2]);
 
-
-% intialize Fig. 6 for linear basis functions
+% FIG 6: Initialize plot for linear basis functions.
 figure(6);
 clf;
-ylabel(['Deflection, ',char(949),'_u']); xlabel('Vertical position, u_0');
-tools.plotcm(nc, [], flipud(cmi)); % set color order
+ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
+cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
+xlim([-2,2]);
 
 
 hold on;
-for cc=1:nc % loop through multiple camera positions
-    cam(cc).z = zc_vec(cc); % z-position of camera
-    cam(cc).u = uc_vec(cc); % u-position of camera
-    m1 = (u0_vec - cam(cc).u) ./ cam(cc).z; % slope implied by camera location
+for cc=1:Nc % loop through multiple camera positions
+    Ku = kernel.uniform(aso, cam(cc).y0, cam(cc).my);
+    Kl = kernel.linear(aso, cam(cc).y0, cam(cc).my);
     
-    Ku = aso.uniform(m1,u0_vec);
-    Kl = aso.linear(m1,u0_vec);
+    bu = Ku*bet; % using uniform kernel
+    bl = Kl*bet; % using linear kernel
     
-    yu = Ku*x; % using uniform kernel
-    yl = Kl*x; % using linear kernel
-    
-    figure(5); plot(u0_vec,yu);
-    figure(6); plot(u0_vec,yl);
+    figure(5); plot(cam(cc).y0, bu); % add line to FIG 5
+    figure(6); plot(cam(cc).y0, bl); % add line to FIG 6
 end
-figure(5); hold off; 
+figure(5); hold off;
 figure(6); hold off;
 
 
-% plot of rays overlaid on phantom
-m1 = (u0_vec - cam(1).u) ./ cam(1).z; % slopes for first camera location
+
+% FIG 3 + 4: Plot of rays overlaid on phantom.
+% This demonstating the degree to which the rays are parallel.
+% Use first camera in cam structure. 
 figure(3);
-aso.srays(x,m1(1:20:end),u0_vec(1:20:end));
-colormap(cmo);
+aso.srays(bet, cam(1).my(1:10:end), cam(1).y0(1:10:end));
+colormap(flipud(ocean));
 
-m1 = (u0_vec - cam(end).u) ./ cam(end).z; % slopes for first camera location
+% Use last camera in cam structure. 
 figure(4);
-aso.srays(x,m1(1:20:end),u0_vec(1:20:end));
-colormap(cmo);
+aso.srays(bet, cam(end).my(1:10:end), cam(end).y0(1:10:end));
+colormap(flipud(ocean));
+
+% Show two distorted images for first and last cameras. 
+figure(9);
+v = 1:Nv;
+Iref = sin(0.3 .* v);
+bdef1 = (kernel.linear(aso, cam(1).y0, cam(1).my) * bet)';
+bdef2 = (kernel.linear(aso, cam(end).y0, cam(end).my) * bet)';
+Idef1 = sin(0.3 .* (v + bdef1));
+Idef2 = sin(0.3 .* (v + bdef2));
+imagesc([Iref; Idef1; Idef2]);
+colormap(gray);
 
 
+% FIG 10: Plot position of cameras relative to ASO
 figure(10);
-aso.surf(x,0);
-colormap(cmo);
+aso.surf(bet,0);
+cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
-plot(zc_vec, uc_vec,'-ok');
+for cc=1:Nc
+    plot(cam(cc).z, cam(cc).y,'.');
+end
+plot([cam(cc).z], [cam(cc).y], 'k-');
 hold off;
 view([0,90]);
+colormap(flipud(ocean));
 
 
 
 
+%%
+%== COMPARE FORWARD OPERATORS ============================================%
+% NOTE: Inverse procedure using simps13 is unstable.
+
+% 2-pt kernel, acts directly on deflections
+A1 = kernel.two_pt(length(bet));
+b1 = A1 \ bet;
+
+% New kernel, evaluated analogous with Abel-type kernels, 
+% acts directly on deflections
+A2 = kernel.uniform(aso.re, aso.re', 0.*aso.re');
+b2 = A2 * bet;
+A2b = inv(kernel.linear_ind(length(bet), 1:length(bet)));
+
+% 3-pt kernel (operates on integrated deflections, thus gradient operator below)
+A3 = kernel.three_pt(length(bet));
+b3 = gradient(A3 \ bet);
+
+% Onion peeling kernel (forward operator, operates on integrated deflections)
+A4 = kernel.onion_peel(length(bet));
+b4 = gradient(A4 * bet);
+
+figure(20);
+plot(aso.re, b1);
+hold on;
+plot(aso.re, b2);
+plot(aso.re, b3);
+plot(aso.re, b4);
+plot(aso.re, bet, 'k');
+plot(cam(end).y0, bl, '--k');
+hold off
+xlim([0, max(aso.re)]);
+%=========================================================================%
 
 
 
+%== COMPARE INVERSE OPERATORS ============================================%
+b = b2 + 2e-1 .* randn(size(b2));
+
+% 2-pt kernel
+bet1 = A1 * b;
+
+% New kernel
+% Inverse is undefined at x0 = 0, where deflection is zero.
+bet2 = A2(:, 2:end) \ b;
+bet2b = A2b * b;
+
+% 3-pt kernel
+bi = cumsum(b); bi = bi - bi(end);
+bet3 = A3 * bi;
+
+% Onion peeling kernel
+bet4 = A4 \ bi;
+
+% Simpson 1-3 (simiar to how 2-pt method operators)
+A5 = kernel.simps13(length(bet));
+bet5 = A5 * b;
+
+figure(21);
+plot(aso.re, bet1);
+hold on;
+plot(aso.re(2:end), bet2);
+plot(aso.re, bet2b);
+plot(aso.re, bet3);
+plot(aso.re, bet4);
+plot(aso.re, bet5);
+plot(aso.re, bet, 'k--');
+hold on;
+plot(aso.re, b2, 'k');
+plot(aso.re, b, 'k.');
+hold off
+xlim([0, max(aso.re)]);
+%=========================================================================%
 

@@ -1,9 +1,11 @@
 
-% ONION_PEEL_F  Forward propogate the abel operator assuming uniform annuli.
+% ONION_PEEL  Onion peeling version of the abel operator assuming uniform annuli.
+% Forward operator, i.e., acts on refractive index (A*x).
+% Indirect/integrated operator, i.e., outputs integrated deflections.
 % Author: Timothy Sipkens, 2020-02-18
 %=========================================================================%
 
-function W = onion_peel_f(n_r)
+function W = onion_peel(n_r)
 
 W = zeros(n_r,n_r);
 for ii=1:n_r
