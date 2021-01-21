@@ -89,7 +89,7 @@ axis image;
 %%
 %== AUBOS operator =======================================================%
 tools.textheader('Processing rays');
-[Kl2, Ky2] = kernel2.linear(aso2, cam.my, cam.y0, cam.mx, cam.x0);
+[Kl2, Ky2] = kernel.linear2(aso2, cam.my, cam.y0, cam.mx, cam.x0);
 tools.textheader;
 
 yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
@@ -404,7 +404,7 @@ figure(24); caxis([n_minmin, n_maxmax]);
 f_nan = isnan(n_s13a);
 
 e.aubos = norm(n_tk2 - bet2) / length(bet2) ./ mean(bet2);
-e.aubos2 = norm(n_tk2(~f_nan) - bet2(~f_nan)) / length(bet2(~f_nan)) ./ mean(bet2) ./ sum(~f_nan);
+e.aubos2 = norm(n_tk2(~f_nan) - bet2(~f_nan)) ./ sum(~f_nan) ./ mean(bet2);
 e.s13 = norm(n_s13a(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.threept = norm(n_3pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.twopt = norm(n_2pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
