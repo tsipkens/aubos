@@ -300,6 +300,27 @@ colorbar;
 title('Three point');
 %-------------------------------------------------------------------------%
 
+
+%-- Onion peeling kernel -------------------------------------------------%
+W = kernel.onion_peel(size(u_half));
+
+L_tk2_op = regularize.tikhonov_lpr(2, size(u_half,1), size(W,2));
+A_tk2_op = [W; 5e1.*L_tk2_op];  % 2e2 is regularization parameter
+b_tk2_op = [pois_half; sparse(zeros(size(L_tk2_op,1), 1))];
+n_op = full(lsqlin(A_tk2_op, b_tk2_op));
+n_opa = interp2(ya, xa, reshape(n_op, [Nu_a,Nv]), ...
+    aso2.xe2, aso2.re2);
+
+figure(25);
+aso2.plot(n_opa ./ C0);
+% imagesc(reshape(n_3pt, size(t3)));
+colormap(flipud(ocean));
+axis image;
+colorbar;
+title('Onion peeling + 2nd order Tikhonov');
+%-------------------------------------------------------------------------%
+
+
 tools.textheader();
 %=========================================================================%
 %}
@@ -408,6 +429,7 @@ e.aubos2 = norm(n_tk2(~f_nan) - bet2(~f_nan)) ./ sum(~f_nan) ./ mean(bet2);
 e.s13 = norm(n_s13a(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.threept = norm(n_3pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.twopt = norm(n_2pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.op = norm(n_opa(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 
 e  % display e
 %------------------------------------------------------------%
