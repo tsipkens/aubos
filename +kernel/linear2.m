@@ -1,26 +1,26 @@
 
-% LINEAR Evaluates kernel/operator for a linear basis representation of a 2D ASO.
-%   Linear basis is applied in radial direction. 
-%   Uniform basis is applied in axial direction.
-%   Timothy Sipkens, 2020-06-10
-%
-%-------------------------------------------------------------------------%
-% Inputs:
+% LINEAR2  Evaluates kernel/operator for a linear basis representation of a 2D ASO.
+%  Linear basis is applied in radial direction. 
+%  Uniform basis is applied in axial direction.
+% 
+%  INPUTS:
 %   aso2    Axis-symmetric object
 %   my      Set of slopes in y-direction for the rays
 %   y0      Intersect with line through center of aso
 %   mx      Set of slopes in x-direction for the rays
 %   x0      Intersect with line through center of aso
 %
-% Outputs:
+%  OUTPUTS:
 %   K       Overall radial deflection kernel
-%   Ky      Overall axial deflection kernel
+%   Kx      Overall axial deflection kernel
 %           (often noisy due to uniform elements in axial direction)
-%-------------------------------------------------------------------------%
-%
-%=========================================================================%
+%  
+%  AUTHOR: Timothy Sipkens, 2020-06-10
 
-function [K,Kx] = linear(aso2, my, y0, mx, x0)
+function [K, Kx] = linear2(aso2, my, y0, mx, x0)
+
+
+tools.textheader('Building 2D linear kernel');
 
 if aso2.N<3; error('Aso does not have enough annuli for linear basis.'); end
 
@@ -228,5 +228,7 @@ end
 
 % Ky = Ky * aso.Dx;
 
+
+tools.textheader;
 
 end

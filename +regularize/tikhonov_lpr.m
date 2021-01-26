@@ -67,7 +67,7 @@ switch order
         % vec1(1:n:end) = vec1(1:n:end) + 1; % to zero at r = 0
         
         % No slope at edge
-        Lpr0 = Lpr0 - spdiags(vec1,0,x_length,x_length);
+        Lpr0 = Lpr0 - spdiags(vec1, 0, x_length, x_length);
         
         % i0 = [(0:n:(x_length-n))+1, (n:n:x_length)];
         % Li = sparse(i0, i0, ones(size(i0)), x_length, x_length);

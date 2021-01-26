@@ -62,7 +62,7 @@ bet2 = bet2(:);
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
 
-cam_no = 2;  % main case: 2
+cam_no = 2;  % main case: 2; alt case: 3
 switch cam_no
     case 1
         oc = [0.5,3,2.5];   % camera origin
@@ -232,7 +232,7 @@ title('Poisson eq. solution');
 
 
 %-- Only consider data above r = 0 ---------------------------------------%
-idx_xp = round(cam.y0,6)>=0; % removes eps that could remain
+idx_xp = round(cam.y0, 6) >= 0; % removes eps that could remain
 Nu_a = sum(idx_xp) ./ Nv; % number of x entries above zero
 
 xa = round(flipud(reshape(cam.y0(idx_xp), [Nu_a,Nv])), 7);
@@ -250,11 +250,10 @@ u_half2 = u_half(:);
 
 %-- Two-pt. kernel on upper half of data ---------------------------------%
 %   Direct approach.
-D_2pt = kernel.two_pt(size(u_half, 1));
-D_2pt = kron(speye(size(u_half, 2)), D_2pt);
+D_2pt = kernel.two_pt(size(u_half));
 n_2pt = D_2pt * u_half2;
 n_2pta = interp2(ya, xa, reshape(n_2pt, [Nu_a,Nv]), ...
-    aso2.xe2, aso2.re2);
+    aso2.xe2, aso2.re2);  % interpolate back to aso2 space
 
 
 figure(22);
@@ -269,8 +268,7 @@ title('Two point');
 
 %-- Simpson 13 kernel on upper half of data ------------------------------%
 %   Direct approach.
-D_s13 = kernel.simps13(size(u_half, 1));
-D_s13 = kron(speye(size(u_half, 2)), D_s13);
+D_s13 = kernel.simps13(size(u_half));
 n_s13 = D_s13 * u_half2;
 n_s13a = interp2(ya, xa, reshape(n_s13, [Nu_a,Nv]), ...
     aso2.xe2, aso2.re2);
@@ -288,8 +286,7 @@ title('Simpson 13');
 
 %-- Three-pt. kernel -----------------------------------------------------%
 %   Indirect approach.
-D_3pt = kernel.three_pt(size(u_half, 1));
-D_3pt = kron(speye(size(u_half, 2)), D_3pt);
+D_3pt = kernel.three_pt(size(u_half));
 n_3pt = D_3pt * pois_half;
 n_3pta = interp2(ya, xa, reshape(n_3pt, [Nu_a,Nv]), ...
     aso2.xe2, aso2.re2);
@@ -355,7 +352,7 @@ tools.textheader();
 
 
 
-figure(25);
+figure(26);
 x_max = max(max(abs([bet2, n_tk2])));
 x_min = min(min([bet2, n_tk2]));
 
@@ -385,16 +382,19 @@ title('AUBOS');
 %-- Rescale recosntructions ----------------------------------%
 n_maxmax = max(max([ ...
     n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
-    n_3pta(:) ./ C0, n_tk2(:), bet2(:)]));
+    n_3pta(:) ./ C0, n_opa(:) ./ C0, ... 
+    n_tk2(:), bet2(:)]));
 n_minmin = min(min([ ...
     n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
-    n_3pta(:) ./ C0, n_tk2(:), bet2(:)]));
+    n_3pta(:) ./ C0, n_opa(:) ./ C0, ... 
+    n_tk2(:), bet2(:)]));
 
-figure(25); subplot(2,1,2); caxis([n_minmin, n_maxmax]);
-figure(25); subplot(2,1,1); caxis([n_minmin, n_maxmax]);
+figure(26); subplot(2,1,2); caxis([n_minmin, n_maxmax]);
+figure(26); subplot(2,1,1); caxis([n_minmin, n_maxmax]);
 figure(22); caxis([n_minmin, n_maxmax]);
 figure(23); caxis([n_minmin, n_maxmax]);
 figure(24); caxis([n_minmin, n_maxmax]);
+figure(25); caxis([n_minmin, n_maxmax]);
 %------------------------------------------------------------%
 
 
