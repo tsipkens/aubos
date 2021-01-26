@@ -62,14 +62,17 @@ bet2 = bet2(:);
 Nu = size(Iref0,1);  % first image dimension
 Nv = size(Iref0,2);  % second image dimension
 
-cam_no = 2;
+cam_no = 2;  % main case: 2
 switch cam_no
     case 1
-        oc = [0.5,3,2.5];  % camera origin
-        f = 1.5e2;            % focal length [px]
+        oc = [0.5,3,2.5];   % camera origin
+        f = 1.5e2;          % focal length [px]
     case 2
         oc = [0,2,20];      % camera origin
         f = 1.8e3;          % focal length [px]
+    case 3
+        oc = [0,2,2.5];   % camera origin
+        f = 3e2;          % focal length [px]
 end
 cam = Camera(Nu, Nv, oc, f); % generate a camera
 
@@ -86,7 +89,7 @@ axis image;
 %%
 %== AUBOS operator =======================================================%
 tools.textheader('Processing rays');
-[Kl2, Ky2] = kernel2.linear(aso2, cam.my, cam.y0, cam.mx, cam.x0);
+[Kl2, Ky2] = kernel.linear2(aso2, cam.my, cam.y0, cam.mx, cam.x0);
 tools.textheader;
 
 yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
@@ -397,10 +400,11 @@ figure(24); caxis([n_minmin, n_maxmax]);
 
 %%
 %-- Quantitative comparisons --------------------------------%
-e.aubos = norm(n_tk2 - bet2) / length(bet2) ./ mean(bet2);
 
 f_nan = isnan(n_s13a);
 
+e.aubos = norm(n_tk2 - bet2) / length(bet2) ./ mean(bet2);
+e.aubos2 = norm(n_tk2(~f_nan) - bet2(~f_nan)) ./ sum(~f_nan) ./ mean(bet2);
 e.s13 = norm(n_s13a(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.threept = norm(n_3pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.twopt = norm(n_2pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
