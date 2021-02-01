@@ -1,8 +1,9 @@
 
 % MAIN_TRANSFORMS  A simple script to evaluate the various transforms. 
-% This include the Abel transform and the generalized transform of
-% Sipkens et al. for non-parallel rays.
-%=========================================================================%
+%  This include the Abel transform and the generalized transform of
+%  Sipkens et al. for non-parallel rays.
+% 
+%  AUTHOR: Timothy Sipkens
 
 clear; close all;
 addpath cmap; % add colormaps to path
