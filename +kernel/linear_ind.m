@@ -1,11 +1,10 @@
 
-% LINEAR_IND  Evaluates kernel/operator for a linear basis and using indices.
-% Timothy Sipkens, 2020-08-10
+% LINEAR_IND  Evaluates the direct, linear NRAP kernel for using indices.
 % 
-% Inputs:
-%   n_r   Number of annuli
-%   ih    Index correspond to closest approach radius
-%=========================================================================%
+%  K = kernel.linear_ind(N_R,IH) uses the number of annuli, N_R, and index
+%  corresponding to the closest approach radius to build kernel.
+%  
+%  AUTHOR: Timothy Sipkens, 2020-08-10
 
 function K = linear_ind(n_r, ih)
 
