@@ -196,7 +196,6 @@ tools.textheader;
 %-{
 %== OF + Poisson equation ================================================%
 %   Then uses Abel inversion operators for inverion.
-tools.textheader('Conventional BOS');
 
 % Optical flow to get deflections
 [u_of, v_of] = tools.horn_schunck(Iref, Idef);
@@ -251,8 +250,7 @@ u_half2 = u_half(:);
 
 %-- Two-pt. kernel on upper half of data ---------------------------------%
 %   Direct approach.
-D_2pt = kernel.two_pt(size(u_half));
-n_2pt = D_2pt * u_half2;
+n_2pt = kernel.run('2pt', Iref, Idef, cam);
 n_2pta = interp2(ya, xa, reshape(n_2pt, [Nu_a,Nv]), ...
     aso2.xe2, aso2.re2);  % interpolate back to aso2 space
 
@@ -269,8 +267,7 @@ title('Two point');
 
 %-- Simpson 13 kernel on upper half of data ------------------------------%
 %   Direct approach.
-D_s13 = kernel.simps13(size(u_half));
-n_s13 = D_s13 * u_half2;
+n_s13 = kernel.run('simps13', Iref, Idef, cam);
 n_s13a = interp2(ya, xa, reshape(n_s13, [Nu_a,Nv]), ...
     aso2.xe2, aso2.re2);
 
@@ -287,8 +284,7 @@ title('Simpson 13');
 
 %-- Three-pt. kernel -----------------------------------------------------%
 %   Indirect approach.
-D_3pt = kernel.three_pt(size(u_half));
-n_3pt = D_3pt * pois_half;
+n_3pt = kernel.run('3pt', Iref, Idef, cam);
 n_3pta = interp2(ya, xa, reshape(n_3pt, [Nu_a,Nv]), ...
     aso2.xe2, aso2.re2);
 
@@ -298,7 +294,19 @@ aso2.plot(n_3pta ./ C0);
 colormap(flipud(ocean));
 axis image;
 colorbar;
-title('Three point');
+title('Three point, 1D integration');
+
+n_3pt_pois = kernel.run({'3pt','poisson'}, Iref, Idef, cam);
+n_3pt_poisa = interp2(ya, xa, reshape(n_3pt_pois, [Nu_a,Nv]), ...
+    aso2.xe2, aso2.re2);
+
+figure(25);
+aso2.plot(n_3pt_poisa ./ C0);
+% imagesc(reshape(n_3pt, size(t3)));
+colormap(flipud(ocean));
+axis image;
+colorbar;
+title('Three point, Poisson');
 %-------------------------------------------------------------------------%
 
 
