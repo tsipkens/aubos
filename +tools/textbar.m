@@ -97,8 +97,8 @@ str_p00 = [repmat(' ', [1, 3-length(str_p00)]), str_p00];  % pad with necessary 
 
 % Format text for middle of the bar.
 nc = ceil(pct * n_dot);  % number of completed elements
-str_p01 = repmat(char(9608), [1, nc]);  % completed portion of bar
-if ((nc - pct * n_dot) > 0.5); str_p01(end) = char(9612); end  % allow for half blocks
+str_p01 = repmat('█', [1, nc]);  % completed portion of bar
+if ((nc - pct * n_dot) > 0.5); str_p01(end) = '▌'; end  % allow for half blocks
 str_p02 = repmat(' ', [1, n_dot-nc]);  % uncompleted portion of bar
 
 
