@@ -114,8 +114,8 @@ xlim([-2,2]);
 
 hold on;
 for cc=1:Nc % loop through multiple camera positions
-    Ku = kernel.uniform(aso, cam(cc).y0, cam(cc).my);
-    Kl = kernel.linear(aso, cam(cc).y0, cam(cc).my);
+    Ku = kernel.uniform_d(aso, cam(cc).y0, cam(cc).my);
+    Kl = kernel.linear_d(aso, cam(cc).y0, cam(cc).my);
     
     bu = Ku*bet; % using uniform kernel
     bl = Kl*bet; % using linear kernel
@@ -144,8 +144,8 @@ colormap(flipud(ocean));
 figure(9);
 v = 1:Nv;
 Iref = sin(0.3 .* v);
-bdef1 = (kernel.linear(aso, cam(1).y0, cam(1).my) * bet)';
-bdef2 = (kernel.linear(aso, cam(end).y0, cam(end).my) * bet)';
+bdef1 = (kernel.linear_d(aso, cam(1).y0, cam(1).my) * bet)';
+bdef2 = (kernel.linear_d(aso, cam(end).y0, cam(end).my) * bet)';
 Idef1 = sin(0.3 .* (v + bdef1));
 Idef2 = sin(0.3 .* (v + bdef2));
 imagesc([Iref; Idef1; Idef2]);
@@ -169,7 +169,7 @@ colormap(flipud(ocean));
 
 
 %%
-%== COMPARE FORWARD OPERATORS ============================================%
+%== COMPARE FORWARD RESULTS ==============================================%
 % NOTE: Inverse procedure using simps13 is unstable.
 
 % 2-pt kernel, acts directly on deflections
@@ -178,7 +178,7 @@ b1 = A1 \ bet;
 
 % New kernel, evaluated analogous with Abel-type kernels, 
 % acts directly on deflections
-A2 = kernel.uniform(aso.re, aso.re', 0.*aso.re');
+A2 = kernel.uniform_d(aso.re, aso.re', 0.*aso.re');
 b2 = A2 * bet;
 A2b = inv(kernel.linear_ind(length(bet), 1:length(bet)));
 

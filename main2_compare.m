@@ -40,7 +40,7 @@ aso2 = Aso2(R, Nr, X, Nx);
 %== Case studies / phantoms ==============================================%
 [xe, re] = meshgrid(aso2.xe(1:(end-1)), aso2.re);
 
-pha_no = 3;
+pha_no = 3;  % default jet is Pha. No. 3
 switch pha_no
     case 1
         bet2 = normpdf(re, 0, 0.5 .* (6 .* xe + 4)./(6 .* X + 4)); % spreading Gaussian jet
@@ -88,9 +88,8 @@ axis image;
 
 %%
 %== AUBOS operator =======================================================%
-tools.textheader('Processing rays');
-[Kl2, Ky2] = kernel.linear2(aso2, cam.my, cam.y0, cam.mx, cam.x0);
-tools.textheader;
+%   + Forward problem to generate data.
+[Kl2, Ky2] = kernel.linear_d(aso2, cam.y0, cam.my, cam.x0, cam.mx);
 
 yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
 yl2 = reshape(yl2, [Nu, Nv]);
@@ -141,6 +140,7 @@ tools.textheader('Generating data');
 
 It0 = A * bet2; % use unified operator to generate perfect It
 It0 = reshape(It0, size(Iref0)); % reshape according to image size
+disp('Completed forward evaluation.');
 
 Idef0 = Iref0 + It0; % perfect deflected image
 Idef0 = max(Idef0, 0); % check on positivity
@@ -173,6 +173,7 @@ Idef = Idef0 + pois_level .* ...
     sqrt(max(Idef0, max(max(Iref0)).*5e-5));
 Iref = Idef - It;
 b = It(:); % data is vectorized It
+disp('Added noise.');
 
 % FIG 11: Corrupted It field
 figure(11);
@@ -301,17 +302,18 @@ title('Three point');
 %-------------------------------------------------------------------------%
 
 
+%%
 %-- Onion peeling kernel -------------------------------------------------%
 W = kernel.onion_peel(size(u_half));
 
 L_tk2_op = regularize.tikhonov_lpr(2, size(u_half,1), size(W,2));
-A_tk2_op = [W; 5e1.*L_tk2_op];  % 2e2 is regularization parameter
+A_tk2_op = [W; 2e2.*L_tk2_op];
 b_tk2_op = [pois_half; sparse(zeros(size(L_tk2_op,1), 1))];
 n_op = full(lsqlin(A_tk2_op, b_tk2_op));
 n_opa = interp2(ya, xa, reshape(n_op, [Nu_a,Nv]), ...
     aso2.xe2, aso2.re2);
 
-figure(25);
+figure(26);
 aso2.plot(n_opa ./ C0);
 % imagesc(reshape(n_3pt, size(t3)));
 colormap(flipud(ocean));
@@ -320,11 +322,29 @@ colorbar;
 title('Onion peeling + 2nd order Tikhonov');
 %-------------------------------------------------------------------------%
 
-
-tools.textheader();
 %=========================================================================%
 %}
 
+
+
+%%
+%-- NRAP kernel ----------------------------------------------------------%
+tools.textheader('Conventional NRAP');
+
+L_tk2_nrap = regularize.tikhonov_lpr(2, aso2.Nr+1, size(Kl2,2));
+A_tk2_nrap = [Kl2; 2e2.*L_tk2_nrap];  % 2e2 is regularization parameter
+b_tk2_nrap = [-u_of(:); sparse(zeros(size(L_tk2_nrap,1), 1))];
+n_nrap = full(lsqlin(A_tk2_nrap, b_tk2_nrap));
+
+figure(27);
+aso2.plot(n_nrap ./ C0);
+colormap(flipud(ocean));
+axis image;
+colorbar;
+title('NRAP + 2nd order Tikhonov');
+
+tools.textheader;
+%-------------------------------------------------------------------------%
 
 
 
@@ -373,11 +393,10 @@ tools.textheader();
 
 
 
-figure(26);
+figure(30);
 x_max = max(max(abs([bet2, n_tk2])));
 x_min = min(min([bet2, n_tk2]));
 
-subplot(2,1,2);
 aso2.plot(n_tk2, 0);
 colormap(flipud(ocean));
 colorbar;
@@ -385,7 +404,12 @@ axis image;
 view([0,90]);
 caxis([x_min,x_max]);
 
-subplot(2,1,1);
+title('AUBOS');
+
+
+% Plot ground truth.
+figure(31);
+
 aso2.plot(bet2, 0);
 colormap(flipud(ocean));
 colorbar;
@@ -393,45 +417,67 @@ axis image;
 view([0,90]);
 caxis([x_min,x_max]);
 
-title('AUBOS');
+title('Ground truth');
 %=========================================================================%
 %}
 
 
 
 
+
+
+%%
+
 %-- Rescale recosntructions ----------------------------------%
 n_maxmax = max(max([ ...
     n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
     n_3pta(:) ./ C0, n_opa(:) ./ C0, ... 
+    n_nrap(:) ./ C0, ...
     n_tk2(:), bet2(:)]));
 n_minmin = min(min([ ...
     n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
     n_3pta(:) ./ C0, n_opa(:) ./ C0, ... 
+    n_nrap(:) ./ C0, ...
     n_tk2(:), bet2(:)]));
 
-figure(26); subplot(2,1,2); caxis([n_minmin, n_maxmax]);
-figure(26); subplot(2,1,1); caxis([n_minmin, n_maxmax]);
+
 figure(22); caxis([n_minmin, n_maxmax]);
 figure(23); caxis([n_minmin, n_maxmax]);
 figure(24); caxis([n_minmin, n_maxmax]);
 figure(25); caxis([n_minmin, n_maxmax]);
+figure(26); caxis([n_minmin, n_maxmax]);
+figure(27); caxis([n_minmin, n_maxmax]);
+
+figure(30); caxis([n_minmin, n_maxmax]);
+figure(31); caxis([n_minmin, n_maxmax]);
 %------------------------------------------------------------%
 
 
-%%
 %-- Quantitative comparisons --------------------------------%
-
 f_nan = isnan(n_s13a);
 
 e.aubos = norm(n_tk2 - bet2) / length(bet2) ./ mean(bet2);
-e.aubos2 = norm(n_tk2(~f_nan) - bet2(~f_nan)) ./ sum(~f_nan) ./ mean(bet2);
+e.aubos2 = norm(n_tk2(~f_nan) - bet2(~f_nan)) ./ sum(~f_nan) ./ mean(bet2);  % for region overlapping Abel inversions
 e.s13 = norm(n_s13a(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.threept = norm(n_3pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.threept_pois = norm(n_3pt_poisa(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.twopt = norm(n_2pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
-e.op = norm(n_opa(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.onion_peel = norm(n_opa(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.nrap = norm(n_nrap ./ C0 - bet2) / length(bet2) ./ mean(bet2);
+e.nrap2 = norm(n_nrap(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+
 
 e  % display e
+
+
+base = e.aubos2;
+fields = fieldnames(e);
+re = struct();
+for ff=1:length(fields)
+    re.(fields{ff}) = (base - e.(fields{ff})) ./ e.(fields{ff});
+end
+
+re % display re
 %------------------------------------------------------------%
 
 

@@ -20,7 +20,7 @@
 function [K, Kx] = linear2(aso2, my, y0, mx, x0)
 
 
-tools.textheader('Building 2D linear kernel');
+tools.textheader('Building 2D linear NRAP kernel');
 
 if aso2.N<3; error('Aso does not have enough annuli for linear basis.'); end
 
