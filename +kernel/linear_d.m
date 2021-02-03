@@ -65,7 +65,8 @@ if nargin<4  % consider 1D case
 
 
 else  % consider 2D case
-    tools.textheader('Building 2D linear NRAP kernel');
+    tools.textheader('Building NRAP kernel');
+    disp('(Linear, 2D, Direct)');
 
     if aso2.N<3; error('Aso does not have enough annuli for linear basis.'); end
 
@@ -95,7 +96,7 @@ else  % consider 2D case
         round(1e-5 * N_beams * aso2.Nx * (aso2.Nr + 1)));
 
 
-    disp('Looping through axial slices...');
+    disp(' Looping through axial slices:');
     tools.textbar(0);
     for ii=1:(length(aso2.xe)-1) % loop through and append axial slices
 

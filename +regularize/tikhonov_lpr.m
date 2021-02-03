@@ -7,7 +7,7 @@
 %   n           Length of first dimension of solution
 %   x_length    Length of x vector
 %               (only used if a Grid is not specified for n_grid)
-%   A           Model matris
+%   A           Model matrix
 %               (Only used if GSVD, S1 and S2, is to be computed)
 %
 % Outputs:

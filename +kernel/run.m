@@ -17,10 +17,10 @@ tools.textheader(['Running ', spec{1}]);
 
 %-- Set up optical flow operator. ------------%
 if any(strcmp(spec, 'lucas-kanade'))
-    disp('Using Lucas-Kanade optical flow.');
+    disp(' Using Lucas-Kanade optical flow.');
     of = @tools.lucas_kanade;
 else
-    disp('Using Horn-Schunk optical flow.');
+    disp(' Using Horn-Schunk optical flow.');
     of = @tools.horn_schunck;
 end
 
@@ -28,11 +28,11 @@ end
 %- Set up integrator, if relevant. -----------%
 if any(strcmp(spec, {'3pt'}))
     if any(strcmp(spec, 'poisson'))  % OPTION 1: Divergence and Poisson eq. solve.
-        disp('INDIRECT: Using Poisson integration.');
+        disp(' INDIRECT: Using Poisson integration.');
         poisf = @(u_of, v_of) tools.poisson(divergence(v_of, u_of));
 
     else % OPTION 2: Integrate in y-direction.  < (default)
-        disp('INDIRECT: Using 1D integration.');
+        disp(' INDIRECT: Using 1D integration.');
         poisf = @(u_of, ~) -cumsum(u_of);
 
     end
