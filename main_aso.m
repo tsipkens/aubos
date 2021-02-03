@@ -1,11 +1,11 @@
 
 % MAIN_ASO  Demonstrate use of ASO class. 
-% This involves simulating and inverting phantoms defined on a 1D 
-% axisymmetric object (i.e., % only a radial object, with no axial 
-% considerations). 
+%  This involves simulating and inverting phantoms defined on a 1D 
+%  axisymmetric object (i.e., % only a radial object, with no axial 
+%  considerations). 
 % 
-% Author: Timothy Sipkens, 2020-05-20
-%=========================================================================%
+%  AUTHOR: Timothy Sipkens, 2020-05-20
+%  ------------------------------------------------------------------------
 
 
 clear; close all;
@@ -74,7 +74,7 @@ oc = [zeros(1, Nc); ...
 %{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
-    cam(cc) = Camera(Nu, 1, oc(:,cc), 1e2);
+    cam(cc) = Camera(1, Nv, oc(:,cc), 1e2);
 end
 %}
 
@@ -165,80 +165,4 @@ hold off;
 view([0,90]);
 colormap(flipud(ocean));
 
-
-
-
-%%
-%== COMPARE FORWARD RESULTS ==============================================%
-% NOTE: Inverse procedure using simps13 is unstable.
-
-% 2-pt kernel, acts directly on deflections
-A1 = kernel.two_pt(length(bet));
-b1 = A1 \ bet;
-
-% New kernel, evaluated analogous with Abel-type kernels, 
-% acts directly on deflections
-A2 = kernel.uniform_d(aso.re, aso.re', 0.*aso.re');
-b2 = A2 * bet;
-A2b = inv(kernel.linear_ind(length(bet), 1:length(bet)));
-
-% 3-pt kernel (operates on integrated deflections, thus gradient operator below)
-A3 = kernel.three_pt(length(bet));
-b3 = gradient(A3 \ bet);
-
-% Onion peeling kernel (forward operator, operates on integrated deflections)
-A4 = kernel.onion_peel(length(bet));
-b4 = gradient(A4 * bet);
-
-figure(20);
-plot(aso.re, b1);
-hold on;
-plot(aso.re, b2);
-plot(aso.re, b3);
-plot(aso.re, b4);
-plot(aso.re, bet, 'k');
-plot(cam(end).y0, bl, '--k');
-hold off
-xlim([0, max(aso.re)]);
-%=========================================================================%
-
-
-
-%== COMPARE INVERSE OPERATORS ============================================%
-b = b2 + 2e-1 .* randn(size(b2));
-
-% 2-pt kernel
-bet1 = A1 * b;
-
-% New kernel
-% Inverse is undefined at x0 = 0, where deflection is zero.
-bet2 = A2(:, 2:end) \ b;
-bet2b = A2b * b;
-
-% 3-pt kernel
-bi = cumsum(b); bi = bi - bi(end);
-bet3 = A3 * bi;
-
-% Onion peeling kernel
-bet4 = A4 \ bi;
-
-% Simpson 1-3 (simiar to how 2-pt method operators)
-A5 = kernel.simps13(length(bet));
-bet5 = A5 * b;
-
-figure(21);
-plot(aso.re, bet1);
-hold on;
-plot(aso.re(2:end), bet2);
-plot(aso.re, bet2b);
-plot(aso.re, bet3);
-plot(aso.re, bet4);
-plot(aso.re, bet5);
-plot(aso.re, bet, 'k--');
-hold on;
-plot(aso.re, b2, 'k');
-plot(aso.re, b, 'k.');
-hold off
-xlim([0, max(aso.re)]);
-%=========================================================================%
 
