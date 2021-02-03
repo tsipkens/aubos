@@ -101,14 +101,15 @@ classdef Camera
             
             % Pixel indices, sensor coords. (u,v) [px]
             % [cam.v, cam.u] = find(zeros([h, w]) == 0); % original
-            [cam.v, cam.u] = meshgrid(1:h, 1:w); % update swaps 1st incr. index
+            [cam.u, cam.v] = meshgrid(1:w, 1:h); % update swaps 1st incr. index
             cam.v = cam.v(:); cam.u = cam.u(:);
             %-------------------------------------------------------------%
             
             
             %--- Camera model --------------------------------------------%
             % Normalized sensor points
-            p = cam.K \ [w - cam.u(:) + 1 cam.v(:), ...
+            p = cam.K \ [w - cam.u(:) + 1, ...
+                cam.v(:), ...
                 ones(h*w,1)]'; % homogeneous coords. []
             x = p(1,:); % u-coordinates []
             y = p(2,:); % v-coordinates []
@@ -145,6 +146,12 @@ classdef Camera
             cam.y0 = cam.p0(2,:);
             %-------------------------------------------------------------%
             
+            cam.x0 = fliplr(cam.x0);
+            cam.y0 = fliplr(cam.y0);
+            cam.my = fliplr(cam.my);
+            cam.mx = fliplr(-cam.mx);
+            
+            %{
             %-- Switch x and y for ray slopes ----------------------------%
             %   For compatibility.
             t0 = cam.x0;
@@ -153,6 +160,7 @@ classdef Camera
             t0 = cam.mx;
             cam.mx = -cam.my; cam.my = t0;
             %-------------------------------------------------------------%
+            %}
         end
         
         
