@@ -84,8 +84,8 @@ legend({'Dx', 'Dy', 'Dz'});
 %   Positions along center of aso are used to generate "rays" and 
 %   a fictional "camera". Camera view is restricted to region around the
 %   ASO, such that the image limits are set in ASO units.
-Nu = size(Iref,1);
-Nv = size(Iref,2);
+Nv = size(Iref,1);
+Nu = size(Iref,2);
 
 % Camera origin
 cam_no = 2;
@@ -103,9 +103,9 @@ end
 %-{
 %-- Manually assign parameters -------------------%
 % Select only rays that would pass close to ASO
-y0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nu);
-x0_vec = linspace(0, X, Nv);
-[cam.y0, cam.x0] = ndgrid(y0_vec, x0_vec); % meshgrid to generate image dims.
+y0_vec = linspace(-2.*aso2.re(end), 2.*aso2.re(end), Nv);
+x0_vec = linspace(0, X, Nu);
+[cam.x0, cam.y0] = meshgrid(x0_vec, y0_vec); % meshgrid to generate image dims.
 cam.y0 = cam.y0(:)'; cam.x0 = cam.x0(:)'; % must be row vectors
 
 % Slope of rays
@@ -128,7 +128,6 @@ title('Refractive index field for ASO');
 
 %%
 %== AUBOS operator =======================================================%
-disp('Processing rays...');
 [Kl2, Kx2] = kernel.linear_d(aso2, cam.y0, cam.my, cam.x0, cam.mx);
 disp('Complete.');
 disp(' ');
@@ -136,10 +135,10 @@ disp(' ');
 
 disp('Evaluate forward model...');
 b_l2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
-b_l2 = reshape(b_l2, [Nu, Nv]);
+b_l2 = reshape(b_l2, [Nv, Nu]);
 
 b_x2 = Kx2 * bet2;
-b_x2 = reshape(b_x2, [Nu, Nv]);
+b_x2 = reshape(b_x2, [Nv, Nu]);
 disp('Complete.');
 disp(' ');
 
@@ -167,13 +166,13 @@ colorbar;
 title('Axial deflection, {\epsilon_x}');
 
 % Gradient contribution to operator
-[Iv, Iu] = gradient(Iref);
-Iu = Iu(:);
+[Iu, Iv] = gradient(Iref);
 Iv = Iv(:);
+Iu = Iu(:);
 
 % FIG 4: Plot gradient contributions to AUBOS operator
 figure(4);
-imagesc(reshape(Iu, size(Iref)));
+imagesc(reshape(Iv, size(Iref)));
 colormap('gray');
 axis image;
 title('Radial image gradient');
@@ -183,7 +182,7 @@ C0 = 2e-4; % scaling constant (i.e., epsilon > delta)
 % Compile the unified operator
 % ".*" in operator cosntruction avoids creating diagonal matrix from O * Iref(:)
 disp('Compiling unified operator...');
-A = -C0 .* (Iu .* Kl2 + Iv .* Kx2); % incorporates axial contributions
+A = -C0 .* (Iv .* Kl2 + Iu .* Kx2); % incorporates axial contributions
 % A = -C0 .* Y .* Kl2; % ignores axial contributions
 disp('Complete.');
 disp(' ');

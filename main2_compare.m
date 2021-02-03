@@ -59,19 +59,19 @@ bet2 = bet2(:);
 
 
 %-- Model a camera ------------------------------%
-Nu = size(Iref0,1);  % first image dimension
-Nv = size(Iref0,2);  % second image dimension
+Nv = size(Iref0,1);  % first image dimension
+Nu = size(Iref0,2);  % second image dimension
 
 cam_no = 2;  % main case: 2; alt case: 3
 switch cam_no
     case 1
-        oc = [0.5,3,2.5];   % camera origin
+        oc = [3,0.5,2.5];   % camera origin
         f = 1.5e2;          % focal length [px]
     case 2
-        oc = [0,2,20];      % camera origin
+        oc = [2,0,20];      % camera origin
         f = 1.8e3;          % focal length [px]
     case 3
-        oc = [0,2,2.5];   % camera origin
+        oc = [2,0,2.5];   % camera origin
         f = 3e2;          % focal length [px]
 end
 cam = Camera(Nu, Nv, oc, f); % generate a camera
@@ -92,10 +92,10 @@ axis image;
 [Kl2, Ky2] = kernel.linear_d(aso2, cam.y0, cam.my, cam.x0, cam.mx);
 
 yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
-yl2 = reshape(yl2, [Nu, Nv]);
+yl2 = reshape(yl2, [Nv, Nu]);
 
 yv2 = Ky2 * bet2;
-yv2 = reshape(yv2', [Nu, Nv]);
+yv2 = reshape(yv2', [Nv, Nu]);
 
 
 % FIG 7: Radial deflection field
@@ -233,17 +233,17 @@ title('Poisson eq. solution');
 
 %-- Only consider data above r = 0 ---------------------------------------%
 idx_xp = round(cam.y0, 6) >= 0; % removes eps that could remain
-Nu_a = sum(idx_xp) ./ Nv; % number of x entries above zero
+Nu_a = sum(idx_xp) ./ Nu; % number of x entries above zero
 
-xa = round(flipud(reshape(cam.y0(idx_xp), [Nu_a,Nv])), 7);
-ya = round(reshape(cam.x0(idx_xp), [Nu_a,Nv]), 7);
+xa = round(flipud(reshape(cam.y0(idx_xp), [Nu_a,Nu])), 7);
+ya = round(reshape(cam.x0(idx_xp), [Nu_a,Nu]), 7);
 
 pois_half = -pois0(idx_xp);
-pois_half = flipud(reshape(pois_half, [Nu_a,Nv]));
+pois_half = flipud(reshape(pois_half, [Nu_a,Nu]));
 pois_half = pois_half(:);
 
 u_half = -u_of(idx_xp);
-u_half = flipud(reshape(u_half, [Nu_a,Nv]));
+u_half = flipud(reshape(u_half, [Nu_a,Nu]));
 u_half2 = u_half(:);
 %-------------------------------------------------------------------------%
 
@@ -251,7 +251,7 @@ u_half2 = u_half(:);
 %-- Two-pt. kernel on upper half of data ---------------------------------%
 %   Direct approach.
 n_2pt = kernel.run('2pt', Iref, Idef, cam);
-n_2pta = interp2(ya, xa, reshape(n_2pt, [Nu_a,Nv]), ...
+n_2pta = interp2(ya, xa, reshape(n_2pt, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);  % interpolate back to aso2 space
 
 
@@ -268,7 +268,7 @@ title('Two point');
 %-- Simpson 13 kernel on upper half of data ------------------------------%
 %   Direct approach.
 n_s13 = kernel.run('simps13', Iref, Idef, cam);
-n_s13a = interp2(ya, xa, reshape(n_s13, [Nu_a,Nv]), ...
+n_s13a = interp2(ya, xa, reshape(n_s13, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);
 
 
@@ -285,7 +285,7 @@ title('Simpson 13');
 %-- Three-pt. kernel -----------------------------------------------------%
 %   Indirect approach.
 n_3pt = kernel.run('3pt', Iref, Idef, cam);
-n_3pta = interp2(ya, xa, reshape(n_3pt, [Nu_a,Nv]), ...
+n_3pta = interp2(ya, xa, reshape(n_3pt, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);
 
 figure(24);
@@ -297,7 +297,7 @@ colorbar;
 title('Three point, 1D integration');
 
 n_3pt_pois = kernel.run({'3pt','poisson'}, Iref, Idef, cam);
-n_3pt_poisa = interp2(ya, xa, reshape(n_3pt_pois, [Nu_a,Nv]), ...
+n_3pt_poisa = interp2(ya, xa, reshape(n_3pt_pois, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);
 
 figure(25);
@@ -318,7 +318,7 @@ L_tk2_op = regularize.tikhonov_lpr(2, size(u_half,1), size(W,2));
 A_tk2_op = [W; 2e2.*L_tk2_op];
 b_tk2_op = [pois_half; sparse(zeros(size(L_tk2_op,1), 1))];
 n_op = full(lsqlin(A_tk2_op, b_tk2_op));
-n_opa = interp2(ya, xa, reshape(n_op, [Nu_a,Nv]), ...
+n_opa = interp2(ya, xa, reshape(n_op, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);
 
 figure(26);
