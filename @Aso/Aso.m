@@ -63,9 +63,11 @@ classdef Aso
             axis image; % such that circles are properly round
             axis off; % remove axis to clean visualization
             
-            if f_grid % overlay radial element edges
+            % Add circles corresponding to element edges.
+            if f_grid
                 hold on;
-                plot3(x0', y0', z0', 'k'); % add circles corresponding to element edges
+                plot3(x0', y0', z0', ...
+                    'Color', 'k', 'LineWidth', 0.03);
                 hold off;
             end
             
@@ -116,9 +118,13 @@ classdef Aso
             
             z1 = interp2(t0, r0, z0, t1, r1, 'linear'); 
             hold on;
-            plot3(x1, y1, z1, 'r');
+            plot3(x1, y1, z1 + 1e-3, ...
+                'Color', [1, 0.3, 0.3], ...
+                'LineWidth', 0.8);
             quiver(-aso.R, -aso.R, aso.R/3, 0, ...
-                'MaxHeadSize', 0.8, 'Color', 'r');
+                'MaxHeadSize', 0.8, ...
+                'Color', 'k', ...
+                'LineWidth', 0.8);
             hold off;
             
             if nargout==0; clear h; end % suppress output if none required

@@ -189,8 +189,10 @@ classdef Aso2
             
             if f_grid % overlay element grid
                 hold on;
-                plot3(x0', y0', z0', 'k');
-                plot3(x0, y0, z0, 'k');
+                plot3(x0', y0', z0', ...
+                    'Color', 'k', 'LineWidth', 0.03);
+                plot3(x0, y0, z0, ...
+                    'Color', 'k', 'LineWidth', 0.03);
                 hold off;
             end
             
