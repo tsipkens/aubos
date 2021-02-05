@@ -81,7 +81,11 @@ classdef Aso
         %   Plot the axis-symmetric object as a series of annuli.
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = plot(aso, bet)
+        function h = plot(aso, bet, f_edges)
+            
+            if ~exist('f_edges', 'var'); f_edges = []; end
+            if isempty(f_edges); f_edges = 1; end
+            
             [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
             
             x0 = aso.re(i) .* cos(t);
@@ -92,11 +96,19 @@ classdef Aso
                 'edgecolor','none');
             axis image;
             
-            hold on;
-            viscircles(ones(aso.Nr+1, 1) * [0,0], aso.re, ...
-                'EnhanceVisibility', 0, 'LineWidth', 0.1, ...
-                'Color', 'k', 'LineStyle', '-');
-            hold off;
+            if f_edges
+                hold on;
+                viscircles(ones(aso.Nr+1, 1) * [0,0], aso.re, ...
+                    'EnhanceVisibility', 0, 'LineWidth', 0.1, ...
+                    'Color', 'k', 'LineStyle', '-');
+                hold off;
+            else  % plot only outer circle
+                hold on;
+                viscircles([0,0], aso.R, ...
+                    'EnhanceVisibility', 0, 'LineWidth', 0.1, ...
+                    'Color', 'k', 'LineStyle', '-');
+                hold off;
+            end
             
             if nargout==0; clear h; end % suppress output if none required
         end
@@ -126,6 +138,48 @@ classdef Aso
                 'Color', 'k', ...
                 'LineWidth', 0.8);
             hold off;
+            
+            if nargout==0; clear h; end % suppress output if none required
+        end
+        
+        
+        %== PRAYS ========================================================%
+        %   Plot aso as a surface, with rays overlaid.
+        %   Timothy Sipkens, 2020-06-09
+        %   NOTE: Same as 'srays' but operated in 2D.
+        function h = prays(aso, bet, my, y0, f_edges)
+            
+            if ~exist('f_edges', 'var'); f_edges = []; end
+            if isempty(f_edges); f_edges = 1; end
+            
+            g = aso.plot(bet, f_edges); % generate surface plot
+            
+            x1 = linspace(-aso.R, aso.R, 200);
+            
+            % Used to restrict points to those in the ASO. 
+            xmax = real(-(my') .* y0' + ...
+                sqrt((my').^2 .* (y0').^2 - ...
+                (1 + (my').^2) .* ((y0').^2 - aso.R.^2))) ./ ...
+                ((1 + (my').^2));
+            xmin = real(-(my') .* y0' - ...
+                sqrt((my').^2 .* (y0').^2 - ...
+                (1 + (my').^2) .* ((y0').^2 - aso.R.^2))) ./ ...
+                ((1 + (my').^2));
+            
+            y1 = (my') .* max(min(x1, xmax), xmin) + y0';
+             
+            hold on;
+            plot(max(min(x1, xmax), xmin)', y1', ...
+                'Color', [1, 0.3, 0.3], ...
+                'LineWidth', 0.8);
+            quiver(-aso.R, -aso.R, aso.R/3, 0, ...
+                'MaxHeadSize', 0.8, ...
+                'Color', 'k', ...
+                'LineWidth', 0.8);
+            hold off;
+            
+            xlim(aso.R .* [-1.2, 1.2]);
+            ylim(aso.R .* [-1.2, 1.2]);
             
             if nargout==0; clear h; end % suppress output if none required
         end

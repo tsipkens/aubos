@@ -277,6 +277,38 @@ classdef Aso2
         
         
         
+        %== SRAYS ========================================================%
+        %   Plot ASO as a surface, with rays overlaid.
+        %   Timothy Sipkens, 2020-06-09
+        %   Note: Same as 'srays' but operates in 2D instead of 3D.
+        function h = prays(aso, bet, mx, x0, f_grid)
+            
+            if ~exist('f_grid','var'); f_grid = []; end
+            
+            h = aso.plot(bet,f_grid); % generate surface plot
+            
+            y2 = linspace(-aso.R, aso.R, 150);
+            x2 = (mx(1:(5*aso.Nr):end)').*y2 + x0(1:(5*aso.Nr):end)';
+            
+            y2 = y2.*ones(size(x2)); % if necessary, will out y1 to have correct dimension
+            
+            hold on;
+            plot(x2', y2', 'r');
+            hold off;
+            
+            % Format z-axis characteristics
+            ax = gca;
+            ax.GridLineStyle = 'none';
+            ax.Color = 'none';
+            
+            axis image;
+            xlim([min(aso.xe), max(aso.xe)]);
+            
+            if nargout==0; clear h; end % suppress output if none required
+        end
+        
+        
+        
         %== PLOT_SLICE ===================================================%
         %   Plot a slice through the ASO.
         %   Plots slide closest to x0, rather than interpolating.
