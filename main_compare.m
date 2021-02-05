@@ -1,10 +1,10 @@
 
-% MAIN_ASO  Demonstrate use of ASO class. 
-% This involves simulating and inverting phantoms defined on a 1D 
-% axisymmetric object (i.e., % only a radial object, with no axial 
-% considerations). 
-% 
-% Author: Timothy Sipkens, 2020-05-20
+% MAIN_COMPARE  Demonstrate use of ASO class. 
+%  This involves simulating and inverting phantoms defined on a 1D 
+%  axisymmetric object (i.e., % only a radial object, with no axial 
+%  considerations). 
+%  
+%  AUTHOR: Timothy Sipkens, 2021-02-03
 %=========================================================================%
 
 
@@ -61,25 +61,31 @@ end
 
 Nv = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
 
-cam_no = 4;
+cam_no = 5;
 switch cam_no
     case 1
         oc = [0, -0.8, -1.1];
         
     case 2
-        oc = [0, 0, -10];
+        oc = [0, 0, -20];
+        f = 2e3;
         
     case 3
         oc = [0, -2, -1.02];
         
     case 4
-        oc = [0, -1, -1.02];
+        oc = [0, -0.5, -1.02];
+        f = 1e2;
+        
+    case 5
+        oc = [0, -0.5, -20];
+        f = 1e3;
         
 end
 
 %-{
 %-- OPTION 1: Use Camera class ---------------%
-cam = Camera(1, Nv, oc, 1.e2);
+cam = Camera(1, Nv, oc, f);
 %}
 
 %{
@@ -98,7 +104,7 @@ cam.my = (cam.y - cam.y0) ./ cam.z; % slope implied by camera location
 
 % FIG 3: Plot Phantom (2D slice through center of ASO)
 figure(3);
-aso.srays(bet, cam.my(1:10:end), cam.y0(1:10:end));
+aso.prays(bet, cam.my(1:10:end), cam.y0(1:10:end), 0);
 colormap(flipud(ocean));
 
 
@@ -109,6 +115,17 @@ bl = Kl * bet;  % forward model, deflections using linear kernel
 
 Ku = kernel.uniform_d(aso, cam.y0, cam.my);
 bu = Ku * bet;
+
+Kui = kernel.uniform_i(aso, cam.y0, cam.my);
+bui = Kui * bet;
+
+figure(10);
+plot(bl);
+hold on;
+plot(bui);
+plot(cumsum(bl) .* (cam.y0(2) - cam.y0(1)), 'k--');
+plot(diff(bui) ./ (cam.y0(2:end) - cam.y0(1:(end-1))), 'r--');
+hold off;
 
 
 %%
@@ -123,7 +140,6 @@ b1 = A1 \ bet;
 % acts directly on deflections
 A2 = kernel.uniform_d(aso.re, aso.re', 0.*aso.re');
 b2 = A2 * bet;
-A2b = inv(kernel.linear_ind(length(bet), 1:length(bet)));
 
 % 3-pt kernel (operates on integrated deflections, thus gradient operator below)
 A3 = kernel.three_pt(length(bet));
@@ -133,7 +149,7 @@ b3 = gradient(A3 \ bet);
 A4 = kernel.onion_peel(length(bet));
 b4 = gradient(A4 * bet);
 
-figure(20);
+figure(19);
 plot(aso.re, b1);
 hold on;
 plot(aso.re, b2);
@@ -149,73 +165,141 @@ xlim([0, max(aso.re)]);
 
 %%
 %== COMPARE INVERSE OPERATORS ============================================%
-noise_lvl = 5e-1;
-ba = bl + noise_lvl .* randn(size(bl));
-Le = sparse(diag(1 ./ noise_lvl .* ones(size(bl))));
+cam_vec = [1,10,15,18,19,20];
+for ii=21:27
+    figure(ii);
+    clf;
+    plot(aso.re, bet, 'k-');
+    cmap_sweep(length(cam_vec)+1, inferno);
+    xlim([0, aso.R]);
+end
 
-y = cam.y0(cam.y0 >= 0);
-asob = Aso(max(cam.y0), length(y));
-% b = -interp1(cam.y0, ba, -asob.re);
-b = interp1(cam.y0, ba, asob.re);
+for cc = cam_vec
+    
+    rng(cc);
+    
+    oc_cc = oc;
+    oc_cc(3) = oc_cc(3) ./ cc;
+    f_cc = f ./ cc;
+    cam = Camera(1, Nv, oc_cc, f_cc);
+    
+    % Generate kernel.
+    Kl = kernel.linear_d(aso, cam.y0, cam.my);
+    bl = Kl * bet;  % forward model, deflections using linear kernel
+
+    
+    
+    
+    noise_lvl = 4e-1;
+    b_a = bl + noise_lvl .* randn(size(bl));
+    Le_a = sparse(diag(1 ./ noise_lvl .* ones(size(b_a))));
+    
+    f_b = and(cam.y0 >= -1e-5, cam.y0 <= aso.R);
+    y = round(cam.y0(f_b) .* 1000) ./ 1000;
+    my = cam.my(f_b);  % used by linear, index-based kernel
+    if y(1)~=0; warning('y(1) ~= 0'); end
+    b_b = b_a(f_b);
+    Le_b = sparse(diag(1 ./ noise_lvl .* ones(size(b_b))));
+    
+    
+    
+    % 2-pt kernel
+    A1 = kernel.two_pt(length(b_b));
+    bet1 = A1 * b_b;
+
+    % New kernel
+    % Inverse is undefined at x0 = 0, where deflection is zero.
+    Ku = kernel.uniform_d(aso, cam.y0, cam.my);
+    betu = regularize.tikhonov1(Ku, b_a, Le_a, 1e2);
+    
+    ih = y ./ sqrt(1 + my .^ 2) ./ max(y) .* (length(b_b) - 1) + 1;
+    Kli = kernel.linear_idx(length(b_b), ih);
+    bet2b = regularize.tikhonov1(Kli, b_b, Le_b, 2e1);
+    
+    % 3-pt kernel
+    A3 = kernel.three_pt(length(b_b));
+    b_b_int = cumsum(b_b); b_b_int = b_b_int - b_b_int(end);
+    bet3 = A3 * b_b_int;
+    
+    % Onion peeling kernel
+    A4 = kernel.onion_peel(length(b_b));
+    bet4 = regularize.tikhonov1(A4, b_b_int, Le_b, 4e1);
+    % bet4 = A4 \ bi;
+    
+    % Simpson 1-3 (simiar to how 2-pt method operators)
+    A5 = kernel.simps13(length(b_b));
+    bet5 = A5 * b_b;
 
 
-% 2-pt kernel
-A1 = kernel.two_pt(length(b));
-bet1 = A1 * b;
-
-% New kernel
-% Inverse is undefined at x0 = 0, where deflection is zero.
-L_tk = regularize.tikhonov_lpr(2, length(bet), length(bet));
-L_tk(end,end) = L_tk(end,end) + 1;  % adjust last element boundary condition (to no slope) 
-A_tk = [Le * Ku; 2e2.*L_tk];
-b_tk = [Le * ba; sparse(zeros(size(L_tk,1), 1))];
-betu = lsqlin(A_tk, b_tk);
+    % Tikhonov + Linear NRAP kernel
+    betl = regularize.tikhonov1(Kl, b_a, Le_a, 1e2);
+    
+    
+    % New kernel, linear, indirectfull
+    b_a_int = cumsum(b_a) .* (cam.y0(2) - cam.y0(1));
+    b_a_int = b_a_int - b_a_int(end);
+    Kli = kernel.linear_i(aso, cam.y0, cam.my);
+    betli = regularize.tikhonov1(Kli, b_a_int, Le_a, 2e1);
 
 
-A2b = inv(kernel.linear_ind(length(b), 1:length(b)));
-% bet2 = A2(:, 2:end) \ b;
-bet2b = A2b * b;
+    figure(21);
+    title('2pt');
+    hold on;
+    plot(y, bet1);
+    hold off;
+    
+    figure(22);
+    title('Linear, index-based');
+    hold on;
+    plot(y, bet2b);
+    hold off;
+    
+    figure(23);
+    title('3pt');
+    hold on;
+    plot(y, bet3);
+    hold off;
+    
+    figure(24);
+    title('Onion peeling');
+    hold on;
+    plot(y, bet4);
+    hold off;
+    
+    figure(25);
+    title('Simpson 1/3');
+    hold on;
+    plot(y, bet5);
+    hold off;
+    
+    figure(26);
+    title('Linear, direct');
+    hold on;
+    plot(aso.re, betl);
+    hold off;
+    
+    figure(27);
+    title('Uniform, direct');
+    hold on;
+    plot(aso.re, betu);
+    hold off;
+    xlim([0, aso.R]);
+    
+    figure(20);
+    plot(cam.y0, bl, 'k');
+    hold on;
+    plot(cam.y0, b_a, 'r.');
+    plot(y, b_b, 'ko', 'MarkerSize', 2.8);
+    hold off
+    
+    pause(0.3);
+end
 
-% 3-pt kernel
-A3 = kernel.three_pt(length(b));
-bi = cumsum(b); bi = bi - bi(end);
-bet3 = A3 * bi;
 
-% Onion peeling kernel
-A4 = kernel.onion_peel(length(b));
-bet4 = A4 \ bi;
-
-% Simpson 1-3 (simiar to how 2-pt method operators)
-A5 = kernel.simps13(length(b));
-bet5 = A5 * b;
-
-
-% Tikhonov + Linear NRAP kernel
-L_tk = regularize.tikhonov_lpr(2, length(bet), length(bet));
-L_tk(end,end) = L_tk(end,end) + 1;  % adjust last element boundary condition (to no slope) 
-A_tk = [Le * Kl; 2e2.*L_tk];
-b_tk = [Le * ba; sparse(zeros(size(L_tk,1), 1))];
-betl = lsqlin(A_tk, b_tk);
-
-
-figure(21);
-plot(asob.re, bet1);
-hold on;
-plot(aso.re, betu, 'b');
-plot(asob.re, bet2b);
-plot(asob.re, bet3);
-plot(asob.re, bet4);
-plot(asob.re, bet5);
-plot(aso.re, bet, 'k--');
-plot(aso.re, betl, 'r--');
-hold off;
-xlim([0, max(asob.re)]);
-
-figure(22);
-plot(cam.y0, bl, 'k');
-hold on;
-plot(cam.y0, ba, 'r.');
-plot(asob.re, b, 'ko', 'MarkerSize', 2.8);
-hold off
+for ii=21:27
+    fi = figure(ii);
+    fi.Position(4) = 280;
+    ylim([-0.1, 2]);
+end
 %=========================================================================%
 
