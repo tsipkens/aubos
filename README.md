@@ -1,6 +1,6 @@
 # AUBOS
 
-**(*A*xisymmetric *U*nified *B*ackground-*O*riented *S*chlieren)**
+(***A***xisymmetric ***U***nified ***B***ackground-***O***riented ***S***chlieren and related operatios)
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
