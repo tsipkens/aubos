@@ -1,13 +1,24 @@
 
 % UNIFORM_D  Evaluates kernel/operator for a uniform basis representation of a 1D ASO.
-%   Not recommended due to noise properties.
-%   Timothy Sipkens, 2020-06-10
 %
-% Inputs:
-%   aso_re  Axis-symmetric object or edges of the annuli
-%   my      Set of slopes for the rays
-%   y0      Intersect with line through center of aso
-%=========================================================================%
+%  K = kernel.uniform_d(RE) returns the direct, uniform basis kernel using
+%  rays that correspond to the edges of the radial elements in RE and have
+%  no slope (i.e., the Abel case). Without Y0 supplied as an input, the
+%  resultant kernel will be square. 
+%  
+%  K = kernel.uniform_d(ASO) extracts the radial element edges from the Aso
+%  object provided in ASO. As with case above, considers the Abel case with
+%  no slope to the rays and outputs a direct kernel.
+%  
+%  K = kernel.uniform_d(...,Y0) allows for a different set of ray
+%  intersections than radial elements (such that the output will not be
+%  square in general). Still consider no slope to the rays, correspond to
+%  the Abel case, and a direct kernel. 
+% 
+%  K - kernel.uniform_d(...,Y0,MY) adds an input for the slope of the rays,
+%  generalizing to the NRAP kernel case. Output is still a direct kernel. 
+%  
+%  AUTHOR: Timothy Sipkens, 2020-06-10
 
 function K = uniform_d(aso_re, y0, my)
 
@@ -32,8 +43,8 @@ rju = re(2:end); % r_{j+1}
 
 
 %-{
-Ka = @(m,x0,r) sqrt(r.^2 - x0.^2 ./ (1 + m.^2));
-Kb = @(m,x0,r) log(r + Ka(m, x0, r + eps));
+Ka = @(m,y0,r) sqrt(r.^2 - y0.^2 ./ (1 + m.^2));
+Kb = @(m,y0,r) log(r + Ka(m, y0, r + eps));
     % function for indefinite integral
     % the + eps allows for finite value of kernel when r = x0
 
@@ -42,20 +53,14 @@ K = real(2 .* y0 .* ( ... % real(.) removes values outside integral bounds
     Kb(my,y0,rj)))';
     % uniform basis kernel function at specified m and u0
 
-D = (eye(Nr+1, Nr+1) - diag(ones(Nr, 1), 1));
-D(end, :) = []; % remove final row
-D = D ./ dr; % divide by element area
-K = -K*D; % gradient is implemented as seperate operator (better noise characteristics)
-%}
+    
+% If direct, multiply be differential operator.
+% Else, proceed to output instead.
+d = (eye(Nr+1, Nr+1) - diag(ones(Nr, 1), 1));
+d(end, :) = []; % remove final row
+d = d ./ dr; % divide by element area
+K = -K*d; % gradient is implemented as seperate operator (better noise characteristics)
 
-
-%{
-Ka = @(m,u0,r) 1 ./ sqrt(r.^2 - u0.^2 ./ (1+m.^2));
-
-K = real(2 .* u0 .* ( ... % real(.) removes values outside integral bounds
-    Ka(m,u0,rj) - Ka(m,u0,rju)))';
-    % uniform basis kernel function at specified m and u0
-%}
 
 
 K(abs(K)<1e3*eps) = 0; % remove numerical noise

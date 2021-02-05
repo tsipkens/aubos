@@ -26,7 +26,7 @@ if isempty(my); my = zeros(size(y0)); end
 Nr = length(re) - 1;
 
 
-if Nr<3; error('Not have enough annuli for linear basis.'); end
+if Nr<3; error(' Not have enough annuli for linear basis.'); end
 
 
 
@@ -37,8 +37,8 @@ if nargin<4  % consider 1D case
     rju = re(3:end);     % r_{j+1}
 
     % functions for indefinite integral
-    Kb = @(m,x0,r) log(r + sqrt(r.^2 - x0.^2 ./ (1+m.^2)));
-    Kc = @(m,x0,r1,r2,r3) 1 ./ (r2 - r1) .* Kb(m, x0, r3 + eps);
+    Kb = @(m,y0,r) log(r + sqrt(r.^2 - y0.^2 ./ (1+m.^2)));
+    Kc = @(m,y0,r1,r2,r3) 1 ./ (r2 - r1) .* Kb(m, y0, r3 + eps);
         % the + eps allows for finite value of kernel when r3 = x0
 
     K = real(2 .* y0 .* ( ... % real(.) removes values outside integral bounds
@@ -66,9 +66,9 @@ if nargin<4  % consider 1D case
 
 else  % consider 2D case
     tools.textheader('Building NRAP kernel');
-    disp('(Linear, 2D, Direct)');
+    disp(' (Linear, 2D, Direct)');
 
-    if aso2.N<3; error('Aso does not have enough annuli for linear basis.'); end
+    if aso2.N<3; error(' Aso does not have enough annuli for linear basis.'); end
 
     mx(abs(mx) < 1e-12) = 1e-12; % avoid division by zero in rv
 
