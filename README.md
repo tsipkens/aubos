@@ -26,10 +26,10 @@ Instead of the **cmap** package, one could also replace references in existing s
 
 This codebase is broken up into a series of packages: 
 
-1. The **transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al.
-2. The **kernel** package includes functions to generate the typical forward and inverse operators for solving the Abel problem. 
-3. The **tools** package contains miscellaneous functions to aid in analysis. This includes a text-based toolbar function attributed to @sgrauer. 
-4. The **regularization** package contains tools to help during inversion, such as generating prior covariance matrices. 
+1. The **transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. This presents the mathematical basis for the kernels derived subsequently. 
+2. The **kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/NRAP-type operators. 
+3. The **tools** package contains miscellaneous functions to aid in analysis, e.g., text-based toolbar function. 
+4. The **regularization** package contains tools to help during inversion, such as generating prior covariance matrices (e.g., for Tikhonov regularization). 
 
 This codebase also contains three classes: 
 
