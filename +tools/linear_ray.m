@@ -1,5 +1,5 @@
 
-% NONLIN_RAY  Non-linear ray tracer through the ASO.
+% LINEAR_RAY  Linear ray tracer through the ASO.
 %  
 %  INPUT:
 %   oc    Point on straight ray               [m]
@@ -15,7 +15,7 @@
 %  AUTHOR: Samuel Grauer, 2017-09-19 (original)
 %          Timothy Sipkens, 2020-09-22 (updates)
 
-function [p,v,eps_z,eps_y] = nonlin_ray(oc, v, aso, bet, f_print)
+function [p,v,eps_z,eps_y] = linear_ray(oc, v, aso, bet, f_print)
 
 % Parse input
 if ~exist('f_print','var'), f_print = 1; end
@@ -30,7 +30,7 @@ ds = 0.5 .* min(aso.dr); % step size     [m]
 K  = ceil(25 * norm(z1 - z2) / ds); % iterations    []
 
 % Print script status
-if f_print; tools.textheader('Non-linear ray tracing'); tools.textbar(0); end
+if f_print; tools.textheader('Linear ray tracing'); tools.textbar(0); end
 %-------------------------------------------------------------------------%
 
 
@@ -53,17 +53,19 @@ v0 = v;
 
 %--- Trace rays ----------------------------------------------------------%
 ic = zeros(size(c(3,:))); k = 0;
+iy = 0 .* c(2,:);
 while any(~ic)
     k = k + 1; % increment counter
     
     % Interpolate local IoF values
-    nk  = aso.interpc(c(2,:),c(3,:),bet) + 1;
-    [Dyk,Dzk] = aso.gradientc(c(2,:),c(3,:),bet);
+    % nk  = aso.interpc(c(2,:),c(3,:),bet) + 1;
+    [Dyk,~] = aso.gradientc(c(2,:),c(3,:),bet);
     
     % Step each ray
+    c = c + ds .* v;
+    iy = iy + ds .* Dyk; % add to integral
+    
     ic = c(3,:)>aso.R; % index of converged rays
-    c(:,~ic) = c(:,~ic) + ds * bsxfun(@rdivide, v(:,~ic), nk(~ic)); % update position
-    v = normc(v + ds .* [zeros(size(Dyk));Dyk;Dzk]); % update direction (first zero represents Dxk)
     
     % Update progress bar
     if f_print; tools.textbar(k/K); end
@@ -78,13 +80,8 @@ if f_print; tools.textbar(1); disp(' '); end
 % Assign ray positions
 p = c;
 
-% a = dot(v,v0);
-% eps_y = p(2,:) - p0(2,:);
-% eps_y = atan2(dot([1;0;0]*ones(1,size(v,2)),cross(v,v0)),dot(v,v0));
-% eps_y = acos2(v(2,:) .* v0(2,:) + v(3,:) .* v0(3,:) - eps);
-% eps_y = real(sqrt(1 + dot(v,v0) .^ 2) ./ dot(v,v0));
-eps_y = v(2,:) - v0(2,:); % a(2, :);
-eps_z = v(3,:) - v0(3,:);
+eps_y = iy;
+eps_z = 0;
 
 % Check for failed rays
 d  = (p-z1)'*(z2-z1)/norm(z2-z1)^2; % Ray-wise distance travelled   [m]
