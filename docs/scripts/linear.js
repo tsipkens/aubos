@@ -19,14 +19,14 @@ var linear = function(re, y0, my) {
       if (ii == 0) {
         rjd = re[ii]; // r_j
         rj = re[ii + 1]; // r_{j+1}
-        K[ii][jj] = 2 * y0[jj] * (
+        K[ii][jj] = 2 * y0[jj] / (1 + my[jj] ** 2) * (
           Kc(my[jj], y0[jj], rj, rjd, rj) -
           Kc(my[jj], y0[jj], rj, rjd, rjd)) // decline, first element
 
       } else if (ii == (re.length - 1)) {
         rj = re[ii - 1]; // r_j
         rju = re[ii]; // r_{j+1}
-        K[ii][jj] = 2 * y0[jj] * (
+        K[ii][jj] = 2 * y0[jj] / (1 + my[jj] ** 2) * (
           Kc(my[jj], y0[jj], rj, rju, rju) -
           Kc(my[jj], y0[jj], rj, rju, rj))
 
@@ -34,7 +34,7 @@ var linear = function(re, y0, my) {
         rjd = re[ii - 1]; // r_{j-1}
         rj = re[ii]; // r_j
         rju = re[ii + 1]; // r_{j+1}
-        K[ii][jj] = 2 * y0[jj] * ( // real(.) removes values outside integral bounds
+        K[ii][jj] = 2 * y0[jj] / (1 + my[jj] ** 2) * ( // real(.) removes values outside integral bounds
           Kc(my[jj], y0[jj], rjd, rj, rj) -
           Kc(my[jj], y0[jj], rjd, rj, rjd) + // integral over rise
           Kc(my[jj], y0[jj], rju, rj, rju) -
@@ -54,8 +54,8 @@ var linear = function(re, y0, my) {
 //-------------------------------------------------------------------------//
 
 
-var re_vec = linspace(0, 1, 70)
-var yl = linspace(-1.5, 1.5, 85)
+var re_vec = linspace(0, 1, 100)
+var yl = linspace(-1.25, 1.25, 100)
 var ml = function(yl, zc, yc) {
   for (ii = 0; ii < yl.length; ii++) {
     out[ii] = math.subtract(yl[ii], yc) / zc
@@ -78,8 +78,11 @@ for (ii = 0; ii < re_vec.length; ii++) {
 }
 
 var yc = 0
-var zc_vec = [20, 4, 2.5, 2, 1.6, 1.35, 1.2, 1.1, 1, 0.9, 0.8]
-var xl = Array(zc_vec.length)
+var zc_vec = [20, 4, 2.5, 2, 1.6, 1.35, 1.2, 1.1, 1, 0.9, 0.8]  // curently unused
+
+var zc = 1
+var yc_vec = linspace(3, 0, 11)
+var xl = Array(yc_vec.length)
 
 // transfer to data structure
 var data2 = []
@@ -87,8 +90,8 @@ for (ii in yl) {
   t0 = {
     x: yl[ii]
   }
-  for (zz in zc_vec) { // loop through my slopes
-    t0['xl' + zz] = 0
+  for (yy in zc_vec) { // loop through my slopes
+    t0['xl' + yy] = 0
   }
   data2.push(t0)
 }
@@ -108,14 +111,18 @@ for (ii=0; ii<re_vec.length; ii++) {
 
 // UPPER PANEL ------------------------------------------------------------//
 // append the svg object to the body of the page
+var $container = $('#my_beta'),
+    width_a = 0.98 * $container.width(),
+    height_a = $container.height()
 var margin = {
     top: 0,
-    right: 150,
-    bottom: 4,
-    left: 40
+    right: 5,
+    bottom: 6,
+    left: 45
   },
-  width = 600 - margin.left - margin.right,
-  height3 = 80 - margin.top - margin.bottom;
+  width = width_a - margin.left - margin.right,
+  height3 = 120 - margin.top - margin.bottom;
+
 var svg3 = d3.select("#my_beta")
   .append("svg")
   .attr("width", width + margin.left + margin.right)
@@ -125,27 +132,31 @@ var svg3 = d3.select("#my_beta")
 
 // Add X axis
 var x2 = d3.scaleLinear()
-  .domain([-1.5, 1.5])
+  .domain([-1.25, 1.25])
   .range([0, width]);
 var xAxis2a = svg3.append("g")
   .attr("transform", "translate(0," + height3 + ")")
-  .call(d3.axisBottom(x2).ticks(5));
+  .call(d3.axisBottom(x2).ticks(5))
+  .attr("class", "axis");
 var xAxis2b = svg3.append("g")
-  .call(d3.axisTop(x2).ticks(0));
+  .call(d3.axisTop(x2).ticks(0))
+  .attr("class", "axis");
 
 // Add Y axis
 var y3 = d3.scaleLinear()
   .domain([0, 1.65])
   .range([height3, 0]);
 svg3.append("g")
-  .call(d3.axisLeft(y3).ticks(4));
+  .call(d3.axisLeft(y3).ticks(4))
+  .attr("class", "axis");
 svg3.append("g")
   .attr("transform", "translate(" + width + ",0)")
   .call(d3.axisRight(y3).ticks(0))
+  .attr("class", "axis");
 // Y axis label:
 svg3.append("text")
   .attr("text-anchor", "middle")
-  .attr('transform', 'translate(-27,' + height3 / 2 + ')rotate(-90)')
+  .attr('transform', 'translate(-32,' + height3 / 2 + ')rotate(-90)')
   .html("δ = 1 - n/n0")
 
 // add phantom to panel
@@ -170,15 +181,9 @@ svg3.append("path")
 
 // MAIN PLOT ---------------------------------------------------------------//
 // append the svg object to the body of the page
-var margin = {
-    top: 0,
-    right: 150,
-    bottom: 50,
-    left: 40
-  }
 var svg2 = d3.select("#my_dataviz2")
   .append("svg")
-  .attr("width", width + margin.left + margin.right)
+  .attr("width", width_a + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -187,19 +192,23 @@ var svg2 = d3.select("#my_dataviz2")
 // inherit x scale from above
 var xAxis2a = svg2.append("g")
   .attr("transform", "translate(0," + height + ")")
-  .call(d3.axisBottom(x2).ticks(5));
+  .call(d3.axisBottom(x2).ticks(5))
+  .attr("class", "axis");
 var xAxis2b = svg2.append("g")
-  .call(d3.axisTop(x2).ticks(0));
+  .call(d3.axisTop(x2).ticks(0))
+  .attr("class", "axis");
 
 // Add Y axis
 var y2 = d3.scaleLinear()
-  .domain([-7, 16])
+  .domain([-5, 5])
   .range([height, 0]);
 svg2.append("g")
-  .call(d3.axisLeft(y2).ticks(5));
+  .call(d3.axisLeft(y2).ticks(5))
+  .attr("class", "axis");
 svg2.append("g")
   .attr("transform", "translate(" + width + ",0)")
   .call(d3.axisRight(y2).ticks(0))
+  .attr("class", "axis");
 
 //-- Add axis labels --//
 // Add X axis label:
@@ -212,7 +221,7 @@ svg2.append("text")
 // Y axis label:
 svg2.append("text")
   .attr("text-anchor", "middle")
-  .attr('transform', 'translate(-25,' + height / 2 + ')rotate(-90)')
+  .attr('transform', 'translate(-28,' + height / 2 + ')rotate(-90)')
   .text("Projected deflection at z = 0 [a.u.]")
 
 // generate plot
@@ -235,9 +244,9 @@ for (jj in zc_vec) {
 }
 
 
-// add controls
-var updateData2 = function(val) {
-  yc = val
+// Update plots (for zc_vec), currently unused
+var updateData2 = function(valy) {
+  yc = valy
   for (zz = 0; zz < zc_vec.length; zz++) {
     Kl = linear(re_vec, yl, ml(yl, zc_vec[zz], yc))
     xl[zz] = math.multiply(Kl, bet)
@@ -270,19 +279,47 @@ var updateData2 = function(val) {
   }
 }
 
-var ycvals = linspace(0, 3, 13)
-for (ii in ycvals) {
-  ycvals[ii] = ycvals[ii].toFixed(3)
+// Update plots (for yc_vec)
+var updateData3 = function(valz) {
+  zc = valz
+  for (yy = 0; yy < yc_vec.length; yy++) {
+    Kl = linear(re_vec, yl, ml(yl, zc, yc_vec[yy]))
+    xl[yy] = math.multiply(Kl, bet)
+  }
+
+  var data2 = [];
+  for (ii in yl) {
+    t0 = {
+      x: yl[ii]
+    }
+    for (yy in yc_vec) { // loop through my slopes
+      t0['xl' + yy] = xl[yy][ii]
+    }
+    data2.push(t0)
+  }
+
+  for (jj in yc_vec) {
+    svg2.select("#p0" + jj)
+      .datum(data2)
+      .transition(150)
+      .attr("d", d3.line()
+        .x(function(d) {
+          return x2(d.x)
+        })
+        .y(function(d) {
+          return y2(d['xl' + jj])
+        })
+        // .defined(((d, i) => d['ys' + jj] != null))
+      )
+  }
 }
 
-function displayycval(val) { // update displayed value
-  document.getElementById('ycval').value = ycvals[val - 1];
-}
-displayycval(document.getElementById('ycSlider').value)
-updateData2(ycvals[document.getElementById('ycSlider').value - 1], re_vec) // initial update
-d3.select("#ycSlider").on("change", function(d) { // udpate data and plot
+updateData2(document.getElementById('zcSlider').value, re_vec) // initial update
+d3.select("#zcSlider").on("change", function(d) { // udpate data and plot
   val = this.value
-  updateData2(ycvals[val - 1], re_vec)
+  document.getElementById('zcSlider').disabled = true  // temporarily disable during update
+  updateData3(val, re_vec)
+  document.getElementById('zcSlider').disabled = false  // re-enable
 })
 //------------------------------------------------------------------------//
 //END PLOT ---------------------------------------------------------------//
