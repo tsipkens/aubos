@@ -23,6 +23,8 @@ classdef Aso
     
     
     methods
+        %== ASO ==========================================================%
+        %   Constructor method.
         function aso = Aso(R, Nr)
             if nargin==0; return; end % return empty object
             
@@ -39,7 +41,46 @@ classdef Aso
             D(end, :) = []; % remove final row
             aso.grad = D ./  aso.dr; % divide by element area
         end
+        %=================================================================%
         
+        
+        %== INTERPC ====================================================%
+        %   Interpolate discrete function defined on an ASO to Cartesian
+        %   coordinates. Assumes a linear basis.
+        %   Timothy Sipkens, 2021-02-12
+        function [f] = interpc(aso, yi, zi, bet)
+            
+            % Get position in cylindrical coordinates
+            ri = sqrt(yi.^2 + zi.^2); % radial position
+            
+            % Interpolate r-gradient and convert to Cartesian coords.
+            f = interp1(aso.re, bet, ri, 'linear', 0);
+            
+        end
+        %=================================================================%
+        
+        
+        %== GRADIENTC ====================================================%
+        %   Cartesian gradients, interpolated from the ASO object.
+        %   Assumes a linear basis.
+        %   Timothy Sipkens, 2021-02-11
+        function [Dy, Dz] = gradientc(aso, yi, zi, bet)
+            
+            % Get position in cylindrical coordinates
+            ri = sqrt(yi.^2 + zi.^2); % radial position
+            q = atan2(yi, -zi); % angle, in coord. system from Sipkens et al.
+            
+            % Setup grid for interpolation
+            Dri = aso.grad * bet;  % reshape radial gradient
+            Dri = [Dri; 0]; % append constant slope data for last axial position
+            
+            % Interpolate r-gradient and convert to Cartesian coords.
+            Dro = interp1(aso.re, Dri, ri, 'linear', 0);
+            Dy = -sin(q) .* Dro; % get the y-gradient based on the angle
+            Dz = cos(q) .* Dro; % get the z-gradient based on the angle
+            
+        end
+        %=================================================================%
         
         
         %== SURF =========================================================%
@@ -74,6 +115,7 @@ classdef Aso
             if nargout==0; clear h; end % suppress output if none required
             
         end
+        %=================================================================%
         
         
         
@@ -112,6 +154,7 @@ classdef Aso
             
             if nargout==0; clear h; end % suppress output if none required
         end
+        %=================================================================%
         
         
         %== SRAYS ========================================================%
@@ -183,6 +226,7 @@ classdef Aso
             
             if nargout==0; clear h; end % suppress output if none required
         end
+        %=================================================================%
     end
 end
 
