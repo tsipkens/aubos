@@ -14,13 +14,13 @@ addpath cmap; % add colormaps to path
 
 
 R = 1;
-Nr = 125;
+Nr = 250;
 aso = Aso(R, Nr); % generate an axis-symmetric object
 
 
 %== Case studies / phantoms for dn/dr ====================================%
 %   Evaluated as ASO radial element edges.
-pha_no = 7;
+pha_no = 2;
 switch pha_no
     case 1 % gaussian
         bet = normpdf(aso.re,0,0.3);
@@ -38,7 +38,7 @@ switch pha_no
         
     case 5 % ring, e.g. looking through a cup, sigmoid softens transition
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
-        bet = f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33);
+        bet = 5 .* (f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33));
         
     case 6 % half circle
         bet = sqrt(max(0.7.^2 - aso.re.^2, 0));
@@ -59,27 +59,37 @@ end
 %       will differ from OPT. 1, producing a different set of rays that 
 %       results in higher resultion deflections in the vicinity of the ASO.
 
-Nv = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
+Nv = 800; % number of pixels in "camera" (only one dim. considered for this ASO)
 
-cam_no = 5;
+cam_no = 6;  % 1 does not have z = -20 and doesn't work with second half of code
 switch cam_no
     case 1
         oc = [0, -0.8, -1.1];
+        f = 1e3/20;
         
     case 2
         oc = [0, 0, -20];
         f = 2e3;
         
     case 3
-        oc = [0, -2, -1.02];
+        oc = [0, -2, -20];
+        f = 8e2;
         
     case 4
-        oc = [0, -0.5, -1.02];
-        f = 1e2;
+        oc = [0, -1.2, -20];
+        f = 2e3;
         
     case 5
         oc = [0, -0.5, -20];
         f = 1e3;
+        
+    case 6
+        oc = [0, 1.2, -20];
+        f = 2e3;
+        
+    case 7
+        oc = [0, 0, -100];
+        f = 1e4;
         
 end
 
@@ -119,14 +129,31 @@ bu = Ku * bet;
 Kui = kernel.uniform_i(aso, cam.y0, cam.my);
 bui = Kui * bet;
 
+Kli = kernel.linear_i(aso, cam.y0, cam.my);
+bli = Kli * bet;
+
 figure(10);
 plot(bl);
 hold on;
-plot(bui);
-plot(cumsum(bl) .* (cam.y0(2) - cam.y0(1)), 'k--');
+plot(bui - bui(1), 'b--');
+plot(cumsum(bl(2:end) .* ...
+    (cam.y0(2:end)' ./ sqrt(1 + cam.my(2:end)'.^2) - ...
+    cam.y0(1:(end-1))' ./ sqrt(1 + cam.my(1:(end-1))'.^2))), ...
+    'k--');
 plot(diff(bui) ./ (cam.y0(2:end) - cam.y0(1:(end-1))), 'r--');
+plot(diff(bli) ./ (cam.y0(2:end) - cam.y0(1:(end-1))), 'b:');
 hold off;
 
+
+figure(11);
+[~,~,t0,t1] = tools.linear_ray((oc')*ones(1, length(cam.my)), [zeros(size(cam.my)); cam.my; ones(size(cam.my))], aso, bet ./ 1e3);
+[~,~,t2,t3] = tools.nonlin_ray((oc')*ones(1, length(cam.my)), [zeros(size(cam.my)); cam.my; ones(size(cam.my))], aso, bet ./ 1e3);
+plot(cam.y0, t1.*1e3);
+hold on;
+plot(cam.y0, t3.*1e3);
+plot(cam.y0, t0.*1e3, 'Color', [0.8,0.8,0.8]);
+plot(cam.y0, bl, 'k--');
+hold off;
 
 %%
 %== COMPARE FORWARD RESULTS ==============================================%
@@ -166,6 +193,12 @@ xlim([0, max(aso.re)]);
 %%
 %== COMPARE INVERSE OPERATORS ============================================%
 cam_vec = [1,10,15,18,19,20];
+
+figure(11);
+cmap_sweep(length(cam_vec)+1, inferno);
+plot(0, 0, 'o');
+xlim([-2,2]);
+
 for ii=21:27
     figure(ii);
     clf;
@@ -176,7 +209,7 @@ end
 
 for cc = cam_vec
     
-    rng(cc);
+    rng(cc+1);
     
     oc_cc = oc;
     oc_cc(3) = oc_cc(3) ./ cc;
@@ -188,9 +221,12 @@ for cc = cam_vec
     bl = Kl * bet;  % forward model, deflections using linear kernel
 
     
+    figure(11);
+    hold on;
+    plot(cam.y0, bl);
+    hold off;
     
-    
-    noise_lvl = 4e-1;
+    noise_lvl = 2e-1;
     b_a = bl + noise_lvl .* randn(size(bl));
     Le_a = sparse(diag(1 ./ noise_lvl .* ones(size(b_a))));
     
@@ -212,9 +248,11 @@ for cc = cam_vec
     Ku = kernel.uniform_d(aso, cam.y0, cam.my);
     betu = regularize.tikhonov1(Ku, b_a, Le_a, 1e2);
     
-    ih = y ./ sqrt(1 + my .^ 2) ./ max(y) .* (length(b_b) - 1) + 1;
-    Kli = kernel.linear_idx(length(b_b), ih);
-    bet2b = regularize.tikhonov1(Kli, b_b, Le_b, 2e1);
+    % Tikhonov + Linear NRAP kernel
+    betl = regularize.tikhonov1(Kl, b_a, Le_a, 1e2);
+    
+    Klidx = kernel.linear_idx(length(b_b), my);
+    bet2b = regularize.tikhonov1(Klidx, b_b, Le_b, 6e1);
     
     % 3-pt kernel
     A3 = kernel.three_pt(length(b_b));
@@ -223,23 +261,19 @@ for cc = cam_vec
     
     % Onion peeling kernel
     A4 = kernel.onion_peel(length(b_b));
-    bet4 = regularize.tikhonov1(A4, b_b_int, Le_b, 4e1);
+    bet4 = regularize.tikhonov1(A4, b_b_int, Le_b, 6e1);
     % bet4 = A4 \ bi;
     
     % Simpson 1-3 (simiar to how 2-pt method operators)
     A5 = kernel.simps13(length(b_b));
     bet5 = A5 * b_b;
-
-
-    % Tikhonov + Linear NRAP kernel
-    betl = regularize.tikhonov1(Kl, b_a, Le_a, 1e2);
     
     
-    % New kernel, linear, indirectfull
+    % New kernel, linear, indirect full
     b_a_int = cumsum(b_a) .* (cam.y0(2) - cam.y0(1));
     b_a_int = b_a_int - b_a_int(end);
     Kli = kernel.linear_i(aso, cam.y0, cam.my);
-    betli = regularize.tikhonov1(Kli, b_a_int, Le_a, 2e1);
+    betli = regularize.tikhonov1(Kli, b_a_int, Le_a, 3e1);
 
 
     figure(21);
