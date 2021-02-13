@@ -48,7 +48,7 @@ Kb = @(m,y0,r) log(r + Ka(m, y0, r + eps));
     % function for indefinite integral
     % the + eps allows for finite value of kernel when r = x0
 
-K = real(2 .* y0 .* ( ... % real(.) removes values outside integral bounds
+K = real(2  ./ (1 + my .^ 2) .* y0 .* ( ... % real(.) removes values outside integral bounds
     Kb(my,y0,rju) - ...
     Kb(my,y0,rj)))';
     % uniform basis kernel function at specified m and u0

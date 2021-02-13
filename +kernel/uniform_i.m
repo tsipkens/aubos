@@ -28,7 +28,7 @@ rju = re(2:end); % r_{j+1}
 %-{
 Ka = @(m,y0,r) sqrt(r.^2 - y0.^2 ./ (1 + m.^2));
 
-K = real(2 .* (1 + my.^2) .* ([ ... % real(.) removes values outside integral bounds
+K = real(2 .* ([ ... % real(.) removes values outside integral bounds
     Ka(my,y0,rju) - ...
     Ka(my,y0,rj); ...
     Ka(my,y0,rju(end))]))';
