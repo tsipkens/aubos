@@ -100,30 +100,40 @@
       Now consider projecting a phantom ASO, with the radial dependence of the phantom
       shown in the upper panel. We consider rays diverging from a single point
       in space o<sub>c</sub> = [y<sub>c</sub>, z<sub>c</sub>].
-    </p>
-
-    <p align="justify">
-      The z<sub>c</sub> control below adjusts the disantce between the camera
+      Here, z<sub>c</sub> control below adjusts the disantce between the camera
       and the ASO. Very large z<sub>c</sub> (e.g., z<sub>c</sub> > 20)
-      case corresponds to a camera looking directly
+      corresponds to a camera looking directly
       at the ASO and yields a symmetric deflection field.
-
-    </p>
-
-    <p align="justify">
-      Progressing from darkest to lightest, the height of the camera
-      above the center of the ASO to the camera origin is y<sub>c</sub> =
-      [0, 0.5, 1.0, 1.5, ..., 5.5, 6.0] a.u. The y<sub>c</sub> =0 case
-      corresponds to a camera looking directly at the ASO and yields a symmetric
+      The y<sub>c</sub> = 0 case corresponds to a camera
+      looking directly at the ASO and yields a symmetric
       deflection field. Larger values of y<sub>c</sub> move the camera above
       the ASO and stretch the effect of the ASO in the negative direction,
       as more of those rays still pass through the ASO.
     </p>
 
+    <p>
+      Progressing from darkest to lightest changes the the distance from the camera
+      to the center of the ASO. The plot shows values for
+      z<sub>c</sub> = [20, 4, 2.5, 2, 1.6, 1.35, 1.2, 1.1, 1, 0.9, 0.8].
+      The control changes the height of the camera, i.e., y<sub>c</sub>.
+    </p>
+
     <div class="control">
-      <span class="control-label">Distance to ASO</span>
-      <span class="control-unit">z<sub>c</sub></span> <br>
-      <input class="textinput" id="zcSlider" type="number" min="1" max="20" step="0.1" value="3">
+      <span class="control-label">Height of camera</span>
+      <span class="control-unit">y<sub>c</sub></span> <br>
+      <input class="textinput" id="zcSlider" type="number" min="-20" max="20" step="0.1" value="0.9">
+    </div>
+
+    <div class="control">
+      <span class="control-label">Phantom type</span> <br>
+      <select id="pha_no">
+        <option>Gaussian with dip</option>
+        <option>Gaussian</option>
+        <option>Cylinder, empty</option>
+        <option>Cylinder, full</option>
+        <option>Half circle</option>
+        <option>Cone</option>
+      </select>
     </div>
 
     <div id="my_beta" style="margin-top:10px"></div>

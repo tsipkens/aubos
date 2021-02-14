@@ -20,7 +20,7 @@ aso = Aso(R, Nr); % generate an axis-symmetric object
 
 %== Case studies / phantoms for dn/dr ====================================%
 %   Evaluated as ASO radial element edges.
-pha_no = 1;
+pha_no = 3;
 switch pha_no
     case 1 % gaussian
         bet = normpdf(aso.re,0,0.3);
@@ -71,6 +71,11 @@ oc = [zeros(1, Nc); ...
     -logspace(log10(1.1),log10(10),Nc)];
     % vector of camera origin locations
 
+oc = [zeros(1, Nc); ...
+    linspace(0, 6, Nc); ...
+    2 .* ones(1, Nc)];
+
+
 %{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
@@ -85,7 +90,7 @@ for cc=Nc:-1:1
     cam(cc).y = oc(2, cc);
     cam(cc).z = oc(3, cc);
     
-    cam(cc).y0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nv);
+    cam(cc).y0 = 5 .* linspace(-aso.re(end), aso.re(end), Nv);
     cam(cc).my = (cam(cc).y - cam(cc).y0) ./ ...
         cam(cc).z; % slope implied by camera location
 end

@@ -3,13 +3,13 @@
 var pi = 3.14159265359
 var eps = 1e-14 // tolerance
 
-var Kb = function(m, x0, r) {
+var Kb = function(m, y0, r) {
   return math.re(math.log(math.add(r,
-    math.sqrt(math.Complex(r ** 2 - x0 ** 2 / (1 + m ** 2), 0)))))
+    math.sqrt(math.Complex(r ** 2 - y0 ** 2 / (1 + m ** 2), 0)))))
 }
-var Kc = function(m, x0, r1, r2, r3) {
-  return 1 / (r2 - r1) * Kb(m, x0, r3 + eps)
-  // the + eps allows for finite value of kernel when r3 = x0
+var Kc = function(m, y0, r1, r2, r3) {
+  return 1 / (r2 - r1) * Kb(m, y0, r3 + eps)
+  // the + eps allows for finite value of kernel when r3 = y0
 }
 var linear = function(re, y0, my) {
   var K = Array(re.length)
@@ -50,19 +50,14 @@ var linear = function(re, y0, my) {
   K = math.transpose(K)
   return K
 }
-
 //-------------------------------------------------------------------------//
 
 
-var re_vec = linspace(0, 1, 120)
-var yl = linspace(-1.25, 1.25, 120)
-var ml = function(yl, zc, yc) {
-  for (ii = 0; ii < yl.length; ii++) {
-    out[ii] = math.subtract(yl[ii], yc) / zc
-  }
-  return out
-}
+var re_vec = linspace(0, 1, 100)
+var yl = linspace(-1.5, 1.5, 100)
 
+
+//-- DEFINE PHANTOMS ------------------------------------------------------//
 var normpdf = function(r, mu, sig) {
   out = Array(r.length)
   for (ii = 0; ii < r.length; ii++) {
@@ -70,19 +65,56 @@ var normpdf = function(r, mu, sig) {
   }
   return out
 }
-var bet1 = normpdf(re_vec, 0, 0.25)
-var bet2 = normpdf(re_vec, 0, 0.15)
-var bet = Array(re_vec.length)
+
+var bet_a1 = normpdf(re_vec, 0, 0.25)
+var bet_a2 = normpdf(re_vec, 0, 0.15)
+var bet_a = Array(re_vec.length)
+var bet_d = Array(re_vec.length)
 for (ii = 0; ii < re_vec.length; ii++) {
-  bet[ii] = 2.2 * bet1[ii] - 1.2 * bet2[ii]
+  bet_a[ii] = 2.2 * bet_a1[ii] - 1.2 * bet_a2[ii]
+  bet_d[ii] = bet_a1[ii]
 }
+
+var f_sigmoid = function(x, a) {
+  out = Array(x.length)
+  for (ii = 0; ii < x.length; ii++) {
+    out[ii] = 1 - 1 / (1 + math.exp(-80 * (x[ii] - a)));
+  }
+  return out
+}
+
+var bet_b1 = f_sigmoid(re_vec, 0.35)
+var bet_b2 = f_sigmoid(re_vec, 0.33)
+var bet_b = Array(re_vec.length)
+var bet_c = Array(re_vec.length)
+for (ii = 0; ii < re_vec.length; ii++) {
+  bet_b[ii] = 1.5 * (bet_b1[ii] - bet_b2[ii])
+  bet_c[ii] = 0.75 * bet_b1[ii]
+}
+
+var bet_e = Array(re_vec.length)
+var bet_f = Array(re_vec.length)
+for (ii = 0; ii < re_vec.length; ii++) {
+  if (re_vec[ii] < 0.7) {
+    bet_e[ii] = 2 * math.sqrt(0.7 ** 2 - re_vec[ii] ** 2)
+  } else {
+    bet_e[ii] = 0
+  }
+  bet_f[ii] = 1.5 * (1 - re_vec[ii])
+}
+
+
+bet = bet_a
+//-------------------------------------------------------------------------//
+
 
 var yc = 0
 var zc_vec = [20, 4, 2.5, 2, 1.6, 1.35, 1.2, 1.1, 1, 0.9, 0.8]  // curently unused
 
 var zc = 1
 var yc_vec = linspace(6, 0, 11)
-var xl = Array(yc_vec.length)
+
+var xl = Array(yl.length)
 
 // transfer to data structure
 var data2 = []
@@ -90,7 +122,7 @@ for (ii in yl) {
   t0 = {
     x: yl[ii]
   }
-  for (yy in zc_vec) { // loop through my slopes
+  for (yy in yc_vec) { // loop through my slopes
     t0['xl' + yy] = 0
   }
   data2.push(t0)
@@ -132,7 +164,7 @@ var svg3 = d3.select("#my_beta")
 
 // Add X axis
 var x2 = d3.scaleLinear()
-  .domain([-1.25, 1.25])
+  .domain([-1.5, 1.5])
   .range([0, width]);
 var xAxis2a = svg3.append("g")
   .attr("transform", "translate(0," + height3 + ")")
@@ -246,6 +278,14 @@ for (jj in zc_vec) {
 }
 
 
+var ml = function(yl, zc, yc) {
+  for (ii = 0; ii < yl.length; ii++) {
+    out[ii] = math.subtract(yl[ii], yc) / zc
+  }
+  return out
+}
+
+
 // Update plots (for zc_vec), currently unused
 var updateData2 = function(valy) {
   yc = valy
@@ -279,6 +319,27 @@ var updateData2 = function(valy) {
         // .defined(((d, i) => d['ys' + jj] != null))
       )
   }
+
+  data3 = []
+  for (ii=(re_vec.length-1); ii>=0; ii--) {
+    data3.push( { x: -re_vec[ii], y: bet[ii] } )
+  }
+  for (ii=0; ii<re_vec.length; ii++) {
+    data3.push( { x: re_vec[ii], y: bet[ii] } )
+  }
+
+  svg3.select("#betpath")
+    .datum(data3)
+    .transition(150)
+    .attr("d", d3.line()
+      .x(function(d) {
+        return x2(d.x)
+      })
+      .y(function(d) {
+        return y3(d.y)
+      })
+      // .defined(((d, i) => d['ys' + jj] != null))
+    )
 }
 
 // Update plots (for yc_vec)
@@ -314,14 +375,74 @@ var updateData3 = function(valz) {
         // .defined(((d, i) => d['ys' + jj] != null))
       )
   }
+
+  data3 = []
+  for (ii=(re_vec.length-1); ii>=0; ii--) {
+    data3.push( { x: -re_vec[ii], y: bet[ii] } )
+  }
+  for (ii=0; ii<re_vec.length; ii++) {
+    data3.push( { x: re_vec[ii], y: bet[ii] } )
+  }
+
+  svg3.select("#betpath")
+    .datum(data3)
+    .transition(150)
+    .attr("d", d3.line()
+      .x(function(d) {
+        return x2(d.x)
+      })
+      .y(function(d) {
+        return y3(d.y)
+      })
+      // .defined(((d, i) => d['ys' + jj] != null))
+    )
 }
 
-updateData3(document.getElementById('zcSlider').value, re_vec) // initial update
+updateData2(document.getElementById('zcSlider').value, re_vec) // initial update
 d3.select("#zcSlider").on("change", function() { // udpate data and plot
   val = this.value
   document.getElementById('zcSlider').disabled = true  // temporarily disable during update
-  updateData3(val, re_vec)
+  updateData2(val, re_vec)
   document.getElementById('zcSlider').disabled = false  // re-enable
 })
 //------------------------------------------------------------------------//
+//END PLOT ---------------------------------------------------------------//
+
+
+
+
+// Add stuff to change phantom -------------------------------------------//
+d3.select("#pha_no").on("change", function() {
+  pha_no = this.value;
+
+  console.log(this.value)
+
+  switch (pha_no) {
+    case "Gaussian with dip":
+      bet = bet_a;
+      break;
+
+    case "Cylinder, empty":
+      bet = bet_b;
+      break;
+
+    case "Cylinder, full":
+      bet = bet_c;
+      break;
+
+    case "Gaussian":
+      bet = bet_d;
+      break;
+
+    case "Half circle":
+      bet = bet_e;
+      break;
+
+    case "Cone":
+      bet = bet_f;
+      break;
+  }
+
+  updateData2(document.getElementById('zcSlider').value, re_vec)
+})
 //END PLOT ---------------------------------------------------------------//

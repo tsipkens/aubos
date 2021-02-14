@@ -20,7 +20,7 @@ aso = Aso(R, Nr); % generate an axis-symmetric object
 
 %== Case studies / phantoms for dn/dr ====================================%
 %   Evaluated as ASO radial element edges.
-pha_no = 2;
+pha_no = 3;
 switch pha_no
     case 1 % gaussian
         bet = normpdf(aso.re,0,0.3);
@@ -61,7 +61,7 @@ end
 
 Nv = 800; % number of pixels in "camera" (only one dim. considered for this ASO)
 
-cam_no = 6;  % 1 does not have z = -20 and doesn't work with second half of code
+cam_no = 8;  % 1 does not have z = -20 and doesn't work with second half of code
 switch cam_no
     case 1
         oc = [0, -0.8, -1.1];
@@ -90,6 +90,10 @@ switch cam_no
     case 7
         oc = [0, 0, -100];
         f = 1e4;
+        
+    case 8
+        oc = [0, 6, -3];
+        f = 1e2;
         
 end
 
