@@ -54,8 +54,8 @@ var linear = function(re, y0, my) {
 //-------------------------------------------------------------------------//
 
 
-var re_vec = linspace(0, 1, 100)
-var yl = linspace(-1.25, 1.25, 100)
+var re_vec = linspace(0, 1, 120)
+var yl = linspace(-1.25, 1.25, 120)
 var ml = function(yl, zc, yc) {
   for (ii = 0; ii < yl.length; ii++) {
     out[ii] = math.subtract(yl[ii], yc) / zc
@@ -81,7 +81,7 @@ var yc = 0
 var zc_vec = [20, 4, 2.5, 2, 1.6, 1.35, 1.2, 1.1, 1, 0.9, 0.8]  // curently unused
 
 var zc = 1
-var yc_vec = linspace(3, 0, 11)
+var yc_vec = linspace(6, 0, 11)
 var xl = Array(yc_vec.length)
 
 // transfer to data structure
@@ -222,7 +222,7 @@ svg2.append("text")
 svg2.append("text")
   .attr("text-anchor", "middle")
   .attr('transform', 'translate(-28,' + height / 2 + ')rotate(-90)')
-  .text("Projected deflection at z = 0 [a.u.]")
+  .text("Relative deflection [a.u.]")
 
 // generate plot
 for (jj in zc_vec) {
@@ -314,8 +314,8 @@ var updateData3 = function(valz) {
   }
 }
 
-updateData2(document.getElementById('zcSlider').value, re_vec) // initial update
-d3.select("#zcSlider").on("change", function(d) { // udpate data and plot
+updateData3(document.getElementById('zcSlider').value, re_vec) // initial update
+d3.select("#zcSlider").on("change", function() { // udpate data and plot
   val = this.value
   document.getElementById('zcSlider').disabled = true  // temporarily disable during update
   updateData3(val, re_vec)

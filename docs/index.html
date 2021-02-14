@@ -104,15 +104,16 @@
 
     <p align="justify">
       The z<sub>c</sub> control below adjusts the disantce between the camera
-      and the ASO. Very large z<sub>c</sub> (above 10) case corresponds to a camera looking
-      directly at the ASO and yields a symmetric deflection field.
+      and the ASO. Very large z<sub>c</sub> (e.g., z<sub>c</sub> > 20)
+      case corresponds to a camera looking directly
+      at the ASO and yields a symmetric deflection field.
 
     </p>
 
     <p align="justify">
       Progressing from darkest to lightest, the height of the camera
       above the center of the ASO to the camera origin is y<sub>c</sub> =
-      [0, 0.25, 0.50, 0.75, ..., 2.75, 3.00] a.u. The y<sub>c</sub> =0 case
+      [0, 0.5, 1.0, 1.5, ..., 5.5, 6.0] a.u. The y<sub>c</sub> =0 case
       corresponds to a camera looking directly at the ASO and yields a symmetric
       deflection field. Larger values of y<sub>c</sub> move the camera above
       the ASO and stretch the effect of the ASO in the negative direction,
@@ -122,7 +123,7 @@
     <div class="control">
       <span class="control-label">Distance to ASO</span>
       <span class="control-unit">z<sub>c</sub></span> <br>
-      <input class="textinput" id="zcSlider" type="number" min="1" max="20" step="0.1" value="1">
+      <input class="textinput" id="zcSlider" type="number" min="1" max="20" step="0.1" value="3">
     </div>
 
     <div id="my_beta" style="margin-top:10px"></div>

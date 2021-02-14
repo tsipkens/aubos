@@ -189,11 +189,11 @@ div.control {
 }
 
 .textinput:hover {
-  border: 2px solid #9BD6FF;
+  border: 2px solid #4DAEA3;
 }
 
 .textinput:focus {
-  border: 2px solid #9BD6FF;
+  border: 2px solid #4DAEA3;
 }
 
 
@@ -217,7 +217,7 @@ div.control {
   height: 11pt;
   border-radius: 50%;
   border: 1pt solid white;
-  background: #2AADFF;
+  background: #4DAEA3;
   cursor: pointer;
 }
 
@@ -225,6 +225,6 @@ div.control {
   width: 11pt;
   height: 11pt;
   border-radius: 50%;
-  background: #2AADFF;
+  background: #4DAEA3;
   cursor: pointer
 }
