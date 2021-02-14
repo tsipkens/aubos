@@ -117,7 +117,7 @@ var $container = $('#my_beta'),
 var margin = {
     top: 0,
     right: 5,
-    bottom: 6,
+    bottom: 8,
     left: 45
   },
   width = width_a - margin.left - margin.right,
@@ -181,6 +181,8 @@ svg3.append("path")
 
 // MAIN PLOT ---------------------------------------------------------------//
 // append the svg object to the body of the page
+var margin2 = margin;
+margin2.bottom = 45;
 var svg2 = d3.select("#my_dataviz2")
   .append("svg")
   .attr("width", width_a + margin.left + margin.right)

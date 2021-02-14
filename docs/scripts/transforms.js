@@ -101,7 +101,7 @@ var $container = $('#my_dataviz'),
     height_t = $container.height()
 var margin = {
     top: 0,
-    right: 5,
+    right: 10,
     bottom: 50,
     left: 40
   },
