@@ -15,7 +15,7 @@
 %  AUTHOR: Samuel Grauer, 2017-09-19 (original)
 %          Timothy Sipkens, 2020-09-22 (updates)
 
-function [p,v,eps_z,eps_y] = nonlin_ray(oc, v, aso, bet, f_print)
+function [p, v, eps_y, eps_z, eps_x] = nonlin_ray(oc, v, aso, bet, f_print)
 
 % Parse input
 if ~exist('f_print','var'), f_print = 1; end
@@ -26,11 +26,12 @@ z2 = aso.R;
 
 
 % Tracing quadrature
-ds = 0.5 .* min(aso.dr); % step size     [m]
-K  = ceil(25 * norm(z1 - z2) / ds); % iterations    []
+ds = 0.5 .* min(aso.dr);  % step size     [m]
+my_max = max(abs(v(2,:) ./ v(3,:)));
+K = ceil(1.2 * norm(z1 - z2) / ds * sqrt(1 + my_max.^2));  % max. iterations
 
 % Print script status
-if f_print; tools.textheader('Non-linear ray tracing'); tools.textbar(0); end
+if f_print; disp(' Non-linear ray tracing:'); tools.textbar(0); end
 %-------------------------------------------------------------------------%
 
 
@@ -57,20 +58,27 @@ while any(~ic)
     k = k + 1; % increment counter
     
     % Interpolate local IoF values
-    nk  = aso.interpc(c(2,:),c(3,:),bet) + 1;
-    [Dyk,Dzk] = aso.gradientc(c(2,:),c(3,:),bet);
+    nk  = aso.interpc(c(2,~ic), c(3,~ic), bet) + 1;
+    [Dyk,Dzk] = aso.gradientc(c(2,~ic), c(3,~ic), bet);
+    Dxk = zeros(size(Dyk));
     
     % Step each ray
+    c(:,~ic) = c(:,~ic) + ds * bsxfun(@rdivide, v(:,~ic), nk); % update position
+    v(:,~ic) = normc(v(:,~ic) + ds .* [Dxk;Dyk;Dzk]); % update direction (first zero represents Dxk)
+    
     ic = c(3,:)>aso.R; % index of converged rays
-    c(:,~ic) = c(:,~ic) + ds * bsxfun(@rdivide, v(:,~ic), nk(~ic)); % update position
-    v = normc(v + ds .* [zeros(size(Dyk));Dyk;Dzk]); % update direction (first zero represents Dxk)
     
     % Update progress bar
     if f_print; tools.textbar(k/K); end
     
     if k==K; break; end % if iteration limit reached
 end
-if f_print; tools.textbar(1); disp(' '); end
+
+if f_print
+    tools.textbar(1);
+    if any(~ic); warning('Not all of the rays converged!'); end
+    disp(' ');
+end
 %-------------------------------------------------------------------------%
 
 
@@ -78,13 +86,12 @@ if f_print; tools.textbar(1); disp(' '); end
 % Assign ray positions
 p = c;
 
-% a = dot(v,v0);
+% eps_y = dot(v,v0);
 % eps_y = p(2,:) - p0(2,:);
-% eps_y = atan2(dot([1;0;0]*ones(1,size(v,2)),cross(v,v0)),dot(v,v0));
-% eps_y = acos2(v(2,:) .* v0(2,:) + v(3,:) .* v0(3,:) - eps);
-% eps_y = real(sqrt(1 + dot(v,v0) .^ 2) ./ dot(v,v0));
-eps_y = v(2,:) - v0(2,:); % a(2, :);
-eps_z = v(3,:) - v0(3,:);
+% eps_y = atan2(dot([1;0;0]*ones(1,size(v,2)),cross(v,v0)),dot(v,v0))';  % angle between
+eps_x = (v(2,:) - v0(2,:))';
+eps_y = (v(2,:) - v0(2,:))';
+eps_z = (v(3,:) - v0(3,:))';
 
 % Check for failed rays
 d  = (p-z1)'*(z2-z1)/norm(z2-z1)^2; % Ray-wise distance travelled   [m]

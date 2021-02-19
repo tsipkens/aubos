@@ -15,7 +15,7 @@
 %  AUTHOR: Samuel Grauer, 2017-09-19 (original)
 %          Timothy Sipkens, 2020-09-22 (updates)
 
-function [p,v,eps_z,eps_y] = linear_ray(oc, v, aso, bet, f_print)
+function [p,v,eps_y] = linear_ray(oc, v, aso, bet, f_print)
 
 % Parse input
 if ~exist('f_print','var'), f_print = 1; end
@@ -26,11 +26,13 @@ z2 = aso.R;
 
 
 % Tracing quadrature
-ds = 0.5 .* min(aso.dr); % step size     [m]
-K  = ceil(25 * norm(z1 - z2) / ds); % iterations    []
+ds = 0.5 .* min(aso.dr);  % step size     [m]
+my_max = max(abs(v(2,:) ./ v(3,:)));
+K  = ceil(1.2 * norm(z1 - z2) / ds * sqrt(1 + my_max.^2));  % max. iterations
+
 
 % Print script status
-if f_print; tools.textheader('Linear ray tracing'); tools.textbar(0); end
+if f_print; disp(' Linear ray tracing:'); tools.textbar(0); end
 %-------------------------------------------------------------------------%
 
 
@@ -38,16 +40,6 @@ if f_print; tools.textheader('Linear ray tracing'); tools.textbar(0); end
 %   Uses a linear projection. Direction remains unchanged.
 d = (z1 - oc(3,:)') ./ (v' * [0 0 1]'); % distance of start of ASO
 c = oc + bsxfun(@times, v, d'); % adjust ray position to start of ASO
-
-% Also, calulate ray position if no ASO.
-d0 = (z2 - oc(3,:)') ./ (v' * [0 0 1]'); % distance of start of ASO
-p0 = oc + bsxfun(@times, v, d0'); % adjust ray position to start of ASO
-
-% Also, calulate ray position if no ASO, at center of ASO (i.e., y0).
-d1 = (0 - oc(3,:)') ./ (v' * [0 0 1]'); % distance of start of ASO
-p1 = oc + bsxfun(@times, v, d1'); % adjust ray position to start of ASO
-
-v0 = v;
 %-------------------------------------------------------------------------%
 
 
@@ -80,8 +72,7 @@ if f_print; tools.textbar(1); disp(' '); end
 % Assign ray positions
 p = c;
 
-eps_y = iy;
-eps_z = 0;
+eps_y = iy';
 
 % Check for failed rays
 d  = (p-z1)'*(z2-z1)/norm(z2-z1)^2; % Ray-wise distance travelled   [m]
