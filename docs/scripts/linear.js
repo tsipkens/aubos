@@ -53,8 +53,8 @@ var linear = function(re, y0, my) {
 //-------------------------------------------------------------------------//
 
 
-var re_vec = linspace(0, 1, 100)
-var yl = linspace(-1.5, 1.5, 100)
+var re_vec = linspace(0, 1, 70)
+var yl = linspace(-1.5, 1.5, 70)
 
 
 //-- DEFINE PHANTOMS ------------------------------------------------------//
