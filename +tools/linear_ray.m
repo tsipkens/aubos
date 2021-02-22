@@ -32,12 +32,12 @@ z2 = aso.R;
 % Tracing quadrature.
 % Get step size, with different conditions w/ and w/o axial component.
 if f_axial
-    ds = 0.25 .* min([aso.dr; aso.dx]);
+    ds = 0.5 .* min([aso.dr; aso.dx]);
     my_max = max(abs(v(2,:) ./ v(3,:)));
     mx_max = max(abs(v(2,:) ./ v(3,:)));
     m_max = sqrt(1 + mx_max^2 + my_max^2);
 else
-    ds = 0.25 .* min(aso.dr);
+    ds = 0.5 .* min(aso.dr);
     m_max = max(abs(v(2,:) ./ v(3,:)));
 end
 K = ceil(1.2 * norm(z1 - z2) / ds * ...
