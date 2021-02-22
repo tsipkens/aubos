@@ -81,17 +81,17 @@ classdef Aso2
             
             %-- Compute differential operators ---------------------------%
             I1 = speye(aso.Nr+1, aso.Nr+1);
-            E1 = sparse(1:aso.Nr+1-1,2:aso.Nr+1,1,aso.Nr+1,aso.Nr+1);
-            D1 = E1-I1;
+            E1 = sparse(1:aso.Nr+1-1, 2:aso.Nr+1, 1, aso.Nr+1, aso.Nr+1);
+            D1 = (E1 - I1) ./ [aso.dr; aso.dr(end)];
             D1(end,end) = 0; % applies no slope at final radial position
             
             I2 = speye(aso.Nx,aso.Nx);
-            E2 = sparse(1:aso.Nx-1,2:aso.Nx,1,aso.Nx,aso.Nx);
-            D2 = E2-I2;
+            E2 = sparse(1:aso.Nx-1, 2:aso.Nx, 1, aso.Nx, aso.Nx);
+            D2 = (E2 - I2) ./ aso.dx;
             D2(end,end) = 1; D2(end,end-1) = -1; % applies same slope as previous y-position
             
-            aso.Dr = kron(I2,D1);
-            aso.Dx = kron(D2,I1);
+            aso.Dr = kron(I2, D1);
+            aso.Dx = kron(D2, I1);
             %-------------------------------------------------------------%
             
             

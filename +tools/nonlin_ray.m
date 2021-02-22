@@ -19,16 +19,30 @@ function [p, v, eps_y, eps_z, eps_x] = nonlin_ray(oc, v, aso, bet, f_print)
 
 % Parse input
 if ~exist('f_print','var'), f_print = 1; end
+
+f_axial = 0;  % flag indicating if axial contributions
+if isa(aso, 'Aso2'); f_axial = 1; end
+
 v = normc(v);  % normalize the ray direction
 
 z1 = -aso.R;
 z2 = aso.R;
 
 
-% Tracing quadrature
-ds = 0.5 .* min(aso.dr);  % step size     [m]
-my_max = max(abs(v(2,:) ./ v(3,:)));
-K = ceil(1.2 * norm(z1 - z2) / ds * sqrt(1 + my_max.^2));  % max. iterations
+% Tracing quadrature.
+% Get step size, with different conditions w/ and w/o axial component.
+if f_axial
+    ds = 0.25 .* min([aso.dr; aso.dx]);
+    my_max = max(abs(v(2,:) ./ v(3,:)));
+    mx_max = max(abs(v(2,:) ./ v(3,:)));
+    m_max = sqrt(1 + mx_max^2 + my_max^2);
+else
+    ds = 0.25 .* min(aso.dr);
+    m_max = max(abs(v(2,:) ./ v(3,:)));
+end
+K = ceil(1.2 * norm(z1 - z2) / ds * ...
+    sqrt(1 + m_max.^2));  % max. iterations
+
 
 % Print script status
 if f_print; disp(' Non-linear ray tracing:'); tools.textbar(0); end
@@ -40,14 +54,6 @@ if f_print; disp(' Non-linear ray tracing:'); tools.textbar(0); end
 d = (z1 - oc(3,:)') ./ (v' * [0 0 1]'); % distance of start of ASO
 c = oc + bsxfun(@times, v, d'); % adjust ray position to start of ASO
 
-% Also, calulate ray position if no ASO.
-d0 = (z2 - oc(3,:)') ./ (v' * [0 0 1]'); % distance of start of ASO
-p0 = oc + bsxfun(@times, v, d0'); % adjust ray position to start of ASO
-
-% Also, calulate ray position if no ASO, at center of ASO (i.e., y0).
-d1 = (0 - oc(3,:)') ./ (v' * [0 0 1]'); % distance of start of ASO
-p1 = oc + bsxfun(@times, v, d1'); % adjust ray position to start of ASO
-
 v0 = v;
 %-------------------------------------------------------------------------%
 
@@ -58,9 +64,14 @@ while any(~ic)
     k = k + 1; % increment counter
     
     % Interpolate local IoF values
-    nk  = aso.interpc(c(2,~ic), c(3,~ic), bet) + 1;
-    [Dyk,Dzk] = aso.gradientc(c(2,~ic), c(3,~ic), bet);
-    Dxk = zeros(size(Dyk));
+    if f_axial
+        nk  = aso.interpc(c(1,~ic), c(2,~ic), c(3,~ic), bet) + 1;
+        [Dxk,Dyk,Dzk] = aso.gradientc(c(1,~ic), c(2,~ic), c(3,~ic), bet);
+    else
+        nk  = aso.interpc(c(2,~ic), c(3,~ic), bet) + 1;
+        [Dyk,Dzk] = aso.gradientc(c(2,~ic), c(3,~ic), bet);
+        Dxk = zeros(size(Dyk));
+    end
     
     % Step each ray
     c(:,~ic) = c(:,~ic) + ds * bsxfun(@rdivide, v(:,~ic), nk); % update position
@@ -88,8 +99,10 @@ p = c;
 
 % eps_y = dot(v,v0);
 % eps_y = p(2,:) - p0(2,:);
-% eps_y = atan2(dot([1;0;0]*ones(1,size(v,2)),cross(v,v0)),dot(v,v0))';  % angle between
-eps_x = (v(2,:) - v0(2,:))';
+% eps_y = atan2(dot([1;0;0] * ...
+%     ones(1,size(v,2)), cross(v(2:3,:), v0(2:3,:))), ...
+%     dot(v(2:3,:), v0(2:3,:)))';  % angle between
+eps_x = (v(1,:) - v0(1,:))';
 eps_y = (v(2,:) - v0(2,:))';
 eps_z = (v(3,:) - v0(3,:))';
 
