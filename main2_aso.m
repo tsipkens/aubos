@@ -13,8 +13,8 @@ addpath cmap; % add colormaps to path
 
 %%
 % Size of image
-Nv = 104;%249;
-Nu = 128;%352;
+% Nv = 249; Nu = 352;  % higher res. (slow)
+Nv = 81; Nu = 100;  % lower res. (fast)
 
 % Axisymmetric target object information and creation
 R = 1;
