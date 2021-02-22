@@ -23,7 +23,7 @@ aso2 = Aso2(R, Nr, X, Nx);
 %== Case studies / phantoms ==============================================%
 [xe, re] = meshgrid(aso2.xe(1:(end-1)), aso2.re);
 
-pha_no = 3;  % default jet is Pha. No. 3
+pha_no = 4;  % default jet is Pha. No. 3, Gaussian sphere is 4
 switch pha_no
     case 1
         bet2 = normpdf(re, 0, 0.5 .* (6 .* xe + 4)./(6 .* X + 4)); % spreading Gaussian jet
@@ -45,19 +45,16 @@ bet2 = bet2(:);
 Nv = 250;  % first image dimension
 Nu = 352;  % second image dimension
 
-% Main case: 2
-% Alt case: 3
-% Case no. 1 has issues with some of camera view out of the phantom scope.
-cam_no = 3;
+cam_no = 1;
 switch cam_no
     case 1
-        oc = [3,0.5,2.5];   % camera origin
+        oc = [3.5,0.5,-1.9];   % camera origin
         f = 1.5e2;          % focal length [px]
     case 2
-        oc = [2,0,20];      % camera origin
+        oc = [2,0,-20];      % camera origin
         f = 1.8e3;          % focal length [px]
     case 3
-        oc = [2,0,2.5];   % camera origin
+        oc = [2,0,-2.5];   % camera origin
         f = 3e2;          % focal length [px]
 end
 cam = Camera(Nu, Nv, oc, f); % generate a camera
@@ -68,6 +65,26 @@ figure(3);
 aso2.prays(bet2, cam.mx, cam.x0);
 colormap(flipud(ocean));
 
+
+
+%%
+%== Non-linear ray tracing of object =====================================%
+mod_scale = 1e3;
+[~, ~, eps_y, eps_z, eps_x] = tools.nonlin_ray(oc', ...
+    [cam.mx; cam.my; ones(size(cam.my))], ...
+    aso2, bet2 ./ mod_scale);
+ynlr = eps_y .* mod_scale;
+ynlr2 = reshape(ynlr, [Nv, Nu]);
+
+figure(1);
+imagesc(cam.x0, cam.y0, ynlr2);
+colormap(curl(255));
+y_max = max(max(abs(ynlr2)));
+caxis([-y_max, y_max]);
+axis image;
+set(gca,'YDir','normal');
+colorbar;
+%=========================================================================%
 
 
 

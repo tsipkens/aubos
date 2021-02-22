@@ -8,7 +8,7 @@
 %=========================================================================%
 
 
-clear; close all;
+clear; close all ;
 addpath cmap; % add colormaps to path
 
 
@@ -19,15 +19,15 @@ aso = Aso(R, Nr); % generate an axis-symmetric object
 
 
 %== Case studies / phantoms for dn/dr ====================================%
-%   Evaluated as ASO radial element edges.
+%   Evaluated at ASO radial element edges.
 pha_no = 3;
 switch pha_no
     case 1 % gaussian
         bet = normpdf(aso.re,0,0.3);
         
     case 2 % gaussian with central dip
-        bet = (1+1.2) .* normpdf(aso.re,0,0.25) - ...
-            1.2.*normpdf(aso.re,0,0.15);
+        bet = 0.8 .* ((2.2) .* normpdf(aso.re,0,0.25) - ...
+            1.2 .* normpdf(aso.re,0,0.15));
         
     case 3 % approx. cylinder, sigmoid function softens transition
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
@@ -38,7 +38,7 @@ switch pha_no
         
     case 5 % ring, e.g. looking through a cup, sigmoid softens transition
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
-        bet = 5 .* (f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33));
+        bet = 3 .* (f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33));
         
     case 6 % half circle
         bet = sqrt(max(0.7.^2 - aso.re.^2, 0));
@@ -61,45 +61,44 @@ end
 
 Nv = 800; % number of pixels in "camera" (only one dim. considered for this ASO)
 
-cam_no = 8;  % 1 does not have z = -20 and doesn't work with second half of code
+% Camera number ...
+%  No. 6 is default using in manuscript.
+%  No. 1 does not have z = -20 and doesn't work with second half of code
+cam_no = 6;
 switch cam_no
     case 1
-        oc = [0, -0.8, -1.1];
+        oc0 = [0, 1.2, -1.1];
         f = 1e3/20;
         
     case 2
-        oc = [0, 0, -20];
+        oc0 = [0, 0, -20];
         f = 2e3;
         
     case 3
-        oc = [0, -2, -20];
+        oc0 = [0, -2, -20];
         f = 8e2;
         
     case 4
-        oc = [0, -1.2, -20];
+        oc0 = [0, -1.2, -20];
         f = 2e3;
         
     case 5
-        oc = [0, -0.5, -20];
+        oc0 = [0, -0.5, -20];
         f = 1e3;
         
     case 6
-        oc = [0, 1.2, -20];
+        oc0 = [0, 1.2, -20];
         f = 2e3;
         
     case 7
-        oc = [0, 0, -100];
+        oc0 = [0, 0, -100];
         f = 1e4;
-        
-    case 8
-        oc = [0, 6, -3];
-        f = 1e2;
         
 end
 
 %-{
 %-- OPTION 1: Use Camera class ---------------%
-cam = Camera(1, Nv, oc, f);
+cam = Camera(1, Nv, oc0, f);
 %}
 
 %{
@@ -122,13 +121,25 @@ aso.prays(bet, cam.my(1:10:end), cam.y0(1:10:end), 0);
 colormap(flipud(ocean));
 
 
+mod_scale = 1e3;
+[~,~,blr0] = tools.linear_ray((oc0')*ones(1, length(cam.my)), ...
+    [zeros(size(cam.my)); cam.my; ones(size(cam.my))], ...
+    aso, bet ./ mod_scale);
+[~,~,bnlr0,bnlr0_z] = tools.nonlin_ray((oc0')*ones(1, length(cam.my)), ...
+    [zeros(size(cam.my)); cam.my; ones(size(cam.my))], ...
+    aso, bet ./ mod_scale);
+blr0 = blr0 .* mod_scale;
+bnlr0 = bnlr0 .* mod_scale;
+bnlr0_z = bnlr0_z .* mod_scale;
+
+
 
 % Generate kernel.
 Kl = kernel.linear_d(aso, cam.y0, cam.my);
-bl = Kl * bet;  % forward model, deflections using linear kernel
+bl0 = Kl * bet;  % forward model, deflections using linear kernel
 
 Ku = kernel.uniform_d(aso, cam.y0, cam.my);
-bu = Ku * bet;
+bu0 = Ku * bet;
 
 Kui = kernel.uniform_i(aso, cam.y0, cam.my);
 bui = Kui * bet;
@@ -137,10 +148,10 @@ Kli = kernel.linear_i(aso, cam.y0, cam.my);
 bli = Kli * bet;
 
 figure(10);
-plot(bl);
+plot(bl0);
 hold on;
 plot(bui - bui(1), 'b--');
-plot(cumsum(bl(2:end) .* ...
+plot(cumsum(bl0(2:end) .* ...
     (cam.y0(2:end)' ./ sqrt(1 + cam.my(2:end)'.^2) - ...
     cam.y0(1:(end-1))' ./ sqrt(1 + cam.my(1:(end-1))'.^2))), ...
     'k--');
@@ -148,16 +159,15 @@ plot(diff(bui) ./ (cam.y0(2:end) - cam.y0(1:(end-1))), 'r--');
 plot(diff(bli) ./ (cam.y0(2:end) - cam.y0(1:(end-1))), 'b:');
 hold off;
 
-
-figure(11);
-[~,~,t0,t1] = tools.linear_ray((oc')*ones(1, length(cam.my)), [zeros(size(cam.my)); cam.my; ones(size(cam.my))], aso, bet ./ 1e3);
-[~,~,t2,t3] = tools.nonlin_ray((oc')*ones(1, length(cam.my)), [zeros(size(cam.my)); cam.my; ones(size(cam.my))], aso, bet ./ 1e3);
-plot(cam.y0, t1.*1e3);
+figure(9);
+plot(cam.y0, blr0);
 hold on;
-plot(cam.y0, t3.*1e3);
-plot(cam.y0, t0.*1e3, 'Color', [0.8,0.8,0.8]);
-plot(cam.y0, bl, 'k--');
+plot(cam.y0, bnlr0);
+plot(cam.y0, bnlr0_z, 'Color', [0.8,0.8,0.8]);
+plot(cam.y0, bl0, 'k--');
 hold off;
+
+
 
 %%
 %== COMPARE FORWARD RESULTS ==============================================%
@@ -187,8 +197,8 @@ plot(aso.re, b2);
 plot(aso.re, b3);
 plot(aso.re, b4);
 plot(aso.re, bet, 'k');
-plot(cam(end).y0, bu, 'Color', [1, 0.7, 0.7]);
-plot(cam(end).y0, bl, '--k');
+plot(cam(end).y0, bu0, 'Color', [1, 0.7, 0.7]);
+plot(cam(end).y0, bl0, '--k');
 hold off
 xlim([0, max(aso.re)]);
 %=========================================================================%
@@ -196,7 +206,7 @@ xlim([0, max(aso.re)]);
 
 %%
 %== COMPARE INVERSE OPERATORS ============================================%
-cam_vec = [1,10,15,18,19,20];
+cam_vec = 20 ./ [20, 5, 2, 1.5, 1.15, 1.05]; % [1,10,15,18,19,19.9];
 
 figure(11);
 cmap_sweep(length(cam_vec)+1, inferno);
@@ -211,27 +221,40 @@ for ii=21:27
     xlim([0, aso.R]);
 end
 
+ii = 0;
+re(length(cam_vec)) = struct();
 for cc = cam_vec
     
     rng(cc+1);
     
-    oc_cc = oc;
-    oc_cc(3) = oc_cc(3) ./ cc;
+    oc = oc0;
+    oc(3) = oc(3) ./ cc;
     f_cc = f ./ cc;
-    cam = Camera(1, Nv, oc_cc, f_cc);
+    cam = Camera(1, Nv, oc, f_cc);
     
-    % Generate kernel.
+    [~,~,bnlr] = tools.nonlin_ray((oc')*ones(1, length(cam.my)), ...
+        [zeros(size(cam.my)); cam.my; ones(size(cam.my))], ...
+        aso, bet ./ mod_scale);
+    bnlr = bnlr .* mod_scale;
+    
     Kl = kernel.linear_d(aso, cam.y0, cam.my);
-    bl = Kl * bet;  % forward model, deflections using linear kernel
+    bl = Kl * bet;
+    
+    figure(7);
+    plot(cam.y0, bnlr);
+    hold on;
+    plot(cam.y0, bl, 'k--');
+    hold off;
+
 
     
     figure(11);
     hold on;
-    plot(cam.y0, bl);
+    plot(cam.y0, bnlr);
     hold off;
     
     noise_lvl = 2e-1;
-    b_a = bl + noise_lvl .* randn(size(bl));
+    b_a = bnlr + noise_lvl .* randn(size(bnlr));
     Le_a = sparse(diag(1 ./ noise_lvl .* ones(size(b_a))));
     
     f_b = and(cam.y0 >= -1e-5, cam.y0 <= aso.R);
@@ -253,6 +276,7 @@ for cc = cam_vec
     betu = regularize.tikhonov1(Ku, b_a, Le_a, 1e2);
     
     % Tikhonov + Linear NRAP kernel
+    Kl = kernel.linear_d(aso, cam.y0, cam.my);
     betl = regularize.tikhonov1(Kl, b_a, Le_a, 1e2);
     
     Klidx = kernel.linear_idx(length(b_b), my);
@@ -324,11 +348,22 @@ for cc = cam_vec
     xlim([0, aso.R]);
     
     figure(20);
-    plot(cam.y0, bl, 'k');
+    plot(cam.y0, bnlr, 'k');
     hold on;
     plot(cam.y0, b_a, 'r.');
     plot(y, b_b, 'ko', 'MarkerSize', 2.8);
     hold off
+    
+    
+    ii = ii + 1;
+    bety = interp1(aso.re, bet, y)';
+    re(ii).twopt = norm(bet1 - bety) ./ norm(bety);
+    re(ii).threept = norm(bet3 - bety) ./ norm(bety);
+    re(ii).simps13 = norm(bet5 - bety) ./ norm(bety);
+    re(ii).onion_peel = norm(bet4 - bety) ./ norm(bety);
+    re(ii).linear_d = norm(betl - bet) ./ norm(bet);
+    re(ii).uniform_d = norm(betu - bet) ./ norm(bet);
+    re(ii).linear_idx = norm(bet2b - bety) ./ norm(bety);
     
     pause(0.3);
 end
@@ -337,7 +372,30 @@ end
 for ii=21:27
     fi = figure(ii);
     fi.Position(4) = 280;
-    ylim([-0.1, 2]);
+    ylim([-0.1, 1.2]);
 end
+
+figure(2);
+cmap_sweep(length(cam_vec)+1, inferno);
+plot([-flipud(aso.re); aso.re], ...
+    sqrt(1 - [-flipud(aso.re); aso.re].^2), 'k-');
+hold on;
+for cc = cam_vec
+    rng(cc+1);
+    
+    oc = oc0;
+    oc(3) = oc(3) ./ cc;
+    f_cc = f ./ cc;
+    cam = Camera(1, Nv, oc, f_cc);
+    
+    plot(cam.z, cam.y, '.');
+end
+hold off;
+axis image;
+axis off;
 %=========================================================================%
+
+
+
+
 

@@ -36,7 +36,8 @@ plot(r_vec, transform.abeld(y0_vec(ii), r_vec), 'w--'); % Abel kernel as dashed 
 ylims = ylim;
 plot([y0,y0], ylims, 'k'); % add x0 as a vertical line to the plot
 hold off;
-ylim([0,20]);
+ylim([0,8]);
+xlim([0,1]);
 axis square;
 
 ylabel('Kernel, {\it{K}}');
@@ -48,9 +49,7 @@ leg.Title.Visible = 'on';
 
 
 
-%-- FIG 3: Plot kernel across and range of rays --------------------------%
-%   Rays have identical x0 values (x-position of ray at z = 0)
-%   and differ in terms of the slope, mx.
+%-- FIG 3: Same as Fig. 2, but for indirect kernel -----------------------%
 figure(3);
 clf;
 cmap_sweep(length(my_vec), inferno); % set color order
@@ -64,7 +63,7 @@ plot(r_vec, transform.abel(y0_vec(ii), r_vec), 'w--'); % Abel kernel as dashed w
 ylims = ylim;
 plot([y0,y0], ylims, 'k'); % add x0 as a vertical line to the plot
 hold off;
-ylim([0,20]);
+ylim([0,8]);
 axis square;
 
 ylabel('Kernel, {\it{K}}');

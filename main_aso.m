@@ -20,7 +20,7 @@ aso = Aso(R, Nr); % generate an axis-symmetric object
 
 %== Case studies / phantoms for dn/dr ====================================%
 %   Evaluated as ASO radial element edges.
-pha_no = 3;
+pha_no = 1;
 switch pha_no
     case 1 % gaussian
         bet = normpdf(aso.re,0,0.3);
@@ -46,9 +46,12 @@ end
 %=========================================================================%
 
 
+% FIG 2: Simple plot of bet for the ASO.
+figure(1);
+plot([-flipud(aso.re); aso.re], [flipud(bet); bet], 'k');
 
 % FIG 3: Plot Phantom (2D slice through center of ASO)
-figure(3);
+figure(2);
 aso.surf(bet);
 colormap(flipud(ocean));
 axis off;
@@ -67,13 +70,15 @@ Nv = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
 
 Nc = 20; % number of camera positions
 oc = [zeros(1, Nc); ...
-    fliplr(linspace(0, 0.8, Nc)); ...
-    -logspace(log10(1.1),log10(10),Nc)];
+    fliplr(linspace(0, 1.5, Nc)); ...
+    -(1+logspace(log10(0.1),log10(10),Nc))];
     % vector of camera origin locations
+    
+% oc = [0; 0.5; -8;]; Nc = 1;
 
-oc = [zeros(1, Nc); ...
-    linspace(0, 6, Nc); ...
-    2 .* ones(1, Nc)];
+% oc = [zeros(1, Nc); ...
+%     linspace(0, 6, Nc); ...
+%     2 .* ones(1, Nc)];
 
 
 %{
@@ -155,7 +160,6 @@ Idef1 = sin(0.3 .* (v + bdef1));
 Idef2 = sin(0.3 .* (v + bdef2));
 imagesc([Iref; Idef1; Idef2]);
 colormap(gray);
-
 
 % FIG 10: Plot position of cameras relative to ASO
 figure(10);
