@@ -37,11 +37,11 @@ if nargin<4  % consider 1D case
     rju = re(3:end);     % r_{j+1}
 
     % functions for indefinite integral
-    Kb = @(m,y0,r) log(r + sqrt(r.^2 - y0.^2 ./ (1+m.^2)));
+    Kb = @(m,y0,r) log(abs(r + sqrt(r.^2 - y0.^2 ./ (1+m.^2))));
     Kc = @(m,y0,r1,r2,r3) 1 ./ (r2 - r1) .* Kb(m, y0, r3 + eps);
         % the + eps allows for finite value of kernel when r3 = x0
     
-    K = real(2 ./ (1 + my .^ 2) .* y0 .* ( ... % real(.) removes values outside integral bounds
+    K = (2 ./ (1 + my .^ 2) .* y0 .* ( ... % real(.) removes values outside integral bounds
         [ ...
          zeros(1,max(length(my),length(y0))); ... % max allows for either m or u0 to be a scalar
          Kc(my,y0,rjd,rj,rj) - ...
