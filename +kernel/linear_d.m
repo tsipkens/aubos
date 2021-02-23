@@ -263,9 +263,14 @@ else  % consider 2D case
              zeros(1,size(rj,2))
             ])))';
         
+        % Extra IF statements consider if no intersecting rays.
         K0 = zeros(length(idx_a), aso2.Nr+1);
-        K0(idx_b - idx_a(1) + 1, :) = K1;
-        K0(idx_c - idx_a(1) + 1, :) = K0(idx_c - idx_a(1) + 1, :) + K2;
+        if ~isempty(idx_b)
+            K0(idx_b - idx_a(1) + 1, :) = K0(idx_b - idx_a(1) + 1, :) + K1;
+        end
+        if ~isempty(idx_c)
+            K0(idx_c - idx_a(1) + 1, :) = K0(idx_c - idx_a(1) + 1, :) + K2;
+        end
         K0(isnan(K0)) = 0; % remove NaN values that result when modified element width is zero
         K0(abs(K0)<1e3*eps) = 0;  % supress numerical noise
         K0 = sparse(K0);
