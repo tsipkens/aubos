@@ -117,8 +117,12 @@ str_p03 = [str_p03, repmat(' ', [1, n_frac-length(str_p03)])];  % pad with neces
 str_out = [' ', str_p00, '%%', ' |', str_p01, str_p02, '| ', str_p03];
 
 
-fprintf([str_back, str_out, repmat(' ', [1, n_str-length(str_out)]), '\n']);
-%-------------------------------------------------------------------------%
+if pct>=1
+    fprintf(str_back);
+    fprintf(['[', 8, str_out, repmat(' ', [1, n_str-length(str_out)]), ']', 8, '\n']);
+else
+    fprintf([str_back, str_out, repmat(' ', [1, n_str-length(str_out)]), '\n']);
+end%-------------------------------------------------------------------------%
 
 end
 
