@@ -115,9 +115,13 @@ str_p03 = [str_p03, repmat(' ', [1, n_frac-length(str_p03)])];  % pad with neces
 
 % Compile formatted sting.
 str_out = [' ', str_p00, '%%', ' |', str_p01, str_p02, '| ', str_p03];
+str_all = [str_out, repmat(' ', [1, n_str-length(str_out)]), '\n'];
 
-
-fprintf([str_back, str_out, repmat(' ', [1, n_str-length(str_out)]), '\n']);
+if pct<1
+    fprintf([str_back, '[', 8,  str_all, ']', 8]);  % give orange format
+else
+    fprintf([str_back, str_all]);
+end
 %-------------------------------------------------------------------------%
 
 end
