@@ -123,19 +123,29 @@ classdef Aso
         %   Plot the axis-symmetric object as a series of annuli.
         %   Timothy Sipkens, 2020-06-09
         %   Note: Works best with monotonically increasing/decreasing z0.
-        function h = plot(aso, bet, f_edges)
+        function h = plot(aso, bet, f_edges, f_img)
             
             if ~exist('f_edges', 'var'); f_edges = []; end
             if isempty(f_edges); f_edges = 1; end
             
-            [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
+            if ~exist('f_img', 'var'); f_img = []; end
+            if isempty(f_img); f_img = 0; end
             
-            x0 = aso.re(i) .* cos(t);
-            y0 = aso.re(i) .* sin(t);
-            z0 = bet(i);
-            
-            h = contourf(x0, y0, z0, sort(bet), ...
-                'edgecolor','none');
+            if f_img
+                x0 = linspace(-aso.R, aso.R, 201);
+                y0 = linspace(-aso.R, aso.R, 205);
+                [x1, y1] = meshgrid(x0, y0);
+                z0 = aso.interpc(x1, y1, bet);
+                h = imagesc(x0, y0, z0);
+            else
+                [t,i] = meshgrid(linspace(0,2*pi,64), 1:(aso.Nr+1));
+                x0 = aso.re(i) .* cos(t);
+                y0 = aso.re(i) .* sin(t);
+                z0 = bet(i);
+                
+                h = contourf(x0, y0, z0, sort(bet), ...
+                    'edgecolor','none');
+            end
             axis image;
             
             if f_edges
