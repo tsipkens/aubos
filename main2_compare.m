@@ -70,9 +70,9 @@ colormap(flipud(ocean));
 
 
 %%
-%== Non-linear ray tracing of object =====================================%
+%== Ray tracing of object ================================================%
 mod_scale = 1e3;
-[~, ~, eps_y, eps_z, eps_x] = tools.nonlin_ray(oc', ...
+[~, ~, eps_y, eps_x, eps_z] = tools.nonlin_ray(oc', ...
     [cam.mx; cam.my; ones(size(cam.my))], ...
     aso2, bet2 ./ mod_scale);
 ynlr = eps_y .* mod_scale;
@@ -82,6 +82,22 @@ figure(1);
 imagesc(cam.x0, cam.y0, ynlr2);
 colormap(curl(255));
 y_max = max(max(abs(ynlr2)));
+caxis([-y_max, y_max]);
+axis image;
+set(gca,'YDir','normal');
+colorbar;
+
+
+[~, ~, eps_lr_y, eps_lr_x] = tools.linear_ray(oc', ...
+    [cam.mx; cam.my; ones(size(cam.my))], ...
+    aso2, bet2);
+ylr = eps_lr_y;
+ylr2 = reshape(ylr, [Nv, Nu]);
+
+figure(2);
+imagesc(cam.x0, cam.y0, ylr2);
+colormap(curl(255));
+y_max = max(max(abs(ylr2)));
 caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');

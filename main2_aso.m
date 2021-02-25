@@ -108,8 +108,8 @@ title('Refractive index field for ASO');
 
 
 %== Non-linear ray tracing of object =====================================%
-mod_scale = 1e4;
-[~, ~, eps_y, eps_z, eps_x] = tools.nonlin_ray([cam.x;cam.y;cam.z], ...
+mod_scale = 1e3;
+[~, ~, eps_y, eps_x, eps_z] = tools.nonlin_ray([cam.x;cam.y;cam.z], ...
     [cam.mx; cam.my; ones(size(cam.my))], ...
     aso2, bet2 ./ mod_scale);
 

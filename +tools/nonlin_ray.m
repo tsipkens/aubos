@@ -15,7 +15,7 @@
 %  AUTHOR: Samuel Grauer, 2017-09-19 (original)
 %          Timothy Sipkens, 2020-09-22 (updates)
 
-function [p, v, eps_y, eps_z, eps_x] = nonlin_ray(oc, v, aso, bet, f_print)
+function [p, v, eps_y, eps_x, eps_z] = nonlin_ray(oc, v, aso, bet, f_print)
 
 % Parse input
 if ~exist('f_print','var'), f_print = 1; end
