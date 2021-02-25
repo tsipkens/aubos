@@ -23,7 +23,7 @@ aso2 = Aso2(R, Nr, X, Nx);
 %== Case studies / phantoms ==============================================%
 [xe, re] = meshgrid(aso2.xe(1:(end-1)), aso2.re);
 
-pha_no = 5;  % default jet is Pha. No. 3, Gaussian sphere is 4
+pha_no = 5;  % default jet is Pha. No. 5, Gaussian sphere is 4
 switch pha_no
     case 1
         bet2 = normpdf(re, 0, 0.5 .* (6 .* xe + 4)./(6 .* X + 4)); % spreading Gaussian jet

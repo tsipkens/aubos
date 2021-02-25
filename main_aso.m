@@ -43,6 +43,7 @@ switch pha_no
     case 6 % half circle
         bet = sqrt(max(0.7.^2 - aso.re.^2, 0));
 end
+bet = bet ./ max(bet);  % scale such that peak is unity
 %=========================================================================%
 
 
