@@ -1,19 +1,32 @@
 
-% LINEAR_D  Evaluates kernel/operator for a linear basis representation of a 1D ASO.
-% Timothy Sipkens, 2020-06-10
+% LINEAR_D  Evaluates direct NRAP operator for a linear basis.
 % 
-% Inputs:
-%   aso_re  Axis-symmetric object or edges of the annuli
-%   my      Set of slopes for the rays
-%   y0      Intersect with line through center of aso
-%=========================================================================%
+%  K = kernel.linear_d(ASO,Y0,MY) computes the 1D (radial only) NRAP, linear 
+%  basis function operator for the Aso object in ASO and for the rays
+%  described by a y-intercept (at z = 0) of Y0 and a z-y slope of MY.
+%  Y0 and MY are expected to be row vectors.
+%  
+%  K = kernel.linear_d(RE,Y0,MY) replaces the Aso unit with the position of
+%  the edges of each of the annuli on which the linear basis is to be
+%  based. RE is expected to be a column vector.
+%  
+%  K = kernel.linear_d(ASO2,Y0,MY,X0,MX) computes the 2D (radial and axial)
+%  NRAP, linear basis function operators for the Aso2 object in ASO2 and
+%  adding the x-intercept of X0 and the z-x slope of MX. 
+%  Y0, MY, X0, and MX are expected to be row vectors.
+%  
+%  ------------------------------------------------------------------------
+%  
+%  NOTE: Axial deflections, KX, are experimental and may not be accurate.
+%  
+%  AUTHOR: Timothy Sipkens, 2020-06-10
 
 function [K, Kx] = linear_d(aso_re, y0, my, x0, mx)
 
 %-- Parse inputs ---------------------------------------------------------%
 if isa(aso_re,'Aso'); re = aso_re.re; % if input is an Aso
+elseif isa(aso_re,'Aso2'); aso2 = aso_re; re = aso_re.re;
 else; re = aso_re; end % if an input is edges
-if isa(aso_re,'Aso2'); aso2 = aso_re; re = aso_re.re; end
 
 if ~exist('y0', 'var'); y0 = []; end
 if isempty(y0); y0 = re'; end
@@ -200,7 +213,7 @@ else  % consider 2D case
         rju(:,f2) = max(r2(f2), rju(:,f2));
         
         % evaluate lower kernel (up to midpoint in ASO)
-        K1 = (1 ./ (1+my(idx_b).^2) .* ( ...
+        K1 = (1 ./ (1+my(idx_b).^2) .* sqrt(1+mx(idx_b).^2) .* ( ...
             ([ ...
              zeros(1,size(rj,2)); ...
              A(my(idx_b), y0(idx_b), rjd0, rj0, rj) - ...
@@ -244,7 +257,7 @@ else  % consider 2D case
         rju(:,f2) = max(r2(f2), rju(:,f2));
         
         % evaluate second integrand (beyond midpoint in ASO)
-        K2 = (1 ./ (1+my(idx_c).^2) .* ( ...
+        K2 = (1 ./ (1+my(idx_c).^2) .* sqrt(1+mx(idx_c).^2) .* ( ...
             ([ ...
              zeros(1, size(rj,2)); ...
              A(my(idx_c), y0(idx_c), rjd0, rj0, rj) - ...
