@@ -307,7 +307,7 @@ for cc = cam_vec
     b_a_int = cumsum(b_a) .* (cam.y0(2) - cam.y0(1));
     b_a_int = b_a_int - b_a_int(end);
     Kli = kernel.linear_i(aso, cam.y0, cam.my);
-    betli = regularize.tikhonov1(Kli, b_a_int, Le_a, 3e1);
+    betli = regularize.tikhonov1(Kli, b_a_int, Le_a, 1e2);
 
 
     figure(21);

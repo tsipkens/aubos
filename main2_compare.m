@@ -38,6 +38,7 @@ switch pha_no
         bet2 = normpdf(re, 0, 0.15 .* (3 .* xe + 4)./(X + 4)); % spreading Gaussian jet 2
 end
 bet2 = bet2(:);
+bet2 = bet2 ./ max(bet2);
 %=========================================================================%
 %}
 
@@ -142,7 +143,10 @@ colorbar;
 %%
 C0 = 2e-4; % scaling constant (i.e., epsilon > delta)
 
-u_of0 = Kl2 * bet2;
+% u_of0 = Kl2 * bet2;
+% u_of0 = reshape(u_of0, [Nv, Nu]);
+
+u_of0 = eps_lr_y;
 u_of0 = reshape(u_of0, [Nv, Nu]);
 
 noise_lvl = 0.1 .* max(max(u_of0));
@@ -317,7 +321,6 @@ title('Three point, 1D integration');
 %-------------------------------------------------------------------------%
 
 
-%%
 %-- Onion peeling kernel -------------------------------------------------%
 disp('Onion peeling...');
 W = kernel.onion_peel(size(u_half));
@@ -352,7 +355,7 @@ disp(' ');
 disp('NRAP-L-D...');
 
 L_tk2_nrap = regularize.tikhonov_lpr(2, aso2.Nr+1, size(Kl2,2));
-A_tk2_nrap = [Kl2; 2e2.*L_tk2_nrap];  % 2e2 is regularization parameter
+A_tk2_nrap = [Kl2; 8e1 .* L_tk2_nrap];  % 2e2 is regularization parameter
 b_tk2_nrap = [u_of(:); sparse(zeros(size(L_tk2_nrap,1), 1))];
 n_nrap = full(lsqlin(A_tk2_nrap, b_tk2_nrap));
 
@@ -406,7 +409,7 @@ figure(27); caxis([n_minmin, n_maxmax]);
 figure(31); caxis([n_minmin, n_maxmax]);
 %------------------------------------------------------------%
 
-
+%
 %-- Quantitative comparisons --------------------------------%
 f_nan = isnan(n_s13a);
 
