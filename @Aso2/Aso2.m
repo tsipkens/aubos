@@ -121,18 +121,18 @@ classdef Aso2
             
             % Setup grid for interpolation
             [x0, r0] = meshgrid(aso.xe, aso.re); % grid for input to interpolation
-            Dri = aso.reshape(aso.Dr * bet); % reshape radial gradient
-            Dri = [Dri, Dri(:,end)]; % append constant slope data for last axial position
-            Dxi = aso.reshape(aso.Dx * bet); % reshape axial gradient
-            Dxi = [Dxi, Dxi(:,end)]; % append constant slope data for last axial position
+            Dr0 = aso.reshape(aso.Dr * bet); % reshape radial gradient
+            Dr0 = [Dr0, Dr0(:,end)]; % append constant slope data for last axial position
+            Dx0 = aso.reshape(aso.Dx * bet); % reshape axial gradient
+            Dx0 = [Dx0, Dx0(:,end)]; % append constant slope data for last axial position
             
             % Interpolate r-gradient and convert to Cartesian coords.
-            Dro = interp2(x0, r0, Dri, xi, ri, 'linear' ,0);
-            Dy = sin(q) .* Dro; % get the y-gradient based on the angle
-            Dz = -cos(q) .* Dro; % get the z-gradient based on the angle
+            Dri = interp2(x0, r0, Dr0, xi, ri, 'linear', 0);
+            Dy = sin(q) .* Dri; % get the y-gradient based on the angle
+            Dz = -cos(q) .* Dri; % get the z-gradient based on the angle
             
             % Interpolate x-gradient
-            Dx = interp2(x0, r0, Dxi, xi, ri, 'linear', 0);
+            Dx = interp2(x0, r0, Dx0, xi, ri, 'linear', 0);
             
         end
         %=================================================================%
