@@ -117,10 +117,10 @@ str_p03 = [str_p03, repmat(' ', [1, n_frac-length(str_p03)])];  % pad with neces
 str_out = [' ', str_p00, '%%', ' |', str_p01, str_p02, '| ', str_p03];
 str_all = [str_out, repmat(' ', [1, n_str-length(str_out)]), '\n'];
 
-if pct<1
-    fprintf([str_back, '[', 8,  str_all, ']', 8]);  % give orange format
-else
+if pct<(1-eps)
     fprintf([str_back, str_all]);
+else
+    fprintf([str_back, '<strong>', str_all, '</strong>']);  % bold output
 end
 %-------------------------------------------------------------------------%
 
