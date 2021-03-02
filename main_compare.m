@@ -207,7 +207,7 @@ b4 = gradient(A_op * bet);
 
 %%
 %== COMPARE INVERSE OPERATORS ============================================%
-cam_vec = 20 ./ [20, 5, 2,     1.5, 1.15, 1.05];  % for ARAP manuscript figures
+cam_vec = 20 ./ [20, 5, 2, 1.5, 1.15, 1.05];  % for ARAP manuscript figures
 
 % More camera positions for errors. 
 % Also update rng(...) call below.
