@@ -95,20 +95,23 @@ classdef Camera
             cam.f = f; % focal length [px]
             cam.k = k(:); % radial distortion parameters (see [1] and [2])
             
-            cam.K = [f, 0, w/2; ...
+            % Intrinsic matrix (see [1]).
+            cam.K = [...
+                f, 0, (w-1)/2; ...
                 0, f, h/2; ...
-                0, 0, 1]; % intrinsic matrix (see [1])
+                0, 0, 1];
             
             % Pixel indices, sensor coords. (u,v) [px]
-            % [cam.v, cam.u] = find(zeros([h, w]) == 0); % original
-            [cam.v, cam.u] = meshgrid(1:h, 1:w); % update swaps 1st incr. index
-            cam.v = cam.v(:); cam.u = cam.u(:);
+            [cam.v, cam.u] = find(zeros([h, w]) == 0); % original
+            % [cam.u, cam.v] = meshgrid(1:w, 1:h); % update swaps 1st incr. index
+            % cam.v = cam.v(:); cam.u = cam.u(:);
             %-------------------------------------------------------------%
             
             
             %--- Camera model --------------------------------------------%
             % Normalized sensor points
-            p = cam.K \ [w - cam.u(:) + 1 cam.v(:), ...
+            p = cam.K \ [w - cam.u(:), ...
+                h - cam.v(:), ...
                 ones(h*w,1)]'; % homogeneous coords. []
             x = p(1,:); % u-coordinates []
             y = p(2,:); % v-coordinates []
@@ -145,6 +148,7 @@ classdef Camera
             cam.y0 = cam.p0(2,:);
             %-------------------------------------------------------------%
             
+            %{
             %-- Switch x and y for ray slopes ----------------------------%
             %   For compatibility.
             t0 = cam.x0;
@@ -153,6 +157,7 @@ classdef Camera
             t0 = cam.mx;
             cam.mx = -cam.my; cam.my = t0;
             %-------------------------------------------------------------%
+            %}
         end
         
         

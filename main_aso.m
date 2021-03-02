@@ -1,11 +1,11 @@
 
 % MAIN_ASO  Demonstrate use of ASO class. 
-% This involves simulating and inverting phantoms defined on a 1D 
-% axisymmetric object (i.e., % only a radial object, with no axial 
-% considerations). 
+%  This involves simulating and inverting phantoms defined on a 1D 
+%  axisymmetric object (i.e., % only a radial object, with no axial 
+%  considerations). 
 % 
-% Author: Timothy Sipkens, 2020-05-20
-%=========================================================================%
+%  AUTHOR: Timothy Sipkens, 2020-05-20
+%  ------------------------------------------------------------------------
 
 
 clear; close all;
@@ -43,12 +43,16 @@ switch pha_no
     case 6 % half circle
         bet = sqrt(max(0.7.^2 - aso.re.^2, 0));
 end
+bet = bet ./ max(bet);  % scale such that peak is unity
 %=========================================================================%
 
 
+% FIG 2: Simple plot of bet for the ASO.
+figure(1);
+plot([-flipud(aso.re); aso.re], [flipud(bet); bet], 'k');
 
 % FIG 3: Plot Phantom (2D slice through center of ASO)
-figure(3);
+figure(2);
 aso.surf(bet);
 colormap(flipud(ocean));
 axis off;
@@ -67,14 +71,21 @@ Nv = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
 
 Nc = 20; % number of camera positions
 oc = [zeros(1, Nc); ...
-    fliplr(linspace(0, 0.8, Nc)); ...
-    -logspace(log10(1.1),log10(10),Nc)];
+    fliplr(linspace(0, 1.5, Nc)); ...
+    -(1+logspace(log10(0.1),log10(10),Nc))];
     % vector of camera origin locations
+    
+% oc = [0; 0.5; -8;]; Nc = 1;
+
+% oc = [zeros(1, Nc); ...
+%     linspace(0, 6, Nc); ...
+%     2 .* ones(1, Nc)];
+
 
 %{
 %-- OPTION 1: Use tools.Camera ---------------%
 for cc=Nc:-1:1
-    cam(cc) = Camera(Nu, 1, oc(:,cc), 1e2);
+    cam(cc) = Camera(1, Nv, oc(:,cc), 1e2);
 end
 %}
 
@@ -85,7 +96,7 @@ for cc=Nc:-1:1
     cam(cc).y = oc(2, cc);
     cam(cc).z = oc(3, cc);
     
-    cam(cc).y0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nv);
+    cam(cc).y0 = 5 .* linspace(-aso.re(end), aso.re(end), Nv);
     cam(cc).my = (cam(cc).y - cam(cc).y0) ./ ...
         cam(cc).z; % slope implied by camera location
 end
@@ -114,8 +125,8 @@ xlim([-2,2]);
 
 hold on;
 for cc=1:Nc % loop through multiple camera positions
-    Ku = kernel.uniform(aso, cam(cc).y0, cam(cc).my);
-    Kl = kernel.linear(aso, cam(cc).y0, cam(cc).my);
+    Ku = kernel.uniform_d(aso, cam(cc).y0, cam(cc).my);
+    Kl = kernel.linear_d(aso, cam(cc).y0, cam(cc).my);
     
     bu = Ku*bet; % using uniform kernel
     bl = Kl*bet; % using linear kernel
@@ -144,13 +155,12 @@ colormap(flipud(ocean));
 figure(9);
 v = 1:Nv;
 Iref = sin(0.3 .* v);
-bdef1 = (kernel.linear(aso, cam(1).y0, cam(1).my) * bet)';
-bdef2 = (kernel.linear(aso, cam(end).y0, cam(end).my) * bet)';
+bdef1 = (kernel.linear_d(aso, cam(1).y0, cam(1).my) * bet)';
+bdef2 = (kernel.linear_d(aso, cam(end).y0, cam(end).my) * bet)';
 Idef1 = sin(0.3 .* (v + bdef1));
 Idef2 = sin(0.3 .* (v + bdef2));
 imagesc([Iref; Idef1; Idef2]);
 colormap(gray);
-
 
 % FIG 10: Plot position of cameras relative to ASO
 figure(10);
@@ -165,80 +175,4 @@ hold off;
 view([0,90]);
 colormap(flipud(ocean));
 
-
-
-
-%%
-%== COMPARE FORWARD OPERATORS ============================================%
-% NOTE: Inverse procedure using simps13 is unstable.
-
-% 2-pt kernel, acts directly on deflections
-A1 = kernel.two_pt(length(bet));
-b1 = A1 \ bet;
-
-% New kernel, evaluated analogous with Abel-type kernels, 
-% acts directly on deflections
-A2 = kernel.uniform(aso.re, aso.re', 0.*aso.re');
-b2 = A2 * bet;
-A2b = inv(kernel.linear_ind(length(bet), 1:length(bet)));
-
-% 3-pt kernel (operates on integrated deflections, thus gradient operator below)
-A3 = kernel.three_pt(length(bet));
-b3 = gradient(A3 \ bet);
-
-% Onion peeling kernel (forward operator, operates on integrated deflections)
-A4 = kernel.onion_peel(length(bet));
-b4 = gradient(A4 * bet);
-
-figure(20);
-plot(aso.re, b1);
-hold on;
-plot(aso.re, b2);
-plot(aso.re, b3);
-plot(aso.re, b4);
-plot(aso.re, bet, 'k');
-plot(cam(end).y0, bl, '--k');
-hold off
-xlim([0, max(aso.re)]);
-%=========================================================================%
-
-
-
-%== COMPARE INVERSE OPERATORS ============================================%
-b = b2 + 2e-1 .* randn(size(b2));
-
-% 2-pt kernel
-bet1 = A1 * b;
-
-% New kernel
-% Inverse is undefined at x0 = 0, where deflection is zero.
-bet2 = A2(:, 2:end) \ b;
-bet2b = A2b * b;
-
-% 3-pt kernel
-bi = cumsum(b); bi = bi - bi(end);
-bet3 = A3 * bi;
-
-% Onion peeling kernel
-bet4 = A4 \ bi;
-
-% Simpson 1-3 (simiar to how 2-pt method operators)
-A5 = kernel.simps13(length(bet));
-bet5 = A5 * b;
-
-figure(21);
-plot(aso.re, bet1);
-hold on;
-plot(aso.re(2:end), bet2);
-plot(aso.re, bet2b);
-plot(aso.re, bet3);
-plot(aso.re, bet4);
-plot(aso.re, bet5);
-plot(aso.re, bet, 'k--');
-hold on;
-plot(aso.re, b2, 'k');
-plot(aso.re, b, 'k.');
-hold off
-xlim([0, max(aso.re)]);
-%=========================================================================%
 

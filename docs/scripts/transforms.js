@@ -28,7 +28,7 @@ var abel = function (y0, r) {
 var sipkens = function (my, y0, r) {
   out = Array(r.length)
   for (ii in r) {
-    out[ii] = 2 * y0 / Math.sqrt(r[ii] ** 2 - y0 ** 2 / (1 + my ** 2)) // forward transform
+    out[ii] = 2 * y0 / (1 + my ** 2) / Math.sqrt(r[ii] ** 2 - y0 ** 2 / (1 + my ** 2)) // forward transform
     if (r[ii]<=(y0 / Math.sqrt(1 + my ** 2))) {out[ii] = 100}
   }
   return out
@@ -72,7 +72,7 @@ function cInterp(no, min, max, cm) {
 
 
 
-var r_vec = linspace(0,1,125)
+var r_vec = linspace(0, 1, 280)
 var y0 = 0.5
 var ya = abel(y0, r_vec)
 var ys = []
@@ -96,14 +96,17 @@ console.log(data)
 //-------------------------------------------------------------------------//
 // GENERATE PLOTS
 // set the dimensions and margins of the graph
+var $container = $('#my_dataviz'),
+    width_t = 0.98 * $container.width(),
+    height_t = $container.height()
 var margin = {
     top: 0,
-    right: 150,
+    right: 10,
     bottom: 50,
-    left: 35
+    left: 40
   },
-  width = 600 - margin.left - margin.right,
-  height = 350 - margin.top - margin.bottom;
+  width = width_t - margin.left - margin.right,
+  height = 470 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
 var svg = d3.select("#my_dataviz")
@@ -126,19 +129,23 @@ var x = d3.scaleLinear()
   .range([0, width]);
 var xAxis = svg.append("g")
   .attr("transform", "translate(0," + height + ")")
-  .call(d3.axisBottom(x).ticks(5));
+  .call(d3.axisBottom(x).ticks(5))
+  .attr("class", "axis");
 var xAxis2 = svg.append("g")
-  .call(d3.axisTop(x).ticks(0));
+  .call(d3.axisTop(x).ticks(0))
+  .attr("class", "axis");
 
 // Add Y axis
 var y = d3.scaleLinear()
-  .domain([0, 10.2])
+  .domain([0, 5.2])
   .range([height, 0]);
 svg.append("g")
-  .call(d3.axisLeft(y).ticks(5));
+  .call(d3.axisLeft(y).ticks(5))
+  .attr("class", "axis");
 svg.append("g")
   .attr("transform", "translate(" + width + ",0)")
   .call(d3.axisRight(y).ticks(0))
+  .attr("class", "axis");
 
 //-- Add axis labels --//
 // Add X axis label:
@@ -212,7 +219,7 @@ var updateData = function (y0, r_vec) {
   for (jj in my_vec) {
     svg.select("#sl" + jj)
       .datum(data)
-      .transition(1000)
+      .transition(100)
       .attr("d", d3.line()
         .x(function(d) {
           return x(d.x)
@@ -225,7 +232,7 @@ var updateData = function (y0, r_vec) {
   // Abel curve (dashed)
   svg.select("#al")
     .datum(data)
-    .transition(1000)
+    .transition(100)
     .attr("d", d3.line()
       .x(function(d) {
         return x(d.x)

@@ -1,14 +1,14 @@
 # AUBOS
 
-**(*A*xisymmetric *U*nified *B*ackground-*O*riented *S*chlieren)**
+(***A***xisymmetric ***U***nified ***B***ackground-***O***riented ***S***chlieren and related operations)
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
-This program is designed to analyze background-oriented schlieren data for axisymmetric objects, primarily using a generalization of the Abel transform. The focus is placed on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of Bayesian inference and priors. 
+This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels. Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of Bayesian inference and priors. 
 
 ## Installation note
 
-This program has a single dependency that are included as submodules: the `cmap` package available at https://github.com/tsipkens/cmap. As a result, this folder will initially be empty. The submodules can be downloaded manually from the above sources and placed in the `cmap/` folder. If cloning using git, clone the repository using 
+This program has a single dependency that are included as submodules: the **cmap** package available at https://github.com/tsipkens/cmap. As a result, this folder will initially be empty. The submodules can be downloaded manually from the above sources and placed in the `cmap/` folder. If cloning using git, clone the repository using 
 
 ```shell
 git clone git://github.com/tsipkens/aubos --recurse-submodules
@@ -20,56 +20,26 @@ which will automatically download the submodule. To be used directly, these pack
 addpath cmap;
 ```
 
-Instead of the `cmap` package, one could also replace references in existing scripts to the colormaps that would otherwise be in that package. This would have to include removing any reference to the `cmap_sweep` function (which allows for line plots to sweep through a colormap) that appears in some of the main scripts.   
+Instead of the **cmap** package, one could also replace references in existing scripts to the colormaps that would otherwise be in that package. This would have to include removing any reference to the `cmap_sweep` function (which allows for line plots to sweep through a colormap) that appears in some of the main scripts.   
 
 ## Components
 
-This codebase can be divided into three components, each designed to examine different components of the axisymmetric schlieren problem. 
-
-### A. Evaluating transforms directly
-
-The first component involves simple evaluation of the mathematical transforms associated with projecting axisymmetric objects. Coded versions of the kernels that make up these transforms are provided in the `+transforms` folder and are relatively straightforward. For example, kernel of the Abel transform is simply,
-
-![](https://latex.codecogs.com/svg.latex?{\frac{{\delta}(r)r}{\sqrt{y_0^2-r^2}})
-
-and can be evaluated using
-
-```Matlab
-K = transform.abel(y0, r_vec);
-```
-
-using the range of radii given in `r_vec` for a ray passing through *z* = 0 at *y*<sub>0</sub>. The new transform described by Sipkens et al. (2020), which has a kernel of
-
-![](https://latex.codecogs.com/svg.latex?{\frac{{\delta}(r)r}{\sqrt{r^2-(1+m_{\text{y}}^2)y_0^2}})
-
-can similarly be evaluated using,
-
-```Matlab
-K = transform.sipkens(my, y0, r_vec);
-```
-
-where the added *m*<sub>y</sub> parameter describes the slope of the line in the *y*-direction. 
-
-Use of this codebase to evaluate these transforms is demonstrated in the `main_transforms` script. 
-
-### B. Consider 1D (only radial) axisymmetric objects
-
-The `Aso` class is used to handle axisymmetric objects that are only defined with respect to radial position (i.e., do not have axial variations). The functions in the `+kernel` folder are built to evaluate the transforms from A for these objects. 
-
-### C. Consider 2D (radial and axial positions) axisymmetric objects
-
-The `Aso2` class is used to handle axisymmetric objects that has both radial and axial variations. The functions in the `+kernel2` folder are built to evaluate the transforms from Section [A]() above for these objects. Solving these problems generally takes much longer than the 1D case considered above. 
-
-### Summary of structure
-
 This codebase is broken up into a series of packages: 
 
-1. The **kernel** package includes functions to generate the typical forward and inverse operators for solving the Abel problem. 
-2. The **tools** package contains miscellaneous functions to aid in analysis. This includes a text-based toolbar function attributed to @sgrauer. 
-3. The **transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al.
-4. The **regularization** package contains tools to help during inversion, such as generating prior covariance matrices. 
+1. The **transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. This presents the mathematical basis for the kernels derived subsequently. 
+2. The **kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/NRAP-type operators. 
+3. The **tools** package contains miscellaneous functions to aid in analysis, e.g., text-based toolbar function. 
+4. The **regularization** package contains tools to help during inversion, such as generating prior covariance matrices (e.g., for Tikhonov regularization). 
 
-We refer the reader to individual functions for more information. 
+This codebase also contains three classes: 
+
+1. The **Aso** class is used to handle axisymmetric objects that are only defined with respect to radial position (i.e., do not have axial variations). The functions in the `+kernel/` folder are built to evaluate the transforms for these objects. 
+
+2. The **Aso2** class, similarly, is used to handle axisymmetric objects, this time by including radial and axial variations. Solving these problems generally takes much longer than the 1D case considered above. 
+
+3. Finally, the **Camera** class is used to output the ray positions and directions for a pinhole camera, which established a framework by which to expand this representation to include other effects (e.g., lens aberration). 
+
+We refer the reader to individual functions and class definitions for use and more information. 
 
 ## Description
 
@@ -77,7 +47,23 @@ The coordinate system used here for the overall axisymmetric schlieren problem i
 
 ![coord](docs/imgs/01_coordinate.png)
 
-The positive *z*-direction is chosen to proceed forward, away from the camera, and perpindicular to the imaging plane. The origin is placed at the middle of the axisymmetric target object (ASO), such that *z* = 0 represents the distance from the camera lens to the center of the ASO along the imaging axis. 
+The positive *z*-direction is chosen to proceed forward, away from the camera, and perpendicular to the imaging plane. The origin is placed at the middle of the axisymmetric target object (ASO), such that *z* = 0 represents the distance from the camera lens to the center of the ASO along the imaging axis. 
+
+Projecting axisymmetric objects is typically achieved using the Abel transform, which has a kernel of 
+
+![](https://latex.codecogs.com/svg.latex?{\frac{{{\partial}\delta}}{{\partial}r}\frac{y_0}{\sqrt{r^2-y_0^2}}})
+
+Sipkens et al. (Submitted) derived a new transform, not requiring that the rays passing through the ASO be parallel, which has a kernel of
+
+![](https://latex.codecogs.com/svg.latex?{\frac{{{\partial}\delta}}{{\partial}r}\frac{y_0}{\sqrt{r^2-y_0^2(1+m_{\text{y}}^2)^{-1}}})
+
+These raw transforms can be evaluated using the functions in the `+transforms/` folder by appending `transform.`  before the function name. For example, the direct, Abel transform can be evaluated using
+
+```Matlab
+K = transform.abeld(y0, r_vec);
+```
+
+Use of this codebase to evaluate these transforms is demonstrated in the `main_transforms` script. 
 
 ### Representing cameras
 
@@ -90,7 +76,7 @@ Imaging inherently requires the use of cameras. Multiple options exist for defin
 
 We provide two examples of how one can define these properties. 
 
-The first involves manually setting the camera properties.  Within the examples provided with this codebase, this is used extensively whenever one wants to focus on the deflection field for only rays in the proximity of the ASO (in other words, ignoring the larger field of view that may be relevant to a real camera). In this case, one can set a camera position and, assuming a pinhole camera, fine the trajector of rays that would original from the pinhole camera and transect the *z* = 0 plane at certain positions. 
+The first involves manually setting the camera properties.  Within the examples provided with this codebase, this is used extensively whenever one wants to focus on the deflection field for only rays in the proximity of the ASO (in other words, ignoring the larger field of view that may be relevant to a real camera). In this case, one can set a camera position and, assuming a pinhole camera, find the trajectory of rays that would original from the pinhole camera and transect the *z* = 0 plane at certain positions. 
 
 While the above treatment is useful within the context of visualizing theoretical deflection fields, as was relevant in generating figures for the associated work by Sipkens et al., more often cameras will be specified instead with a camera origin and focal length. 
 

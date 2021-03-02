@@ -7,9 +7,12 @@
 
   <link rel="icon" type="image/png" href="imgs/favicon.png">
 
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <!-- Load d3.js -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://d3js.org/d3.v4.js"></script>
-  <script src="https://unpkg.com/mathjs/dist/math.min.js" type="text/javascript"></script>
+  <script src="https://unpkg.com/mathjs/lib/browser/math.js" type="text/javascript"></script>
 
   <!-- Load fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&family=Open+Sans:wght@300;400&family=Roboto:wght@300&display=swap" rel="stylesheet">
@@ -20,16 +23,21 @@
 
 <body>
 
-  <div class="navbar-custom">
-    <div id="navbar">
-      <ul class="nav">
-        <li><a href="https://www.tandfonline.com/doi/full/10.1080/02786826.2019.1680794">
-            <b style="font-family:Montserrat;font-size:12pt;color:black;">AUBOS</b>
-          </a></li>
-        <li><a href="#">Created by Timothy Sipkens</a></li>
+  <header id="navbar">
+    <a href="#h1" id="header-logo">AUBOS</a>
+    <nav>
+      <ul class="nav-list">
+        <li><a href="#htransform" class="nav-link">THE TRANSFORMS</a></li>
+        <li><a href="#hproj" class="nav-link">PROJECTIONS</a></li>
+        <li><a href="https://www.tandfonline.com/doi/full/10.1080/02786826.2019.1680794" class="nav-link">LINK TO PAPER</a></li>
+        <li><a href="https://github.com/tsipkens" class="nav-link">
+          <div style="display:flex;vertical-align:middle;">
+            <img src="imgs/GitHub-Mark-64px.png" style="height:15pt; padding-right:5px;"> @tsipkens
+          </div>
+        </a></li>
       </ul>
-    </div>
-  </div>
+    </nav>
+  </header>
 
   <div class="main">
 
@@ -38,15 +46,14 @@
     <p align="justify">
       This web app demonstrates some of the principles underlying axisymmetric
       background-oriented schlieren (BOS) in connection with a paper by
-      <a href="#">
-        Sipkens et al. (XXXX)
-      </a>.
+      <a href="#">Sipkens et al. (XXXX)</a>.
     </p>
 
 
-    <hr>
+  </div>
+  <div class="main">
 
-
+    <a class="anchor" id="htransform"></a>
     <h2>The transforms</h2>
 
     <p align="justify">
@@ -74,8 +81,8 @@
     </p>
 
     <div class="control">
-      <b>Intercept </b> |
-      <input type="range" name="y0Slider" id="y0Slider" min="1" max="19" value="11" style="height:6px;" onchange="displayy0val(this.value);"> |
+      <span class="control-label">Intercept </span>
+      <input type="range" name="y0Slider" id="y0Slider" min="1" max="19" value="11" class="slider" onchange="displayy0val(this.value);"> <br>
       <i>y</i><sub>0</sub> = <output id="y0val">-</output>
     </div>
 
@@ -83,54 +90,69 @@
     <div id="my_dataviz" style="margin-top:10px"></div>
 
 
-    <hr>
+  </div>
+  <div class="main">
 
-
+    <a class="anchor" id="hproj"></a>
     <h2>Projecting an axisymmetric object</h2>
 
     <p align="justify">
       Now consider projecting a phantom ASO, with the radial dependence of the phantom
       shown in the upper panel. We consider rays diverging from a single point
       in space o<sub>c</sub> = [y<sub>c</sub>, z<sub>c</sub>].
-    </p>
-
-    <p align="justify">
-      The y<sub>c</sub> controls adjusts whether the height of the camera
-      above the ASO. The y<sub>c</sub> = 0 case corresponds to a camera looking
-      directly at the ASO and yields a symmetric deflection field.
-      Large values of y<sub>c</sub> move the camera above
+      Here, z<sub>c</sub> control below adjusts the disantce between the camera
+      and the ASO. Very large z<sub>c</sub> (e.g., z<sub>c</sub> > 20)
+      corresponds to a camera looking directly
+      at the ASO and yields a symmetric deflection field.
+      The y<sub>c</sub> = 0 case corresponds to a camera
+      looking directly at the ASO and yields a symmetric
+      deflection field. Larger values of y<sub>c</sub> move the camera above
       the ASO and stretch the effect of the ASO in the negative direction,
       as more of those rays still pass through the ASO.
     </p>
 
-    <p align="justify">
-      The range of colours progress from cameras far
-      from the ASO (dark colours, equivalent to the Abel case) to cameras close to the
-      ASO (light colours). Progressing from darkest to lightest, the distance from
-      the center of the ASO to the camera origin is z<sub>c</sub> =
-      20, 4, 2.5, 2, 1.6, 1.33, 1.2, 1.1, 1, 0.9, and 0.8 a.u., where the
-      z<sub>c</sub> = 20 case closely corresponds to symmetric Abel case.
+    <p>
+      Progressing from darkest to lightest changes the the distance from the camera
+      to the center of the ASO. The plot shows values for
+      z<sub>c</sub> = [20, 4, 2.5, 2, 1.6, 1.35, 1.2, 1.1, 1, 0.9, 0.8].
+      The control changes the height of the camera, i.e., y<sub>c</sub>.
     </p>
 
     <div class="control">
-      <b>Vertical camera position </b> |
-      <input type="range" name="ycSlider" id="ycSlider" min="1" max="9" value="5" style="height:6px;" onchange="displayycval(this.value);"> |
-      <i>y</i><sub>c</sub> = <output id="ycval">-</output>
+      <span class="control-label">Height of camera</span>
+      <span class="control-unit">y<sub>c</sub></span> <br>
+      <input class="textinput" id="zcSlider" type="number" min="-20" max="20" step="0.1" value="0.9">
+    </div>
+
+    <div class="control">
+      <span class="control-label">Phantom type</span> <br>
+      <select id="pha_no">
+        <option>Gaussian with dip</option>
+        <option>Gaussian</option>
+        <option>Cylinder, empty</option>
+        <option>Cylinder, full</option>
+        <option>Half circle</option>
+        <option>Cone</option>
+      </select>
     </div>
 
     <div id="my_beta" style="margin-top:10px"></div>
     <div id="my_dataviz2"></div>
 
-    <hr>
+  </div>
+  <div class="footer">
+    <div class="main">
 
-    <h4>Citing this work</h4>
+      <h3>Citing this work</h4>
 
-    <p align="justify" style="padding-bottom:15px;">
-      Consider citing this repository directly, as well as the corresponding paper:
-      <a href="#">
-        Sipkens et al. (XXXX)
-      </a>.
-    </p>
+      <p align="justify" style="padding-bottom:15px;">
+        Consider citing this web app directly, as well as the corresponding paper:
+        <a href="#">
+          Sipkens et al. (XXXX)
+        </a>.
+      </p>
+
+    </div>
 
   </div>
 
