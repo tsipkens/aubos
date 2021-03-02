@@ -120,7 +120,8 @@ str_all = [str_out, repmat(' ', [1, n_str-length(str_out)]), '\n'];
 if pct<(1-eps)
     fprintf([str_back, str_all]);
 else
-    fprintf([str_back, '<strong>', str_all, '</strong>']);  % bold output
+    fprintf([str_back, str_all, ...
+        char(8), ' [', 8, '< <strong>DONE</strong>]', 8, '\n']);  % add orange, bold DONE
 end
 %-------------------------------------------------------------------------%
 
