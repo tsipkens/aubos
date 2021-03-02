@@ -6,6 +6,15 @@
   margin: 0;
 }
 
+/* Define color scheme */
+/* inferno */
+:root {
+  --a0: #000004; /* main accent */
+  --a1: #57106D; /* secondary accent */
+  --a2: #BB3755;
+  --a3: #F98D0A;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -44,6 +53,7 @@ h1 {
   margin-top: 90px;
   margin-bottom: 50px;
   text-align: center;
+  color: var(--a2);
 }
 
 h2 {
@@ -52,6 +62,7 @@ h2 {
   font-family: 'Open Sans',sans-serif;
   font-weight: 200;
   padding-top: 20px;
+  color: var(--a2);
 }
 
 a {
@@ -61,7 +72,7 @@ a {
 }
 
 a:hover {
-  color: #4DAEA3;
+  color: var(--a2);
 }
 
 div.main {
@@ -80,15 +91,16 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #FAFAFA;
+  background-color: white;
   margin: 0px;
   padding: 0px;
-  border-bottom: 1px solid #DDDDDD;
   font-size: 10pt;
   z-index: 20;
   position: fixed; /* Set the navbar to fixed position */
   top: 0; /* Position the navbar at the top of the page */
   width: 100%;
+  box-shadow: white;
+  transition: 0.3s;
 }
 
 nav {
@@ -116,14 +128,15 @@ nav {
 }
 
 .nav-link:hover {
-  color: #4DAEA3;
+  color: var(--a2);
 }
 
 #header-logo {
   font-family: 'Montserrat';
-  font-size: 17pt;
+  font-size: 19pt;
   text-decoration: none;
   padding: 15px 2px 15px 8%;
+  color: var(--a2);
 }
 
 a.anchor {
@@ -189,11 +202,11 @@ div.control {
 }
 
 .textinput:hover {
-  border: 2px solid #4DAEA3;
+  border: 2px solid var(--a2);
 }
 
 .textinput:focus {
-  border: 2px solid #4DAEA3;
+  border: 2px solid var(--a2);
 }
 
 
@@ -212,11 +225,11 @@ select {
 }
 
 select:hover {
-  border: 2px solid #4DAEA3;
+  border: 2px solid var(--a2);
 }
 
 select:focus {
-  border: 2px solid #4DAEA3;
+  border: 2px solid var(--a2);
 }
 
 option {
@@ -245,7 +258,7 @@ option {
   height: 11pt;
   border-radius: 50%;
   border: 1pt solid white;
-  background: #4DAEA3;
+  background: var(--a2);
   cursor: pointer;
 }
 
@@ -253,6 +266,7 @@ option {
   width: 11pt;
   height: 11pt;
   border-radius: 50%;
-  background: #4DAEA3;
+  border: 1pt solid white;
+  background: var(--a2);
   cursor: pointer
 }

@@ -159,6 +159,18 @@
   <script src="scripts/transforms.js"></script>
   <script src="scripts/linear.js"></script>
 
+  <script>
+    // When the user scrolls down 50px from the top of the document, reformat header
+    window.onscroll = function() {scrollFunction()};
+    function scrollFunction() {
+      if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 60) {
+        document.getElementById("navbar").style.boxShadow = "0px 0px 4px #AAA";
+      } else {
+        document.getElementById("navbar").style.boxShadow = "none";
+      }
+    }
+  </script>
+
 </body>
 
 </html>
