@@ -6,7 +6,7 @@
 
 This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels. Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of Bayesian inference and priors. 
 
-## Installation note
+## Setup
 
 This program has a single dependency that are included as submodules: the **cmap** package available at https://github.com/tsipkens/cmap. As a result, this folder will initially be empty. The submodules can be downloaded manually from the above sources and placed in the `cmap/` folder. If cloning using git, clone the repository using 
 
@@ -27,8 +27,11 @@ Instead of the **cmap** package, one could also replace references in existing s
 This codebase is broken up into a series of packages: 
 
 1. The **transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. This presents the mathematical basis for the kernels derived subsequently. 
+
 2. The **kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/NRAP-type operators. 
+
 3. The **tools** package contains miscellaneous functions to aid in analysis, e.g., text-based toolbar function. 
+
 4. The **regularization** package contains tools to help during inversion, such as generating prior covariance matrices (e.g., for Tikhonov regularization). 
 
 This codebase also contains three classes: 
@@ -40,6 +43,24 @@ This codebase also contains three classes:
 3. Finally, the **Camera** class is used to output the ray positions and directions for a pinhole camera, which established a framework by which to expand this representation to include other effects (e.g., lens aberration). 
 
 We refer the reader to individual functions and class definitions for use and more information. 
+
+## Tutorial
+
+This codebase can be used for three purposes, such that this tutorial has three components. 
+
+### 1. Visualizing the ARAP transforms
+
+Sipkens et al. (2021) introduced a new transform that allows for arbtirary ray directions for deflectometry. This code includes tools to visualize and compare these transforms directly, relying on the functions tin the **transforms** package. 
+
+This is demonstrated in `main_transform`. 
+
+### 2. Forward problem: Computing deflection fields
+
+This is demonstrated in `main_aso`. 
+
+### 3. Inverse problem: Computing refractive index fields
+
+This is demonstrated in `main_compare*`, which compares multiple inversion techniques. 
 
 ## Description
 
@@ -55,7 +76,7 @@ Projecting axisymmetric objects is typically achieved using the Abel transform, 
 
 Sipkens et al. (Submitted) derived a new transform, not requiring that the rays passing through the ASO be parallel, which has a kernel of
 
-![](https://latex.codecogs.com/svg.latex?{\frac{2}{(1+m_{y}^2)}\frac{y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}})
+![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}})
 
 These raw transforms can be evaluated using the functions in the `+transforms/` folder by appending `transform.`  before the function name. For example, the direct, Abel transform can be evaluated using
 
@@ -72,7 +93,7 @@ Imaging inherently requires the use of cameras. Multiple options exist for defin
 1. `x0` - The x-position (i.e., the radial position in the imaging plane) at which the ray crosses *z* = 0 (which corresponds to the center of the ASO). 
 2. `y0` - Similar to above, this is the y-position (i.e., axial position in the imaging plane) at which the ray crossed *z* = 0.
 3. `mx` - The slope of the ray in the *x*-*z* plane. This acts as an input to the transform defined by Sipkens et al. in the associated work. 
-4. `my` - The slope of the ray in the *y*-*z* plane. This determines how quickly the ray traverses the axial direction. The `my = 0` case corresponds to rays that do not traverse axially (as would be required for the Abel inversion scenerio).
+4. `my` - The slope of the ray in the *y*-*z* plane. This determines how quickly the ray traverses the axial direction. The `my = 0` case corresponds to rays that do not traverse axially (as would be required for the Abel inversion scenario).
 
 We provide two examples of how one can define these properties. 
 
