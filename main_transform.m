@@ -29,7 +29,7 @@ cmap_sweep(length(my_vec), inferno); % set color order
 
 hold on;
 for ii=1:length(my_vec) % loop through scenerios
-    plot(r_vec, transform.nrapd(my_vec(ii), y0_vec(ii), r_vec));
+    plot(r_vec, transform.arapd(my_vec(ii), y0_vec(ii), r_vec));
 end
 
 plot(r_vec, transform.abeld(y0_vec(ii), r_vec), 'w--'); % Abel kernel as dashed white line
@@ -56,7 +56,7 @@ cmap_sweep(length(my_vec), inferno); % set color order
 
 hold on;
 for ii=1:length(my_vec) % loop through scenerios
-    plot(r_vec, transform.nrap(my_vec(ii), y0_vec(ii), r_vec));
+    plot(r_vec, transform.arap(my_vec(ii), y0_vec(ii), r_vec));
 end
 
 plot(r_vec, transform.abel(y0_vec(ii), r_vec), 'w--'); % Abel kernel as dashed white line
