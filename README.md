@@ -76,7 +76,7 @@ Projecting axisymmetric objects is typically achieved using the Abel transform, 
 
 Sipkens et al. (Submitted) derived a new transform, not requiring that the rays passing through the ASO be parallel, which has a kernel of
 
-![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}})
+![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)^{\frac{3}{2}}}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}})
 
 These raw transforms can be evaluated using the functions in the `+transforms/` folder by appending `transform.`  before the function name. For example, the direct, Abel transform can be evaluated using
 
