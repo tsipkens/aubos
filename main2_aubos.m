@@ -65,13 +65,13 @@ Nu = size(Iref0,2);  % second image dimension
 cam_no = 2;  % main case: 2; alt case: 3
 switch cam_no
     case 1
-        oc = [3,0.5,2.5];   % camera origin
+        oc = [2,0.45,-1.4];   % camera origin
         f = 1.5e2;          % focal length [px]
     case 2
-        oc = [2,0,20];      % camera origin
+        oc = [2,0,-20];      % camera origin
         f = 1.8e3;          % focal length [px]
     case 3
-        oc = [2,0,2.5];   % camera origin
+        oc = [2,0,-2.5];   % camera origin
         f = 3e2;          % focal length [px]
 end
 cam = Camera(Nu, Nv, oc, f); % generate a camera
