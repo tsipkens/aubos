@@ -351,20 +351,20 @@ disp(' ');
 
 
 %%
-%-- NRAP kernel ----------------------------------------------------------%
-disp('NRAP-L-D...');
+%-- ARAP kernel ----------------------------------------------------------%
+disp('ARAP-L-D...');
 
-L_tk2_nrap = regularize.tikhonov_lpr(2, aso2.Nr+1, size(Kl2,2));
-A_tk2_nrap = [Kl2; 8e1 .* L_tk2_nrap];  % 2e2 is regularization parameter
-b_tk2_nrap = [u_of(:); sparse(zeros(size(L_tk2_nrap,1), 1))];
-n_nrap = full(lsqlin(A_tk2_nrap, b_tk2_nrap));
+L_tk2_arap = regularize.tikhonov_lpr(2, aso2.Nr+1, size(Kl2,2));
+A_tk2_arap = [Kl2; 8e1 .* L_tk2_arap];  % 2e2 is regularization parameter
+b_tk2_arap = [u_of(:); sparse(zeros(size(L_tk2_arap,1), 1))];
+n_arap = full(lsqlin(A_tk2_arap, b_tk2_arap));
 
 figure(27);
-aso2.plot(n_nrap);
+aso2.plot(n_arap);
 colormap(flipud(ocean));
 axis image;
 colorbar;
-title('NRAP + 2nd order Tikhonov');
+title('ARAP + 2nd order Tikhonov');
 
 disp('Complete.');
 disp(' ');
@@ -391,12 +391,12 @@ title('Ground truth');
 n_maxmax = max(max([ ...
     n_2pta(:), n_s13a(:), ...
     n_3pta(:), n_opa(:), ... 
-    n_nrap(:), ...
+    n_arap(:), ...
     bet2(:)]));
 n_minmin = min(min([ ...
     n_2pta(:), n_s13a(:), ...
     n_3pta(:), n_opa(:), ... 
-    n_nrap(:), ...
+    n_arap(:), ...
     bet2(:)]));
 
 
@@ -413,22 +413,22 @@ figure(31); caxis([n_minmin, n_maxmax]);
 %-- Quantitative comparisons --------------------------------%
 f_nan = isnan(n_s13a);
 
-n_nrap2 = n_nrap;
-n_nrap2(f_nan) = NaN;
+n_arap2 = n_arap;
+n_arap2(f_nan) = NaN;
 
 e.s13 = norm(n_s13a(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.threept = norm(n_3pta(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.threept_i = norm(n_3ptia(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.twopt = norm(n_2pta(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.onion_peel = norm(n_opa(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
-e.nrap2 = norm(n_nrap(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
-e.nrap = norm(n_nrap - bet2) / length(bet2) ./ mean(bet2);  % NOTE: larger field of view
+e.arap2 = norm(n_arap(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.arap = norm(n_arap - bet2) / length(bet2) ./ mean(bet2);  % NOTE: larger field of view
 
 
 e  % display e
 
 
-base = e.nrap2;
+base = e.arap2;
 fields = fieldnames(e);
 re = struct();
 for ff=1:length(fields)

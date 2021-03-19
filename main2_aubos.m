@@ -40,7 +40,7 @@ aso2 = Aso2(R, Nr, X, Nx);
 %== Case studies / phantoms ==============================================%
 [xe, re] = meshgrid(aso2.xe(1:(end-1)), aso2.re);
 
-pha_no = 3;  % default jet is Pha. No. 3
+pha_no = 5;  % default jet is Pha. No. 5, Gaussian sphere is 4
 switch pha_no
     case 1
         bet2 = normpdf(re, 0, 0.5 .* (6 .* xe + 4)./(6 .* X + 4)); % spreading Gaussian jet
@@ -51,6 +51,8 @@ switch pha_no
     case 4
         bet2 = mvnpdf([re(:), xe(:)], ...
             [0,2], [0.3^2,0; 0,0.3^2]); % sphere
+    case 5
+        bet2 = normpdf(re, 0, 0.15 .* (3 .* xe + 4)./(X + 4)); % spreading Gaussian jet 2
 end
 bet2 = bet2(:);
 %=========================================================================%
@@ -62,7 +64,7 @@ bet2 = bet2(:);
 Nv = size(Iref0,1);  % first image dimension
 Nu = size(Iref0,2);  % second image dimension
 
-cam_no = 2;  % main case: 2; alt case: 3
+cam_no = 2;
 switch cam_no
     case 1
         oc = [2,0.45,-1.4];   % camera origin
@@ -202,10 +204,15 @@ tools.textheader;
 % [u_of, v_of] = tools.lucas_kanade(Iref, Idef);
 
 
+%-{
+%== Poisson equation + converntional BOS =================================%
+%   Then uses Abel inversion operators for inverion.
+
+
 %-- Solve Poisson equation -----------------------------------------------%
-%{
+%-{
 % OPTION 1: Divergence and Poisson eq. solve.
-div0 = divergence(v_of, u_of);
+div0 = divergence(0 .* u_of, u_of);
 figure(20);
 imagesc(div0);
 colormap(flipud(ocean));
@@ -217,14 +224,14 @@ pois0 = tools.poisson(div0);
 
 %-{
 % OPTION 2: Integrate in y-direction.
-pois0 = -cumsum(u_of);
+int0 = -cumsum(u_of);
 
 figure(21);
 imagesc(reshape(pois0, size(u_of)));
 colormap(flipud(balanced));
 pois_max = max(abs(pois0(:)));
 caxis([-pois_max, pois_max]);
-axis image; 
+axis image;
 colorbar;
 title('Poisson eq. solution');
 %}
@@ -232,26 +239,52 @@ title('Poisson eq. solution');
 
 
 %-- Only consider data above r = 0 ---------------------------------------%
-idx_xp = round(cam.y0, 6) >= 0; % removes eps that could remain
-Nu_a = sum(idx_xp) ./ Nu; % number of x entries above zero
+f_top = 1
+if f_top
+    idx_xp = round(cam.y0, 6) >= 0; % removes eps that could remain
+    Nu_a = sum(idx_xp) ./ Nu; % number of x entries above zero
 
-xa = round(flipud(reshape(cam.y0(idx_xp), [Nu_a,Nu])), 7);
-ya = round(reshape(cam.x0(idx_xp), [Nu_a,Nu]), 7);
+    ya = round(reshape(cam.y0(idx_xp), [Nu_a,Nu]), 7);
+    xa = round(reshape(cam.x0(idx_xp), [Nu_a,Nu]), 7);
 
-pois_half = -pois0(idx_xp);
-pois_half = flipud(reshape(pois_half, [Nu_a,Nu]));
-pois_half = pois_half(:);
+    pois_half = -pois0(idx_xp);
+    pois_half = reshape(pois_half, [Nu_a,Nu]);
+    pois_half = pois_half(:);
 
-u_half = -u_of(idx_xp);
-u_half = flipud(reshape(u_half, [Nu_a,Nu]));
-u_half2 = u_half(:);
+    int_half = -int0(idx_xp);
+    int_half = reshape(int_half, [Nu_a,Nu]);
+    int_half = int_half(:);
+
+    u_half = u_of(idx_xp);
+    u_half = reshape(u_half, [Nu_a,Nu]);
+    u_half2 = u_half(:);
+else
+    idx_xp = round(cam.y0, 6) <= 0; % removes eps that could remain
+    Nu_a = sum(idx_xp) ./ Nu; % number of x entries above zero
+
+    ya = -flipud(round(reshape(cam.y0(idx_xp), [Nu_a,Nu]), 7));
+    xa = flipud(round(reshape(cam.x0(idx_xp), [Nu_a,Nu]), 7));
+    
+    pois_half = -pois0(idx_xp);
+    pois_half = flipud(reshape(pois_half, [Nu_a,Nu]));
+    pois_half = pois_half(:);
+
+    int_half = -int0(idx_xp);
+    int_half = flipud(reshape(int_half, [Nu_a,Nu]));
+    int_half = int_half(:);
+
+    u_half = -u_of(idx_xp);
+    u_half = flipud(reshape(u_half, [Nu_a,Nu]));
+    u_half2 = u_half(:);
+end
 %-------------------------------------------------------------------------%
 
 
 %-- Two-pt. kernel on upper half of data ---------------------------------%
 %   Direct approach.
 n_2pt = kernel.run('2pt', Iref, Idef, cam);
-n_2pta = interp2(ya, xa, reshape(n_2pt, [Nu_a,Nu]), ...
+n_2pta = interp2(xa, ya, ...
+    reshape(n_2pt, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);  % interpolate back to aso2 space
 
 
@@ -268,7 +301,8 @@ title('Two point');
 %-- Simpson 13 kernel on upper half of data ------------------------------%
 %   Direct approach.
 n_s13 = kernel.run('simps13', Iref, Idef, cam);
-n_s13a = interp2(ya, xa, reshape(n_s13, [Nu_a,Nu]), ...
+n_s13a = interp2(xa, ya, ...
+    reshape(n_s13, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);
 
 
@@ -285,7 +319,8 @@ title('Simpson 13');
 %-- Three-pt. kernel -----------------------------------------------------%
 %   Indirect approach.
 n_3pt = kernel.run('3pt', Iref, Idef, cam);
-n_3pta = interp2(ya, xa, reshape(n_3pt, [Nu_a,Nu]), ...
+n_3pta = interp2(xa, ya, ...
+    reshape(n_3pt, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);
 
 figure(24);
@@ -297,7 +332,8 @@ colorbar;
 title('Three point, 1D integration');
 
 n_3pt_pois = kernel.run({'3pt','poisson'}, Iref, Idef, cam);
-n_3pt_poisa = interp2(ya, xa, reshape(n_3pt_pois, [Nu_a,Nu]), ...
+n_3pt_poisa = interp2(xa, ya, ...
+    reshape(n_3pt_pois, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);
 
 figure(25);
@@ -315,10 +351,11 @@ title('Three point, Poisson');
 W = kernel.onion_peel(size(u_half));
 
 L_tk2_op = regularize.tikhonov_lpr(2, size(u_half,1), size(W,2));
-A_tk2_op = [W; 2e2.*L_tk2_op];
+A_tk2_op = [W; 1e2 .* L_tk2_op];
 b_tk2_op = [pois_half; sparse(zeros(size(L_tk2_op,1), 1))];
 n_op = full(lsqlin(A_tk2_op, b_tk2_op));
-n_opa = interp2(ya, xa, reshape(n_op, [Nu_a,Nu]), ...
+n_opa = interp2(xa, ya, ...
+    reshape(n_op, [Nu_a,Nu]), ...
     aso2.xe2, aso2.re2);
 
 figure(26);
@@ -336,20 +373,20 @@ title('Onion peeling + 2nd order Tikhonov');
 
 
 %%
-%-- NRAP kernel ----------------------------------------------------------%
-tools.textheader('Conventional NRAP');
+%-- arap kernel ----------------------------------------------------------%
+tools.textheader('Conventional ARAP');
 
-L_tk2_nrap = regularize.tikhonov_lpr(2, aso2.Nr+1, size(Kl2,2));
-A_tk2_nrap = [Kl2; 2e2.*L_tk2_nrap];  % 2e2 is regularization parameter
-b_tk2_nrap = [-u_of(:); sparse(zeros(size(L_tk2_nrap,1), 1))];
-n_nrap = full(lsqlin(A_tk2_nrap, b_tk2_nrap));
+L_tk2_arap = regularize.tikhonov_lpr(2, aso2.Nr+1, size(Kl2,2));
+A_tk2_arap = [Kl2; 1e2 .* L_tk2_arap];  % 2e2 is regularization parameter
+b_tk2_arap = [u_of(:); sparse(zeros(size(L_tk2_arap,1), 1))];
+n_arap = full(lsqlin(A_tk2_arap, b_tk2_arap));
 
 figure(27);
-aso2.plot(n_nrap ./ C0);
+aso2.plot(n_arap ./ C0);
 colormap(flipud(ocean));
 axis image;
 colorbar;
-title('NRAP + 2nd order Tikhonov');
+title('ARAP + 2nd order Tikhonov');
 
 tools.textheader;
 %-------------------------------------------------------------------------%
@@ -365,37 +402,9 @@ tools.textheader('AUBOS');
 L_tk2 = regularize.tikhonov_lpr(2, aso2.Nr+1, size(A,2));
 
 % tools.textbar(0);
-n_tk2_vec = {};
-err = []; n_norm = []; res_norm = []; pr_norm = [];
-
-% (1st Tikhonov, ~2e1), (2nd  Tikhonoc, ~5e2)
-lambda_vec = 2e2; % logspace(-8, -3, 26);
-for ii=1:length(lambda_vec)
-    A_tk2 = [Le*A; lambda_vec(ii).*L_tk2];
-    b_tk2 = [Le*b; sparse(zeros(size(L_tk2,1), 1))];
-    
-    tic;
-    n_tk2_vec{ii} = lsqlin(A_tk2, b_tk2);
-    % n_tk2_vec{ii} = (A_tk2' * A_tk2) \ (A_tk2' * b_tk2);
-    % n_tk2_vec{ii} = pcg(A_tk2, b_tk2);
-    toc;
-    
-    % tic;
-    % n_tk2_vec2{ii} = regularize.mart(A_tk2, b_tk2);
-    % toc;
-    
-    err(ii) = norm(n_tk2_vec{ii} - bet2);
-    n_norm(ii) = norm(n_tk2_vec{ii});
-    res_norm(ii) = norm(Le*(A*n_tk2_vec{ii} - b));
-    pr_norm(ii) = norm((lambda_vec(ii).*L_tk2) * ...
-    	n_tk2_vec{ii});
-    
-    % tools.textbar(ii ./ length(lambda_vec));
-end
-
-
-[~, ii_min] = min(err);
-n_tk2 = n_tk2_vec{ii_min};
+A_tk2 = [Le * A; 2e2 .* L_tk2];
+b_tk2 = [Le * b; sparse(zeros(size(L_tk2,1), 1))];
+n_tk2 = lsqlin(A_tk2, b_tk2);
 
 tools.textheader();
 
@@ -440,12 +449,12 @@ title('Ground truth');
 n_maxmax = max(max([ ...
     n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
     n_3pta(:) ./ C0, n_opa(:) ./ C0, ... 
-    n_nrap(:) ./ C0, ...
+    n_arap(:) ./ C0, ...
     n_tk2(:), bet2(:)]));
 n_minmin = min(min([ ...
     n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
     n_3pta(:) ./ C0, n_opa(:) ./ C0, ... 
-    n_nrap(:) ./ C0, ...
+    n_arap(:) ./ C0, ...
     n_tk2(:), bet2(:)]));
 
 
@@ -471,8 +480,8 @@ e.threept = norm(n_3pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2
 e.threept_pois = norm(n_3pt_poisa(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.twopt = norm(n_2pta(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.onion_peel = norm(n_opa(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
-e.nrap = norm(n_nrap ./ C0 - bet2) / length(bet2) ./ mean(bet2);
-e.nrap2 = norm(n_nrap(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.arap = norm(n_arap ./ C0 - bet2) / length(bet2) ./ mean(bet2);
+e.arap2 = norm(n_arap(~f_nan) ./ C0 - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 
 
 e  % display e

@@ -10,17 +10,18 @@ function [x, D, u_of] = run(spec, Iref, Idef, cam)
 
 if ~iscell(spec); spec = {spec}; end  % convert to cell if not already one
 
-Nv = size(Iref, 2);  % second image dimension
+Nv = size(Iref, 1);  % second image dimension
+Nu = size(Iref, 2);
 
 % Print a header for the method.
 tools.textheader(['Running ', spec{1}]);
 
 %-- Set up optical flow operator. ------------%
 if any(strcmp(spec, 'lucas-kanade'))
-    disp(' Using Lucas-Kanade optical flow.');
+    disp(' OPTICAL FLOW: Using Lucas-Kanade.');
     of = @tools.lucas_kanade;
 else
-    disp(' Using Horn-Schunk optical flow.');
+    disp(' OPTICAL FLOW: Using Horn-Schunk.');
     of = @tools.horn_schunck;
 end
 
@@ -29,11 +30,11 @@ end
 if any(strcmp(spec, {'3pt'}))
     if any(strcmp(spec, 'poisson'))  % OPTION 1: Divergence and Poisson eq. solve.
         disp(' INDIRECT: Using Poisson integration.');
-        poisf = @(u_of, v_of) tools.poisson(divergence(v_of, u_of));
+        intfun = @(u_of, v_of) -tools.poisson(divergence(v_of, u_of));
 
     else % OPTION 2: Integrate in y-direction.  < (default)
         disp(' INDIRECT: Using 1D integration.');
-        poisf = @(u_of, ~) -cumsum(u_of);
+        intfun = @(u_of, ~) cumsum(u_of);
 
     end
 end
@@ -48,10 +49,7 @@ switch spec{1}
         [u_of, ~] = of(Iref, Idef);
         
         % Convert u_of to half domain.
-        idx_xp = round(cam.y0, 6) >= 0; % removes eps that could remain
-        Nu_a = sum(idx_xp) ./ Nv; % number of x entries above zero
-        u_half = -u_of(idx_xp);
-        u_half = flipud(reshape(u_half, [Nu_a,Nv]));
+        u_half = u_transform(cam, Nu, u_of);
         
         D = kernel.simps13(size(u_half));
         x = D * u_half(:);
@@ -64,10 +62,7 @@ switch spec{1}
         [u_of, ~] = of(Iref, Idef);
         
         % Convert u_of to half domain.
-        idx_xp = round(cam.y0, 6) >= 0; % removes eps that could remain
-        Nu_a = sum(idx_xp) ./ Nv; % number of x entries above zero
-        u_half = -u_of(idx_xp);
-        u_half = flipud(reshape(u_half, [Nu_a,Nv]));
+        u_half = u_transform(cam, Nu, u_of);
         
         D = kernel.two_pt(size(u_half));
         x = D * u_half(:);
@@ -84,9 +79,10 @@ switch spec{1}
         Nu_a = sum(idx_xp) ./ Nv; % number of x entries above zero
         
         % Apply integration (Poisson or 1D).
-        pois0 = poisf(u_of, v_of);
-        pois_half = -pois0(idx_xp);
-        pois_half = flipud(reshape(pois_half, [Nu_a,Nv]));
+        pois0 = intfun(u_of, v_of);
+        
+        % Convert u_of to half domain.
+        pois_half = u_transform(cam, Nu, pois0);
         
         D = kernel.three_pt(size(pois_half));
         x = D * pois_half(:);
@@ -96,3 +92,31 @@ tools.textheader;
 
 end
 
+
+
+function u_half = u_transform(cam, Nu, u)
+
+if ~exist('f_top', 'var'); f_top = []; end
+if isempty(f_top); f_top = 1; end
+
+if f_top
+    idx_xp = round(cam.y0, 6) >= 0; % removes eps that could remain
+    Nu_a = sum(idx_xp) ./ Nu; % number of x entries above zero
+    
+    ya = round(reshape(cam.y0(idx_xp), [Nu_a,Nu]), 7);
+    xa = round(reshape(cam.x0(idx_xp), [Nu_a,Nu]), 7);
+    
+    u_half = u(idx_xp);
+    u_half = reshape(u_half, [Nu_a,Nu]);
+else
+    idx_xp = round(cam.y0, 6) <= 0; % removes eps that could remain
+    Nu_a = sum(idx_xp) ./ Nu; % number of x entries above zero
+
+    ya = -flipud(round(reshape(cam.y0(idx_xp), [Nu_a,Nu]), 7));
+    xa = flipud(round(reshape(cam.x0(idx_xp), [Nu_a,Nu]), 7));
+    
+    u_half = -u(idx_xp);
+    u_half = flipud(reshape(u_half, [Nu_a,Nu]));
+end
+
+end
