@@ -162,6 +162,12 @@ var svg3 = d3.select("#my_beta")
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+//-- Add background rectangle --//
+svg3.append("rect")
+  .attr("width", width)
+  .attr("height", height3)
+  .attr("fill", "#FFF");
+
 // Add X axis
 var x2 = d3.scaleLinear()
   .domain([-1.5, 1.5])
@@ -221,6 +227,12 @@ var svg2 = d3.select("#my_dataviz2")
   .attr("height", height + margin.top + margin.bottom)
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+//-- Add background rectangle --//
+svg2.append("rect")
+  .attr("width", width)
+  .attr("height", height)
+  .attr("fill", "#FFF");
 
 // Add X axis
 // inherit x scale from above

@@ -123,6 +123,12 @@ var svg2 = d3.select("#my_labels")
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+//-- Add background rectangle --//
+svg.append("rect")
+  .attr("width", width)
+  .attr("height", height)
+  .attr("fill", "#FFF");
+
 // Add X axis
 var x = d3.scaleLinear()
   .domain([0, 1])

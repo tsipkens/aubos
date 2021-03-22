@@ -25,6 +25,7 @@ body {
   font-family: 'Open Sans', sans-serif;
   font-weight: 200;
   font-size: 12pt;
+  background-color: #FAFAFA;
 }
 
 b {
@@ -147,7 +148,7 @@ a.anchor {
 }
 
 div.footer {
-  background-color: #FAFAFA;
+  background-color: #F2F2F2;
   margin-top: 30px;
   padding-top: 30px;
   margin-bottom: 0px;

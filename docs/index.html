@@ -165,8 +165,10 @@
     function scrollFunction() {
       if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 60) {
         document.getElementById("navbar").style.boxShadow = "0px 0px 4px #AAA";
+        document.getElementById("navbar").style.backgroundColor = "white";
       } else {
         document.getElementById("navbar").style.boxShadow = "none";
+        document.getElementById("navbar").style.backgroundColor = "#FAFAFA";
       }
     }
   </script>
