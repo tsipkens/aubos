@@ -24,19 +24,19 @@ Instead of the **cmap** package, one could also replace references in existing s
 
 ## Components
 
-This codebase is broken up into a series of packages: 
+This codebase is broken up into a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the tools package can be called using`tools.textbar(..._)`. Included packages are as follows:
 
-1. The **transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. This presents the mathematical basis for the kernels derived subsequently. 
+1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. (2021a). There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
 
-2. The **kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/NRAP-type operators. 
+2. The **+kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/ARAP-type operators. 
 
-3. The **tools** package contains miscellaneous functions to aid in analysis, e.g., text-based toolbar function. 
+3. The **+tools** package contains miscellaneous functions to aid in analysis, e.g., text-based toolbar function. Of note, `tools.run(...)` is a wrapper for the conventional (i.e., not unified) operators that packages together the necessary steps to be used by any given method to convert reference and deflected images into a refractive index field. This can including adding deflection sensing and integration steps, as necessary. 
 
-4. The **regularization** package contains tools to help during inversion, such as generating prior covariance matrices (e.g., for Tikhonov regularization). 
+4. The **+regularization** package contains tools that add prior information or stabilize inverse operators (including the onion peeling and ARAP operators), such as computing prior covariance matrices (e.g., for Tikhonov regularization). 
 
-This codebase also contains three classes: 
+This codebase also contains three classes (folders that start with **@**): 
 
-1. The **Aso** class is used to handle axisymmetric objects that are only defined with respect to radial position (i.e., do not have axial variations). The functions in the `+kernel/` folder are built to evaluate the transforms for these objects. 
+1. The **Aso** class is used to handle axisymmetric objects that are only defined with respect to radial position (i.e., do not have axial variations). The functions in the **+kernel** package are built to evaluate the transforms for these objects. 
 
 2. The **Aso2** class, similarly, is used to handle axisymmetric objects, this time by including radial and axial variations. Solving these problems generally takes much longer than the 1D case considered above. 
 
