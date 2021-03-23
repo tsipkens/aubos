@@ -112,8 +112,8 @@ Next, use `meshgrid(...)` to lay out a grid of points for where the rays cross *
 
 ```Matlab
 % Select only rays that would pass close to ASO.
-y0_vec = linspace(-2, 2, Nv);
-x0_vec = linspace(0, X, Nu);
+y0_vec = linspace(-2, 2, Nv);  % 2 a.u. above and below center
+x0_vec = linspace(0, 4, Nu);  % 0 -> 4 a.u. axially
 [cam.x0, cam.y0] = meshgrid(x0_vec, y0_vec);
 cam.y0 = cam.y0(:)'; cam.x0 = cam.x0(:)'; % must be row vectors
 ```
@@ -121,7 +121,7 @@ cam.y0 = cam.y0(:)'; cam.x0 = cam.x0(:)'; % must be row vectors
 The slopes of the rays can now be calculated from these positions by solving a linear equation representing the ray trajectory. 
 
 ```Matlab
-% Slope of rays.
+% Slope of rays based on origin and z = 0 crossings.
 cam.my = (cam.y - cam.y0) ./ cam.z;
 cam.mx = (cam.x - cam.x0) ./ cam.z;
 ```
