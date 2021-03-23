@@ -6,6 +6,12 @@
 
 This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels. Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of Bayesian inference and priors. 
 
+The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
+
+![coord](docs/imgs/01_coordinate.png)
+
+The positive *z*-direction is chosen to proceed forward, away from the camera, and perpendicular to the imaging plane. The origin is placed at the middle of the axisymmetric target object (ASO), such that *z* = 0 represents the distance from the camera lens to the center of the ASO along the imaging axis. 
+
 ## Setup
 
 This program has a single dependency that are included as submodules: the **cmap** package available at https://github.com/tsipkens/cmap. As a result, this folder will initially be empty. The submodules can be downloaded manually from the above sources and placed in the `cmap/` folder. If cloning using git, clone the repository using 
@@ -44,49 +50,47 @@ This codebase also contains three classes (folders that start with **@**):
 
 We refer the reader to individual functions and class definitions for use and more information. 
 
-## Tutorial
+## Tutorials
 
 This codebase can be used for three purposes, such that this tutorial has three components. 
 
-### 1. Visualizing the ARAP transforms
+### A. Visualizing the ARAP transforms
 
-Sipkens et al. (2021) introduced a new transform that allows for arbtirary ray directions for deflectometry. This code includes tools to visualize and compare these transforms directly, relying on the functions tin the **transforms** package. 
+While projecting axisymmetric objects is typically achieved using the Abel transform, which has a kernel of 
 
-This is demonstrated in `main_transform`. 
+![](https://latex.codecogs.com/svg.latex?{\frac{2y_0}{\sqrt{r^2-y_0^2}}}.)
 
-### 2. Forward problem: Computing deflection fields
+Sipkens et al. (2021a) derived the arbitrary ray, axisymmetric [projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
 
-This is demonstrated in `main_aso`. 
+![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)^{\frac{3}{2}}}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}}.)
 
-### 3. Inverse problem: Computing refractive index fields
-
-This is demonstrated in `main_compare*`, which compares multiple inversion techniques. 
-
-## Description
-
-The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
-
-![coord](docs/imgs/01_coordinate.png)
-
-The positive *z*-direction is chosen to proceed forward, away from the camera, and perpendicular to the imaging plane. The origin is placed at the middle of the axisymmetric target object (ASO), such that *z* = 0 represents the distance from the camera lens to the center of the ASO along the imaging axis. 
-
-Projecting axisymmetric objects is typically achieved using the Abel transform, which has a kernel of 
-
-![](https://latex.codecogs.com/svg.latex?{\frac{2y_0}{\sqrt{r^2-y_0^2}}})
-
-Sipkens et al. (Submitted) derived a new transform, not requiring that the rays passing through the ASO be parallel, which has a kernel of
-
-![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)^{\frac{3}{2}}}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}})
-
-These raw transforms can be evaluated using the functions in the `+transforms/` folder by appending `transform.`  before the function name. For example, the direct, Abel transform can be evaluated using
+This code includes tools to visualize and compare these transforms directly, relying on the functions in the **transforms** package. For example, the direct, Abel transform can be evaluated using
 
 ```Matlab
 K = transform.abeld(y0, r_vec);
 ```
 
-Use of this codebase to evaluate these transforms is demonstrated in the `main_transforms` script. 
+while the direct ARAP transform can be evaluated using 
 
-### Representing cameras and ray trajectories
+```Matlab
+K = transform.arapd(my, y0, r_vec);
+```
+
+A comparison of these transforms is demonstrated in the `main_transform` script in the upper directory. 
+
+### B. Forward problem: Computing deflection fields
+
+This is demonstrated in `main_aso`. 
+
+### C. Inverse problem: Computing refractive index fields
+
+This is demonstrated in `main_compare*`, which compares multiple inversion techniques. 
+
+## Description
+
+What follows is a description of some of the key concepts required to use this codebase. 
+
+### 1. Representing cameras and ray trajectories
 
 Imaging inherently requires the use of cameras. Multiple options exist for defining a camera or equivalent within this codebase. In any case, one must define the trajectories for rays leaving the camera, which will then be used with other components of this codebase. Each ray should be represented by a series of four parameters: 
 
@@ -100,7 +104,7 @@ Imaging inherently requires the use of cameras. Multiple options exist for defin
 
 These properties are assigned to a structure, `cam`, which is passed between methods. We provide two examples of how one can define these properties. 
 
-#### 1. Manual calculation
+#### 1.1 Manual calculation
 
 The first involves manually setting the camera properties.  Within the examples provided with this codebase, this is used extensively whenever one wants to focus on the deflection field for only rays in the proximity of the ASO (in other words, ignoring the larger field of view that may be relevant to a real camera). In this case, one can set a camera position and, assuming a pinhole camera, find the trajectory of rays that would originate from the pinhole camera and transect the *z* = 0 plane at certain positions. To start, let's define a camera origin, with the camera being 20 a.u. away from the center of the ASO. 
 
@@ -126,7 +130,7 @@ cam.my = (cam.y - cam.y0) ./ cam.z;
 cam.mx = (cam.x - cam.x0) ./ cam.z;
 ```
 
-#### 2. Camera class
+#### 1.2 Camera class
 
 While the above treatment is useful within the context of visualizing theoretical deflection fields, as was relevant in generating figures for the associated work by Sipkens et al. (2021a), more often cameras will instead be specified with a camera origin and focal length. This is the function of the `Camera` class. 
 
