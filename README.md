@@ -86,20 +86,49 @@ K = transform.abeld(y0, r_vec);
 
 Use of this codebase to evaluate these transforms is demonstrated in the `main_transforms` script. 
 
-### Representing cameras
+### Representing cameras and ray trajectories
 
-Imaging inherently requires the use of cameras. Multiple options exist for defining a camera within this program. In any case, one must define the initial trajectories for rays leaving the camera, which will then be used with other components of this codebase. Each ray should be represented by a series of four parameters: 
+Imaging inherently requires the use of cameras. Multiple options exist for defining a camera or equivalent within this codebase. In any case, one must define the trajectories for rays leaving the camera, which will then be used with other components of this codebase. Each ray should be represented by a series of four parameters: 
 
-1. `x0` - The x-position (i.e., the radial position in the imaging plane) at which the ray crosses *z* = 0 (which corresponds to the center of the ASO). 
-2. `y0` - Similar to above, this is the y-position (i.e., axial position in the imaging plane) at which the ray crossed *z* = 0.
-3. `mx` - The slope of the ray in the *x*-*z* plane. This acts as an input to the transform defined by Sipkens et al. in the associated work. 
-4. `my` - The slope of the ray in the *y*-*z* plane. This determines how quickly the ray traverses the axial direction. The `my = 0` case corresponds to rays that do not traverse axially (as would be required for the Abel inversion scenario).
+`y0` - Similar to above, this is the y-position (i.e., axial position in the imaging plane) at which the ray crossed *z* = 0.
 
-We provide two examples of how one can define these properties. 
+`x0` - The x-position (i.e., the radial position in the imaging plane) at which the ray crosses *z* = 0 (which corresponds to the center of the ASO). 
 
-The first involves manually setting the camera properties.  Within the examples provided with this codebase, this is used extensively whenever one wants to focus on the deflection field for only rays in the proximity of the ASO (in other words, ignoring the larger field of view that may be relevant to a real camera). In this case, one can set a camera position and, assuming a pinhole camera, find the trajectory of rays that would original from the pinhole camera and transect the *z* = 0 plane at certain positions. 
+`mx` - The slope of the ray in the *x*-*z* plane. This acts as an input to the transform defined by Sipkens et al. in the associated work. 
 
-While the above treatment is useful within the context of visualizing theoretical deflection fields, as was relevant in generating figures for the associated work by Sipkens et al., more often cameras will be specified instead with a camera origin and focal length. 
+`my` - The slope of the ray in the *y*-*z* plane. This determines how quickly the ray traverses the axial direction. The `my = 0` case corresponds to rays that do not traverse axially (as would be required for the Abel inversion scenario).
+
+These properties are assigned to a structure, `cam`, which is passed between methods. We provide two examples of how one can define these properties. 
+
+#### 1. Manual
+
+The first involves manually setting the camera properties.  Within the examples provided with this codebase, this is used extensively whenever one wants to focus on the deflection field for only rays in the proximity of the ASO (in other words, ignoring the larger field of view that may be relevant to a real camera). In this case, one can set a camera position and, assuming a pinhole camera, find the trajectory of rays that would originate from the pinhole camera and transect the *z* = 0 plane at certain positions. To start, let's define a camera origin, with the camera being 20 a.u. away from the center of the ASO. 
+
+```Matlab
+cam.x = 2; cam.y = 0; cam.z = -20;
+```
+
+Next, use `meshgrid(...)` to lay out a grid of points for where the rays cross *z* = 0, that is *y*<sub>0</sub> and *x*<sub>0</sub>, which forms the basis for an image. 
+
+```Matlab
+% Select only rays that would pass close to ASO.
+y0_vec = linspace(-2, 2, Nv);
+x0_vec = linspace(0, X, Nu);
+[cam.x0, cam.y0] = meshgrid(x0_vec, y0_vec);
+cam.y0 = cam.y0(:)'; cam.x0 = cam.x0(:)'; % must be row vectors
+```
+
+The slopes of the rays can now be calculated from these positions by solving a linear equation representing the ray trajectory. 
+
+```Matlab
+% Slope of rays.
+cam.my = (cam.y - cam.y0) ./ cam.z;
+cam.mx = (cam.x - cam.x0) ./ cam.z;
+```
+
+#### 2. Camera class
+
+While the above treatment is useful within the context of visualizing theoretical deflection fields, as was relevant in generating figures for the associated work by Sipkens et al. (2021a), more often cameras will instead be specified with a camera origin and focal length. This is the function of the `Camera` class. 
 
 --------
 
