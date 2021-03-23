@@ -1,9 +1,9 @@
 
-% NRAPD  The general direct transform described by Sipkens et al. for non-parallel rays.
+% ARAPD  The general direct transform described by Sipkens et al. for non-parallel rays.
 %  
 %  AUTHOR: Timothy Sipkens, 2020-06-11
 
-function K = nrapd(my, y0, r)
+function K = arapd(my, y0, r)
 
 r(r<y0/sqrt(1+my^2)) = NaN; % blank out irrelevant radii for u0 and m
 

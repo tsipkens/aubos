@@ -1,9 +1,9 @@
 
-% NRAP  The general indirect transform described by Sipkens et al. for non-parallel rays.
+% ARAP  The general indirect transform described by Sipkens et al. for non-parallel rays.
 %  
 %  AUTHOR: Timothy Sipkens, 2021-02-02
 
-function K = nrap(my, y0, r)
+function K = arap(my, y0, r)
 
 r(r<y0/sqrt(1+my^2)) = NaN; % blank out irrelevant radii for u0 and m
 
