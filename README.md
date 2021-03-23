@@ -100,7 +100,7 @@ Imaging inherently requires the use of cameras. Multiple options exist for defin
 
 These properties are assigned to a structure, `cam`, which is passed between methods. We provide two examples of how one can define these properties. 
 
-#### 1. Manual
+#### 1. Manual calculation
 
 The first involves manually setting the camera properties.  Within the examples provided with this codebase, this is used extensively whenever one wants to focus on the deflection field for only rays in the proximity of the ASO (in other words, ignoring the larger field of view that may be relevant to a real camera). In this case, one can set a camera position and, assuming a pinhole camera, find the trajectory of rays that would originate from the pinhole camera and transect the *z* = 0 plane at certain positions. To start, let's define a camera origin, with the camera being 20 a.u. away from the center of the ASO. 
 
