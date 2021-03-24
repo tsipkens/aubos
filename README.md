@@ -30,13 +30,13 @@ Instead of the **cmap** package, one could also replace references in existing s
 
 ## Components
 
-This codebase is broken up into a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the tools package can be called using`tools.textbar(..._)`. Included packages are as follows:
+This codebase is broken up into a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the **tools** package can be called using`tools.textbar(..._)`. Available packages include:
 
 1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. (2021a). There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
 
 2. The **+kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/ARAP-type operators. 
 
-3. The **+tools** package contains miscellaneous functions to aid in analysis, e.g., text-based toolbar function. Of note, `tools.run(...)` is a wrapper for the conventional (i.e., not unified) operators that packages together the necessary steps to be used by any given method to convert reference and deflected images into a refractive index field. This can including adding deflection sensing and integration steps, as necessary. 
+3. The **+tools** package contains miscellaneous functions to aid in analysis, e.g., text-based toolbar function. Of note, `tools.run(...)` is a wrapper for the conventional (i.e., not unified) operators that packages together the necessary steps to be used by any given method to convert a pair of reference and deflected images into a refractive index field. For example, this includes the deflection sensing and integration steps, as necessary. 
 
 4. The **+regularization** package contains tools that add prior information or stabilize inverse operators (including the onion peeling and ARAP operators), such as computing prior covariance matrices (e.g., for Tikhonov regularization). 
 
@@ -52,7 +52,7 @@ We refer the reader to individual functions and class definitions for use and mo
 
 ## Tutorials
 
-This codebase can be used for three purposes, such that this tutorial has three components. 
+This codebase can be used for three purposes: (A) visualizing the transforms that underlie the problem; (B) evaluating the forward model, that is computing the deflections from a scaled refractive index field; and (C) evaluating the inverse model, that is going from a deflection field or pair of images to a refractive index field. 
 
 ### A. Visualizing the ARAP transforms
 
@@ -132,7 +132,7 @@ cam.mx = (cam.x - cam.x0) ./ cam.z;
 
 #### 1.2 Camera class
 
-While the above treatment is useful within the context of visualizing theoretical deflection fields, as was relevant in generating figures for the associated work by Sipkens et al. (2021a), more often cameras will instead be specified with a camera origin and focal length. This is the function of the `Camera` class. 
+While the above treatment is useful within the context of visualizing theoretical deflection fields, as was relevant in generating figures for the associated work by Sipkens et al. (2021a), more often cameras will instead be specified with a camera origin and focal length. This is the function of the `Camera` class. The class has properties that mirror those of the manual approach, including the `y0`, `my`, `x0`, and `mx` properties necessary to evaluate ARAP kernels. 
 
 --------
 
