@@ -13,7 +13,7 @@ f_plot = 0;
 
 %%
 %== Generate background ==================================================%
-disp('Reading and transforming image...');
+disp('Reading and transforming image ...');
 Iref0 = tools.gen_bg('sines', [250,352], 10)  .* 255;
 % Iref0 = tools.gen_bg('sines2', [250,352], 10)  .* 255;
 % Iref0 = tools.gen_bg('dots', [250,352], 10)  .* 255;
@@ -23,8 +23,8 @@ figure(1);
 imagesc(Iref0);
 colormap(gray);
 axis image;
-disp('Complete.');
-disp(' ');
+
+tools.textdone(2);
 %=========================================================================%
 
 

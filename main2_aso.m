@@ -3,9 +3,10 @@
 %  Instead of a proper camera model, this script considers rays that
 %  transect the z = 0 plane close to the ASO.
 %  
-%  Runtimes on the order of a few minutes
-%  (depending on hardware and camera position).
-%  Closer camera positions (small oc(3)) have longer runtimes.
+%  Runtimes on the order of a few minutes, depending on hardware 
+%  and camera position. Closer camera positions (small oc(3)) have 
+%  longer runtimes. Faster runtimes are also achieved by reducing 
+%  Nv and Nu.
 %  
 %  AUTHOR: Timothy Sipkens, 2020
 
@@ -56,7 +57,7 @@ bet2 = bet2(:);
 %   ASO, such that the image limits are set in ASO units.
 
 % Camera origin
-cam_no = 1;
+cam_no = 2;
 switch cam_no
     case 1
         cam.x = 3.5; cam.y = 0.5; cam.z = -1.9;
@@ -150,18 +151,15 @@ title('Linear ray tracing (radial)');
 %%
 %== AUBOS operator =======================================================%
 [Kl2, Kx2] = kernel.linear_d(aso2, cam.y0, cam.my, cam.x0, cam.mx);
-disp('Complete.');
-disp(' ');
 
 
-disp('Evaluate forward model...');
+disp('Evaluating forward model ...');
 b_l2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
 b_l2 = reshape(b_l2, [Nv, Nu]);
 
 b_x2 = Kx2 * bet2;
 b_x2 = reshape(b_x2, [Nv, Nu]);
-disp('Complete.');
-disp(' ');
+tools.textdone(2);
 
 
 % FIG 7: Radial deflection field

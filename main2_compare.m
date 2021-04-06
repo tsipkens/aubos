@@ -1,12 +1,14 @@
 
 % MAIN_2COMPARE  Compares multiple inversion approaches to the 2D axisymmetric problem. 
-% Relative to main_2aso, this script uses a camera model with a focal length. 
-% Timothy Sipkens, 2020-08-31
-%=========================================================================%
+%  
+%  Relative to main_2aso, this script uses a camera model 
+%  with a focal length. 
+%  
+%  AUTHOR: Timothy Sipkens, 2020-08-31
 
-clear; close all;
+clear;
+close all;
 addpath cmap; % add colormaps to path
-
 
 
 
@@ -16,7 +18,6 @@ Nr = 250;
 X = 4;
 Nx = 400;
 aso2 = Aso2(Nr, R, Nx, X);
-
 
 
 %-{
@@ -41,7 +42,6 @@ bet2 = bet2(:);
 bet2 = bet2 ./ max(bet2);
 %=========================================================================%
 %}
-
 
 
 %-- Model a camera ------------------------------%
@@ -104,7 +104,6 @@ axis image;
 set(gca,'YDir','normal');
 colorbar;
 %=========================================================================%
-
 
 
 
