@@ -78,6 +78,8 @@ K = transform.arapd(my, y0, r_vec);
 
 A comparison of these transforms is demonstrated in the `main_transform` script in the upper directory. 
 
+A demonstration of the transforms is also available as a web app at https://tsipkens.github.io/aubos. 
+
 ### B. Forward problem: Computing deflection fields
 
 Differences between the deflection fields projected using the traditional Abel and ARAP kernels and the use of the **Aso** class is demonstrated for the 1D problem (radial only) in the `main_aso` script. This script starts by defining creating an instance of the **Aso** class with an outer radius of *R* = 1 and *N*<sub>r</sub> = 125 annuli or elements, 
@@ -135,6 +137,8 @@ figure(6); plot(cam.y0, bl);  % plot of deflection magnitude
 ```
 
 The associated `main_aso` script adds a loop over multiple camera positions to show trends in the deflection field. 
+
+Forward projections are also available as a web app at https://tsipkens.github.io/aubos. 
 
 ### C. Inverse problem: Computing refractive index fields
 
