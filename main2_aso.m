@@ -3,7 +3,9 @@
 %  Instead of a proper camera model, this script considers rays that
 %  transect the z = 0 plane close to the ASO.
 %  
-%  Runtimes on the order of a few minutes (depending on hardware).
+%  Runtimes on the order of a few minutes
+%  (depending on hardware and camera position).
+%  Closer camera positions (small oc(3)) have longer runtimes.
 %  
 %  AUTHOR: Timothy Sipkens, 2020
 
@@ -48,31 +50,13 @@ bet2 = bet2(:);
 %}
 
 
-
-% FIG 4: Plot Cartesian gradients, at a line of constant x and z (i.e.,
-% as a function of y-coordinate).
-figure(4);
-x_ray = 2; z_ray = -0.5;
-y_vec = linspace(-1,1,400);
-[Dx, Dy, Dz] = aso2.gradientc(...
-    x_ray .* ones(size(y_vec)), ... % x-coordinates
-    y_vec, ... % y-coordinates
-    z_ray .* ones(size(y_vec)), bet2); % z-coordinates
-plot(y_vec, [Dx; Dy; Dz]);
-hold off;
-title(['Gradient along ray at x = ', ...
-    num2str(x_ray), ', z = ', num2str(z_ray)]);
-legend({'Dx', 'Dy', 'Dz'});
-
-
-
 %== Generate a fictional camera ==========================================%
 %   Positions along center of aso are used to generate "rays" and 
 %   a fictional "camera". Camera view is restricted to region around the
 %   ASO, such that the image limits are set in ASO units.
 
 % Camera origin
-cam_no = 1;
+cam_no = 2;
 switch cam_no
     case 1
         cam.x = 3.5; cam.y = 0.5; cam.z = -1.9;
@@ -81,7 +65,6 @@ switch cam_no
 	case 3
         cam.x = 2; cam.y = 0.5; cam.z = -1.2;
 end
-
 
 %-{
 %-- Manually assign parameters -------------------%
@@ -97,24 +80,25 @@ cam.mx = (cam.x - cam.x0) ./ cam.z;
 %}
 
 
-
-% FIG 3: Plot refractive index for ASO
+% FIG 3: Plot refractive index with rays for ASO
 figure(3);
 % aso2.plot(bet2);
 aso2.prays(bet2, cam.mx, cam.x0); view(2);
 colormap(flipud(ocean));
 axis image;
 title('Refractive index field for ASO');
+%=========================================================================%
 
 
 
 %== Non-linear ray tracing of object =====================================%
 mod_scale = 1e3;
-[~, ~, eps_y, eps_x, eps_z] = tools.nonlin_ray([cam.x;cam.y;cam.z], ...
-    [cam.mx; cam.my; ones(size(cam.my))], ...
-    aso2, bet2 ./ mod_scale);
+[~, ~, eps_y, eps_x, eps_z] = tools.nonlin_ray( ...
+    [cam.x;cam.y;cam.z], ...  % camera position
+    [cam.mx; cam.my; ones(size(cam.my))], ...  % ray slopes
+    aso2, bet2 ./ mod_scale);  % mod_scale use to reduce deflection to appox. linear
 
-ynlr = eps_y .* mod_scale;
+ynlr = eps_y .* mod_scale;  % scale deflections back up
 ynlr2 = reshape(ynlr, [Nv, Nu]);
 xnlr = eps_x .* mod_scale;
 xnlr2 = reshape(xnlr, [Nv, Nu]);
@@ -127,6 +111,7 @@ caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
 colorbar;
+title('Non-linear ray tracing (radial)');
 
 figure(2);
 imagesc(cam.x0, cam.y0, xnlr2);
@@ -136,12 +121,14 @@ caxis([-x_max, x_max]);
 axis image;
 set(gca,'YDir','normal');
 colorbar;
+title('Non-linear ray tracing (axial)');
 %=========================================================================%
 
 
 %== Linear ray tracing of object =========================================%
-[~, ~, eps_yl, eps_xl] = tools.linear_ray([cam.x;cam.y;cam.z], ...
-    [cam.mx; cam.my; ones(size(cam.my))], ...
+[~, ~, eps_yl, eps_xl] = tools.linear_ray( ...
+    [cam.x;cam.y;cam.z], ...  % camera position
+    [cam.mx; cam.my; ones(size(cam.my))], ...  % ray slopes
     aso2, bet2);
 
 ylr = eps_yl;
@@ -155,6 +142,7 @@ caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
 colorbar;
+title('Linear ray tracing (radial)');
 %=========================================================================%
 
 
@@ -185,10 +173,12 @@ caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
 colorbar;
-title('Radial deflection, {\epsilon_y}');
+title('ARAP, radial deflection, {\epsilon_y}');
 
 
+%{
 % FIG 8: Axial deflection field
+% (Experimental)
 figure(8);
 imagesc(cam.x0, cam.y0, b_x2);
 colormap(curl(255));
@@ -197,7 +187,8 @@ caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
 colorbar;
-title('Axial deflection, {\epsilon_x}');
+title('ARAP, axial deflection, {\epsilon_x}');
+%}
 %=========================================================================%
 
 
