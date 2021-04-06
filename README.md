@@ -60,7 +60,7 @@ While projecting axisymmetric objects is typically achieved using the Abel trans
 
 ![](https://latex.codecogs.com/svg.latex?{\frac{2y_0}{\sqrt{r^2-y_0^2}}}.)
 
-Sipkens et al. (XXXX) derived the arbitrary ray, axisymmetric [projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
+Sipkens et al. (XXXX) derived the arbitrary ray, axisymmetric projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
 
 ![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)^{\frac{3}{2}}}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}}.)
 
