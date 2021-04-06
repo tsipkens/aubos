@@ -52,9 +52,17 @@ h1 {
   font-family: 'Montserrat', sans-serif;
   font-weight: 200;
   margin-top: 90px;
-  margin-bottom: 50px;
+  margin-bottom: 5px;
   text-align: center;
   color: var(--a2);
+}
+
+.subtitle {
+  font-size: 15pt;
+  margin-bottom: 50px;
+  font-family: 'Open Sans',sans-serif;
+  font-weight: 200;
+  text-align: center;
 }
 
 h2 {
@@ -87,7 +95,7 @@ div.main {
 
 
 
-/*  For navigation/header and footer */
+/*  For navigation/header */
 header {
   display: flex;
   justify-content: space-between;
@@ -153,7 +161,6 @@ div.footer {
   padding-top: 30px;
   margin-bottom: 0px;
   padding-bottom: 0px;
-  border-top: 1px solid #DDDDDD;
 }
 
 
