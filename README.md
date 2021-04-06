@@ -30,9 +30,9 @@ Instead of the **cmap** package, one could also replace references in existing s
 
 ## Components
 
-This codebase is broken up into a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the **tools** package can be called using`tools.textbar(..._)`. Available packages include:
+This codebase is broken up into a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the **tools** package can be called using `tools.textbar(..._)`. Available packages include:
 
-1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. (2021a). There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
+1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. (XXXX). There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
 
 2. The **+kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/ARAP-type operators. 
 
@@ -60,7 +60,7 @@ While projecting axisymmetric objects is typically achieved using the Abel trans
 
 ![](https://latex.codecogs.com/svg.latex?{\frac{2y_0}{\sqrt{r^2-y_0^2}}}.)
 
-Sipkens et al. (2021a) derived the arbitrary ray, axisymmetric [projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
+Sipkens et al. (XXXX) derived the arbitrary ray, axisymmetric [projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
 
 ![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)^{\frac{3}{2}}}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}}.)
 
@@ -80,7 +80,61 @@ A comparison of these transforms is demonstrated in the `main_transform` script 
 
 ### B. Forward problem: Computing deflection fields
 
-This is demonstrated in `main_aso`. 
+Differences between the deflection fields projected using the traditional Abel and ARAP kernels and the use of the **Aso** class is demonstrated for the 1D problem (radial only) in the `main_aso` script. This script starts by defining creating an instance of the **Aso** class with an outer radius of *R* = 1 and *N*<sub>r</sub> = 125 annuli or elements, 
+
+```Matlab
+R = 1;
+Nr = 125;
+aso = Aso(Nr, R);
+```
+
+Then, build a phantom refractive index field. For example, 
+
+```Matlab
+bet = normpdf(aso.re, 0, 0.3);
+```
+
+creates a Gaussian refractive index field, centered about *y* = 0 and with a standard deviation of 0.3. The phantom is evaluated at the edges of ASO's annuli, that is `aso.re`.  Other phantoms are available in that work, to show several cases. 
+
+Next, we must define the ray trajectories. There are multiple ways to do this, including the built-in **Camera** class. For the sake of this example, we want to focus only on the rays that would pass close to the ASO. As such, we preferentially pick where the rays cross *z* = 0, i.e., *y*<sub>0</sub>, using
+
+```Matlab
+Nv = 400;
+cam.y0 = 5 .* linspace(-aso.re(end), aso.re(end), Nv);
+```
+
+This creates a vector of length 400 of *y*<sub>0</sub> positions spanning from -5*R* to 5*R*, which is the bounds of the plot generated later, and that we store in a `cam` structure (which emulates the **Camera** class). The other piece of information we need, is the camera origin. We choose the camera position to be close to and above the ASO, which will result in asymmetries in the deflection field, 
+
+``` Matlab
+oc = [0, 1.5, -1.5];
+```
+
+Note that for the 1D case, the first entry of `oc` is ambiguously assigned 0. We can now calculate the final required piece of information, namely the slope of the ray by solving a simple linear equation based on knowing two points along the straight ray path, 
+
+```Matlab
+% Slope implied by camera location. 
+cam.my = (oc(2) - cam.y0) ./ oc(3);
+```
+
+Now we are ready to compute the ARAP kernel, 
+
+```Matlab
+Kl = kernel.linear_d(aso, cam.y0, cam.my);
+```
+
+The deflection field can be computed by multipling this kernel by the phantom, `bet`, computed above. Specifically, 
+
+```Matlab
+bl = Kl * bet; % using linear kernel
+```
+
+Finally, plot the result, noting that the asymmetry in the deflection field is visible, 
+
+```Matlab
+figure(6); plot(cam.y0, bl);
+```
+
+The associated `main_aso` script adds a loop over multiple camera positions to show trends in the deflection field. 
 
 ### C. Inverse problem: Computing refractive index fields
 
@@ -132,7 +186,7 @@ cam.mx = (cam.x - cam.x0) ./ cam.z;
 
 #### 1.2 Camera class
 
-While the above treatment is useful within the context of visualizing theoretical deflection fields, as was relevant in generating figures for the associated work by Sipkens et al. (2021a), more often cameras will instead be specified with a camera origin and focal length. This is the function of the `Camera` class. The class has properties that mirror those of the manual approach, including the `y0`, `my`, `x0`, and `mx` properties necessary to evaluate ARAP kernels. 
+While the above treatment is useful within the context of visualizing theoretical deflection fields, as was relevant in generating figures for the associated work by Sipkens et al. (XXXX), more often cameras will instead be specified with a camera origin and focal length. This is the function of the `Camera` class. The class has properties that mirror those of the manual approach, including the `y0`, `my`, `x0`, and `mx` properties necessary to evaluate ARAP kernels. 
 
 --------
 
