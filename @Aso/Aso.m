@@ -1,11 +1,18 @@
 
 % ASO  A class to handle spatial information for 1D axisymmetric objects.
-% Such an object has no axial dependence, which is useful in demonstrating
-% and testing kernels. This class provides the basics for discretizing the
-% space and plotting functions on the space. 
+%  Such an object has no axial dependence, which is useful in demonstrating
+%  and testing kernels. This class provides the basics for discretizing the
+%  space and plotting functions on the space. 
+%  
+%  A = Aso(NR) creates an discrete, axisymmetric object with NR
+%  annuli/elements. Uses default radius of R = 1.
+%  
+%  A = Aso(NR,R) creates an discrete, axisymmetric object with NR
+%  annuli/elements and an outer radius of R. 
+%  
+%  ------------------------------------------------------------------------
 % 
-% Author: Timothy Sipkens, 2020-05-20
-%=========================================================================%
+%  AUTHOR: Timothy Sipkens, 2020-05-20
 
 classdef Aso
     
@@ -27,6 +34,9 @@ classdef Aso
         %   Constructor method.
         function aso = Aso(Nr, R)
             if nargin==0; return; end % return empty object
+            
+            if ~exist('R', 'var'); R = []; end
+            if isempty(R); R = 1; end  % use R = 1 by default
             
             aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
