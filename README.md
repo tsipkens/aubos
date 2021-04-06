@@ -34,7 +34,7 @@ Instead of the **cmap** package, one could also replace references in existing s
 
 Much of this codebase is distributed amongst a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the **tools** package can be called using `tools.textbar(..._)`. Available packages include:
 
-1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. (XXXX). There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
+1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by [Sipkens et al. (XXXX)][sipkens-arap]. There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
 
 2. The **+kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/ARAP-type operators. 
 
@@ -68,7 +68,7 @@ While projecting axisymmetric objects is typically achieved using the Abel trans
 
 ![](https://latex.codecogs.com/svg.latex?{\frac{2y_0}{\sqrt{r^2-y_0^2}}}.)
 
-Sipkens et al. (XXXX) derived the arbitrary ray, axisymmetric projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
+[Sipkens] et al. (XXXX)][sipkens-arap] derived the arbitrary ray, axisymmetric projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
 
 ![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)^{\frac{3}{2}}}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}}.)
 
