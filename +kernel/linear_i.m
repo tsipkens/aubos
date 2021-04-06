@@ -1,12 +1,12 @@
 
 % LINEAR_I  Evaluates kernel/operator for a linear basis representation of a 1D ASO.
-% Timothy Sipkens, 2020-06-10
 % 
-% Inputs:
+%  INPUTS:
 %   aso_re  Axis-symmetric object or edges of the annuli
 %   my      Set of slopes for the rays
 %   y0      Intersect with line through center of aso
-%=========================================================================%
+%  
+%  AUTHOR: Timothy Sipkens, 2020-06-10
 
 function [K] = linear_i(aso_re, y0, my)
 

@@ -1,7 +1,7 @@
 
-% LINEAR_D  Evaluates direct NRAP operator for a linear basis.
+% LINEAR_D  Evaluates the direct operator for a linear basis.
 % 
-%  K = kernel.linear_d(ASO,Y0,MY) computes the 1D (radial only) NRAP, linear 
+%  K = kernel.linear_d(ASO,Y0,MY) computes the 1D (radial only) ARAP, linear 
 %  basis function operator for the Aso object in ASO and for the rays
 %  described by a y-intercept (at z = 0) of Y0 and a z-y slope of MY.
 %  Y0 and MY are expected to be row vectors.
@@ -11,7 +11,7 @@
 %  based. RE is expected to be a column vector.
 %  
 %  K = kernel.linear_d(ASO2,Y0,MY,X0,MX) computes the 2D (radial and axial)
-%  NRAP, linear basis function operators for the Aso2 object in ASO2 and
+%  ARAP, linear basis function operators for the Aso2 object in ASO2 and
 %  adding the x-intercept of X0 and the z-x slope of MX. 
 %  Y0, MY, X0, and MX are expected to be row vectors.
 %  
@@ -78,7 +78,7 @@ if nargin<4  % consider 1D case
 
 
 else  % consider 2D case
-    tools.textheader('Building NRAP kernel');
+    tools.textheader('Building ARAP kernel');
     disp(' (Linear, 2D, Direct)');
 
     if aso2.N<3; error(' Aso does not have enough annuli for linear basis.'); end

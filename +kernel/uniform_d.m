@@ -16,7 +16,7 @@
 %  the Abel case, and a direct kernel. 
 % 
 %  K - kernel.uniform_d(...,Y0,MY) adds an input for the slope of the rays,
-%  generalizing to the NRAP kernel case. Output is still a direct kernel. 
+%  generalizing to the ARAP kernel case. Output is still a direct kernel. 
 %  
 %  AUTHOR: Timothy Sipkens, 2020-06-10
 
