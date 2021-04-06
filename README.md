@@ -88,7 +88,7 @@ Nr = 125;
 aso = Aso(Nr, R);
 ```
 
-Then, build a phantom refractive index field. For example, 
+Then, we build a phantom refractive index field. For example, 
 
 ```Matlab
 bet = normpdf(aso.re, 0, 0.3);
@@ -96,14 +96,14 @@ bet = normpdf(aso.re, 0, 0.3);
 
 creates a Gaussian refractive index field, centered about *y* = 0 and with a standard deviation of 0.3. The phantom is evaluated at the edges of ASO's annuli, that is `aso.re`.  Other phantoms are available in that work, to show several cases. 
 
-Next, we must define the ray trajectories. There are multiple ways to do this, including the built-in **Camera** class. For the sake of this example, we want to focus only on the rays that would pass close to the ASO. As such, we preferentially pick where the rays cross *z* = 0, i.e., *y*<sub>0</sub>, using
+Next, we must define the ray trajectories. There are multiple ways to do this, including the built-in [**Camera**](#1-representing-cameras-and-ray-trajectories) class. For the sake of this example, we want to focus only on the rays that would pass close to the ASO. As such, we preferentially pick where the rays cross *z* = 0, i.e., *y*<sub>0</sub>, using
 
 ```Matlab
 Nv = 400;
 cam.y0 = 5 .* linspace(-aso.re(end), aso.re(end), Nv);
 ```
 
-This creates a vector of length 400 of *y*<sub>0</sub> positions spanning from -5*R* to 5*R*, which is the bounds of the plot generated later, and that we store in a `cam` structure (which emulates the **Camera** class). The other piece of information we need, is the camera origin. We choose the camera position to be close to and above the ASO, which will result in asymmetries in the deflection field, 
+This creates a vector of length 400 of *y*<sub>0</sub> positions spanning from -5*R* to 5*R*, which is the bounds of the plot generated later. We store this information in a `cam` structure (which emulates the [**Camera**](#1-representing-cameras-and-ray-trajectories) class). The other piece of information we need, is the camera origin. We choose the camera position to be close to and above the ASO, which will result in asymmetries in the deflection field, 
 
 ``` Matlab
 oc = [0, 1.5, -1.5];
