@@ -4,13 +4,13 @@
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
-This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels. Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of Bayesian inference and priors. 
+This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels, including novel **arbitrary ray, axisymmetric projection (ARAP)** kernels ([Sipkens et al., XXXX][sipkens-arap]). Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of the Bayesian framework with priors. 
 
 The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
 
 ![coord](docs/imgs/01_coordinate.png)
 
-The positive *z*-direction is chosen to proceed forward, away from the camera, and perpendicular to the imaging plane. The origin is placed at the middle of the axisymmetric target object (ASO), such that *z* = 0 represents the distance from the camera lens to the center of the ASO along the imaging axis. Accordingly, cameras are typically places at *z* < 0. 
+The positive *z*-direction is chosen to proceed forward, away from the camera, and perpendicular to the imaging plane. The origin is placed at the middle of the axisymmetric target object (ASO), such that *z* = 0 represents the distance from the camera lens to the center of the ASO along the imaging axis. Accordingly, cameras are typically placed at *z* < 0. 
 
 ## Setup
 
@@ -213,3 +213,5 @@ This code contains several excerpts from a previous, private codebase by Samuel 
 [Grauer, S. J., & Steinberg, A. M. (2020). Fast and robust volumetric refractive index measurement by unified background-oriented schlieren tomography. Experiments in Fluids, 61(3), 1-17.][GrauerSteinberg20]
 
 [GrauerSteinberg20]: https://link.springer.com/article/10.1007/s00348-020-2912-1
+
+[sipkens-arap]: #
