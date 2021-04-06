@@ -78,7 +78,7 @@ if pct==0; f_back = 0; end
 
 
 %-- Other parameters ----%
-n_dot = 20;  % number of elements in progress bar
+n_dot = 15;  % number of elements in progress bar
 n_xtra = 10;  % padded elements  for percent / general spacing
 n_frac = 2 * length(num2str(i(2))) + 1;  % number of extra elements due to fraction
 n_str = n_dot + n_xtra + n_frac;
