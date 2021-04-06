@@ -25,7 +25,7 @@ classdef Aso
     methods
         %== ASO ==========================================================%
         %   Constructor method.
-        function aso = Aso(R, Nr)
+        function aso = Aso(Nr, R)
             if nargin==0; return; end % return empty object
             
             aso.Nr = Nr; % number of annuli

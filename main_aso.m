@@ -15,7 +15,7 @@ addpath cmap; % add colormaps to path
 
 R = 1;
 Nr = 125;
-aso = Aso(R, Nr); % generate an axis-symmetric object
+aso = Aso(Nr, R);
 
 
 %== Case studies / phantoms for dn/dr ====================================%
