@@ -56,7 +56,7 @@ We refer the reader to individual functions and class definitions for use and mo
 
 #### Main scripts
 
-Finally, example and high-level scripts generally follow the naming convention `main*`. Generally, `main_*` scripts examine the 1D (radial only) problem, while `main2_*` scripts consider the 2D (radial and axial) problem. 
+Finally, example and high-level scripts typically follow the naming convention `main*`. Generally, `main_*` scripts examine the 1D (radial only) problem, while `main2_*` scripts consider the 2D (radial and axial) problem. 
 
 ## Tutorials
 
