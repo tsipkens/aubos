@@ -6,8 +6,10 @@
 %  
 %  In direct support of Sipkens et al. (XXXX).
 %  
+%  Runtimes on the order of 10 seconds. 
+%  
 %  ------------------------------------------------------------------------
-% 
+%  
 %  AUTHOR: Timothy Sipkens, 2020-05-20
 
 
