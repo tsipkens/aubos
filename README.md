@@ -142,7 +142,7 @@ Forward projections are also available as a web app at https://tsipkens.github.i
 
 ### C. Inverse problem: Computing refractive index fields
 
-This is demonstrated in `main_compare*`, which compares multiple inversion techniques. 
+This is demonstrated in `main_compare*`, which compares multiple inversion techniques, generating figures similar to those seen in Sipkens et al. (XXXX). 
 
 ## Description
 
