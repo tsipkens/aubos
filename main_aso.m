@@ -1,18 +1,22 @@
 
-% MAIN_ASO  Demonstrate use of ASO class. 
+% MAIN_ASO  Demonstrate use of ASO class and forward propogate deflection fields. 
 %  This involves simulating and inverting phantoms defined on a 1D 
 %  axisymmetric object (i.e., % only a radial object, with no axial 
 %  considerations). 
+%  
+%  In direct support of Sipkens et al. (XXXX).
+%  
+%  ------------------------------------------------------------------------
 % 
 %  AUTHOR: Timothy Sipkens, 2020-05-20
-%  ------------------------------------------------------------------------
 
 
 clear; close all;
 addpath cmap; % add colormaps to path
 
 
-
+% Define an axisymmetric object, with an outer 
+% radius of R and Nr annuli.
 R = 1;
 Nr = 125;
 aso = Aso(Nr, R);
@@ -23,11 +27,11 @@ aso = Aso(Nr, R);
 pha_no = 1;
 switch pha_no
     case 1 % gaussian
-        bet = normpdf(aso.re,0,0.3);
+        bet = normpdf(aso.re, 0, 0.3);
         
     case 2 % gaussian with central dip
-        bet = (1+1.2) .* normpdf(aso.re,0,0.25) - ...
-            1.2.*normpdf(aso.re,0,0.15);
+        bet = (1+1.2) .* normpdf(aso.re, 0, 0.25) - ...
+            1.2.*normpdf(aso.re, 0, 0.15);
         
     case 3 % approx. cylinder, sigmoid function softens transition
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
@@ -44,25 +48,22 @@ switch pha_no
         bet = sqrt(max(0.7.^2 - aso.re.^2, 0));
 end
 bet = bet ./ max(bet);  % scale such that peak is unity
-%=========================================================================%
 
-
-% FIG 2: Simple plot of bet for the ASO.
+%-- FIG 2: Simple plot of bet for the ASO. -------------------------------%
 figure(1);
 plot([-flipud(aso.re); aso.re], [flipud(bet); bet], 'k');
 
-% FIG 3: Plot Phantom (2D slice through center of ASO)
+%-- FIG 3: Plot Phantom (2D slice through center of ASO) -----------------%
 figure(2);
 aso.surf(bet);
 colormap(flipud(ocean));
 axis off;
-
-
+%=========================================================================%
 
 
 %== Generate a fictitious "camera" =======================================%
 % 	Multiple camera positions are considered (contained in `oc`)
-%   OPTION 1 uses the camera class and a focal length.
+%   OPTION 1 uses the Camera class and a focal length.
 %   OPTION 2 considers only rays that pass close to the ASO. The output
 %       will differ from OPT. 1, producing a different set of rays that 
 %       results in higher resultion deflections in the vicinity of the ASO.
@@ -72,18 +73,12 @@ Nv = 400; % number of pixels in "camera" (only one dim. considered for this ASO)
 Nc = 20; % number of camera positions
 oc = [zeros(1, Nc); ...
     fliplr(linspace(0, 1.5, Nc)); ...
-    -(1+logspace(log10(0.1),log10(10),Nc))];
+    -(1 + logspace(log10(0.1), log10(10), Nc))];
     % vector of camera origin locations
-    
-% oc = [0; 0.5; -8;]; Nc = 1;
-
-% oc = [zeros(1, Nc); ...
-%     linspace(0, 6, Nc); ...
-%     2 .* ones(1, Nc)];
-
 
 %{
-%-- OPTION 1: Use tools.Camera ---------------%
+%-- OPTION 1: Use Camera class ---------------%
+%   (For testing only)
 for cc=Nc:-1:1
     cam(cc) = Camera(1, Nv, oc(:,cc), 1e2);
 end
@@ -91,7 +86,7 @@ end
 
 %-{
 %-- OPTION 2: Manually assign parameters -----%
-y0_vec = linspace(-2.*aso.re(end), 2.*aso.re(end), Nv);
+%   (Recommended)
 for cc=Nc:-1:1
     cam(cc).y = oc(2, cc);
     cam(cc).z = oc(3, cc);
@@ -123,44 +118,36 @@ hold on;
 xlim([-2,2]);
 
 
+% Loop through multiple camera positions.
+% Append curves to figures in loop.
 hold on;
-for cc=1:Nc % loop through multiple camera positions
+for cc=1:Nc
     Ku = kernel.uniform_d(aso, cam(cc).y0, cam(cc).my);
     Kl = kernel.linear_d(aso, cam(cc).y0, cam(cc).my);
     
-    bu = Ku*bet; % using uniform kernel
-    bl = Kl*bet; % using linear kernel
+    bu = Ku * bet;  % using uniform kernel
+    bl = Kl * bet;  % using linear kernel
     
-    figure(5); plot(cam(cc).y0, bu); % add line to FIG 5
-    figure(6); plot(cam(cc).y0, bl); % add line to FIG 6
+    figure(5); plot(cam(cc).y0, bu);  % add line to FIG 5
+    figure(6); plot(cam(cc).y0, bl);  % add line to FIG 6
 end
 figure(5); hold off;
 figure(6); hold off;
 
 
 
-% FIG 3 + 4: Plot of rays overlaid on phantom.
-% This demonstating the degree to which the rays are parallel.
+% FIG 3 + 4: Plot of rays overlaid on phantom 
+% for first and last camera positions.
+% This demonstrates the degree to which the rays are parallel.
 % Use first camera in cam structure. 
 figure(3);
-aso.srays(bet, cam(1).my(1:10:end), cam(1).y0(1:10:end));
+aso.prays(bet, cam(1).my(1:10:end), cam(1).y0(1:10:end));
 colormap(flipud(ocean));
 
 % Use last camera in cam structure. 
 figure(4);
-aso.srays(bet, cam(end).my(1:10:end), cam(end).y0(1:10:end));
+aso.prays(bet, cam(end).my(1:10:end), cam(end).y0(1:10:end));
 colormap(flipud(ocean));
-
-% Show two distorted images for first and last cameras. 
-figure(9);
-v = 1:Nv;
-Iref = sin(0.3 .* v);
-bdef1 = (kernel.linear_d(aso, cam(1).y0, cam(1).my) * bet)';
-bdef2 = (kernel.linear_d(aso, cam(end).y0, cam(end).my) * bet)';
-Idef1 = sin(0.3 .* (v + bdef1));
-Idef2 = sin(0.3 .* (v + bdef2));
-imagesc([Iref; Idef1; Idef2]);
-colormap(gray);
 
 % FIG 10: Plot position of cameras relative to ASO
 figure(10);
