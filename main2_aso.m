@@ -1,13 +1,14 @@
 
-% MAIN_2ASO  A script to demonstrate the 2D AUBOS approach, without inversion. 
-% Runtimes on the order of a few minutes (depending on hardware).
-% Instead of a proper camera model, this script considers rays that
-% transect the z = 0 plane close to the ASO.
-% Timothy Sipkens
-%=========================================================================%
+% MAIN2_ASO  A script to demonstrate the 2D AUBOS approach, without inversion. 
+%  Instead of a proper camera model, this script considers rays that
+%  transect the z = 0 plane close to the ASO.
+%  
+%  Runtimes on the order of a few minutes (depending on hardware).
+%  
+%  AUTHOR: Timothy Sipkens, 2020
 
 clear; close all;
-addpath cmap; % add colormaps to path
+addpath cmap;  % add colormaps to path
 
 
 
@@ -17,11 +18,11 @@ Nv = 249; Nu = 352;  % higher res. (slow)
 % Nv = 81; Nu = 100;  % lower res. (fast)
 
 % Axisymmetric target object information and creation
-R = 1;
-Nr = min(Nv, 250);
-X = 4;
-Nx = min(Nu, 400);
-aso2 = Aso2(R, Nr, X, Nx);
+R = 1;  % maxial radius
+Nr = min(Nv, 250);  % number of radial elements for reconstruction
+X = 4;  % max. axial position
+Nx = min(Nu, 400);  % number of axial elements for reconstruction
+aso2 = Aso2(Nr, R, Nx, X);
 
 
 
@@ -197,7 +198,6 @@ axis image;
 set(gca,'YDir','normal');
 colorbar;
 title('Axial deflection, {\epsilon_x}');
-
 %=========================================================================%
 
 

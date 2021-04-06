@@ -44,7 +44,7 @@ classdef Aso2
     
     
     methods
-        function aso = Aso2(R, Nr, X, Nx)
+        function aso = Aso2(Nr, R, Nx, X)
             if nargin==0; return; end % return empty object
             
             %-- Radial positions and discretization ----------------------%

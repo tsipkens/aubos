@@ -15,7 +15,7 @@ R = 1;
 Nr = 250;
 X = 4;
 Nx = 400;
-aso2 = Aso2(R, Nr, X, Nx);
+aso2 = Aso2(Nr, R, Nx, X);
 
 
 

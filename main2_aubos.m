@@ -34,7 +34,7 @@ R = 1;
 Nr = min(round(size(Iref0,1) .* 1.2), 250);
 X = 4;
 Nx = min(round(size(Iref0,2) .* 1.2), 400);
-aso2 = Aso2(R, Nr, X, Nx);
+aso2 = Aso2(Nr, R, Nx, X);
 
 
 
