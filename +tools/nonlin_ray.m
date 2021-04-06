@@ -45,7 +45,7 @@ K = ceil(1.2 * norm(z1 - z2) / ds * ...
 
 
 % Print script status
-if f_print; disp(' Non-linear ray tracing:'); tools.textbar(0); end
+if f_print; disp(' Non-linear ray tracing:'); tools.textbar([0, K]); end
 %-------------------------------------------------------------------------%
 
 
@@ -80,13 +80,13 @@ while any(~ic)
     ic = c(3,:)>aso.R; % index of converged rays
     
     % Update progress bar
-    if f_print; tools.textbar(k/K); end
+    if f_print; tools.textbar([k, K]); end
     
     if k==K; break; end % if iteration limit reached
 end
 
 if f_print
-    tools.textbar(1);
+    tools.textbar([K, K]);
     if any(~ic); warning('Not all of the rays converged!'); end
     disp(' ');
 end
