@@ -30,7 +30,9 @@ Instead of the **cmap** package, one could also replace references in existing s
 
 ## Components
 
-This codebase is broken up into a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the **tools** package can be called using `tools.textbar(..._)`. Available packages include:
+#### Packages
+
+Much of this codebase is distributed amongst a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the **tools** package can be called using `tools.textbar(..._)`. Available packages include:
 
 1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by Sipkens et al. (XXXX). There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
 
@@ -39,6 +41,8 @@ This codebase is broken up into a series of packages (folders that start with **
 3. The **+tools** package contains miscellaneous functions to aid in analysis, e.g., text-based toolbar function. Of note, `tools.run(...)` is a wrapper for the conventional (i.e., not unified) operators that packages together the necessary steps to be used by any given method to convert a pair of reference and deflected images into a refractive index field. For example, this includes the deflection sensing and integration steps, as necessary. 
 
 4. The **+regularization** package contains tools that add prior information or stabilize inverse operators (including the onion peeling and ARAP operators), such as computing prior covariance matrices (e.g., for Tikhonov regularization). 
+
+#### Classes
 
 This codebase also contains three classes (folders that start with **@**): 
 
@@ -49,6 +53,10 @@ This codebase also contains three classes (folders that start with **@**):
 3. Finally, the **Camera** class is used to output the ray positions and directions for a pinhole camera, which established a framework by which to expand this representation to include other effects (e.g., lens aberration). 
 
 We refer the reader to individual functions and class definitions for use and more information. 
+
+#### Main scripts
+
+Finally, example and high-level scripts generally follow the naming convention `main*`. Generally, `main_*` scripts examine the 1D (radial only) problem, while `main2_*` scripts consider the 2D (radial and axial) problem. 
 
 ## Tutorials
 
