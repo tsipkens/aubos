@@ -83,15 +83,15 @@ A comparison of these transforms is demonstrated in the `main_transform` script 
 Differences between the deflection fields projected using the traditional Abel and ARAP kernels and the use of the **Aso** class is demonstrated for the 1D problem (radial only) in the `main_aso` script. This script starts by defining creating an instance of the **Aso** class with an outer radius of *R* = 1 and *N*<sub>r</sub> = 125 annuli or elements, 
 
 ```Matlab
-R = 1;
-Nr = 125;
-aso = Aso(Nr, R);
+R = 1;  % outer radius
+Nr = 125;  % number of elements
+aso = Aso(Nr, R);  % Aso object
 ```
 
 Then, we build a phantom refractive index field. For example, 
 
 ```Matlab
-bet = normpdf(aso.re, 0, 0.3);
+bet = normpdf(aso.re, 0, 0.3);  % Gaussian refractive index field
 ```
 
 creates a Gaussian refractive index field, centered about *y* = 0 and with a standard deviation of 0.3. The phantom is evaluated at the edges of ASO's annuli, that is `aso.re`.  Other phantoms are available in that work, to show several cases. 
@@ -99,8 +99,8 @@ creates a Gaussian refractive index field, centered about *y* = 0 and with a sta
 Next, we must define the ray trajectories. There are multiple ways to do this, including the built-in [**Camera**](#1-representing-cameras-and-ray-trajectories) class. For the sake of this example, we want to focus only on the rays that would pass close to the ASO. As such, we preferentially pick where the rays cross *z* = 0, i.e., *y*<sub>0</sub>, using
 
 ```Matlab
-Nv = 400;
-cam.y0 = 5 .* linspace(-aso.re(end), aso.re(end), Nv);
+Nv = 400;  % 400 rays (or "camera pixels")
+cam.y0 = 5 .* linspace(-aso.re(end), aso.re(end), Nv);  % rays cross z = 0
 ```
 
 This creates a vector of length 400 of *y*<sub>0</sub> positions spanning from -5*R* to 5*R*, which is the bounds of the plot generated later. We store this information in a `cam` structure (which emulates the [**Camera**](#1-representing-cameras-and-ray-trajectories) class). The other piece of information we need, is the camera origin. We choose the camera position to be close to and above the ASO, which will result in asymmetries in the deflection field, 
@@ -119,19 +119,19 @@ cam.my = (oc(2) - cam.y0) ./ oc(3);
 Now we are ready to compute the ARAP kernel, 
 
 ```Matlab
-Kl = kernel.linear_d(aso, cam.y0, cam.my);
+Kl = kernel.linear_d(aso, cam.y0, cam.my);  % compute linear ARAP kernel
 ```
 
 The deflection field can be computed by multipling this kernel by the phantom, `bet`, computed above. Specifically, 
 
 ```Matlab
-bl = Kl * bet; % using linear kernel
+bl = Kl * bet;  % using linear kernel
 ```
 
 Finally, plot the result, noting that the asymmetry in the deflection field is visible, 
 
 ```Matlab
-figure(6); plot(cam.y0, bl);
+figure(6); plot(cam.y0, bl);  % plot of deflection magnitude
 ```
 
 The associated `main_aso` script adds a loop over multiple camera positions to show trends in the deflection field. 
