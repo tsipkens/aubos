@@ -152,11 +152,11 @@ Forward projections are also available as a web app at https://tsipkens.github.i
 
 This is demonstrated in `main_compare*`, which compares multiple inversion techniques, generating figures similar to those seen in Sipkens et al. (XXXX). 
 
-## Description
+------
 
-What follows is a description of some of the key concepts required to use this codebase. 
+Additional information useful to using this codebase follows. 
 
-### 1. Representing cameras and ray trajectories
+## 1. CAMERAS AND RAY TRAJECTORIES
 
 Imaging inherently requires the use of cameras or ray trajectories. Multiple options exist for defining a camera or equivalent within this codebase. In any case, one must define the trajectories for rays leaving the camera, which will then be used with other components of this codebase. Each ray should be represented by a series of four parameters: 
 
