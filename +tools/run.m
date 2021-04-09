@@ -103,6 +103,7 @@ if ~any(strcmp(spec, 'unified'))
         of = @tools.horn_schunck;
     end
 end
+[u_of, v_of] = of(Iref, Idef);
 
 
 %== Set up integrator, if relevant. ======================================%
@@ -132,8 +133,6 @@ switch spec
     %   Requires optical flow/DIC.
     %   Inverse, direct kernel.
     case 'simps13'
-        [u_of, ~] = of(Iref, Idef);
-        
         % Convert u_of to half domain.
         u_half = tools.halve(cam, Nu, u_of, opts.side);
         
@@ -146,8 +145,6 @@ switch spec
     %   Requires optical flow/DIC.
     %   Inverse, direct kernel.
     case {'2pt', 'two-point'}
-        [u_of, ~] = of(Iref, Idef);
-        
         % Convert u_of to half domain.
         u_half = tools.halve(cam, Nu, u_of, opts.side);
         
@@ -160,8 +157,6 @@ switch spec
     %   Requires optical flow/DIC.
     %   Inverse, indirect (integrate first) kernel.
     case {'3pt', 'three-point'}
-        [u_of, v_of] = of(Iref, Idef);
-        
         % Apply integration (Poisson or 1D).
         pois0 = intfun(u_of, v_of);
         
@@ -175,8 +170,6 @@ switch spec
     
     %== ONION PEELING ====================================================%
     case {'onion-peeling'}
-        [u_of, v_of] = of(Iref, Idef);
-        
         % Apply integration (Poisson or 1D).
         pois0 = intfun(u_of, v_of);
         
@@ -195,8 +188,6 @@ switch spec
     %== DIRECT ABEL ====================================================%
     %   Uses index-based, linear kernel, setting the slopes to zero.
     case {'direct-abel', 'dabel'}
-        [u_of, ~] = of(Iref, Idef);
-        
         % Convert u_of to half domain.
         u_half = tools.halve(cam, Nu, u_of, opts.side);
         
@@ -217,8 +208,6 @@ switch spec
     case {'arap', 'arap-ns'}
         if ~exist('K', 'var'); error('Pre-computed kernel required.'); end
         if ~exist('Nr', 'var'); error("Number of annuli ('Nr') required."); end
-        
-        [u_of, ~] = of(Iref, Idef);
         
         disp([' TIKHONOV: λ = ', num2str(lambda)]);
         disp(' FORWARD OPERATOR: Building and inverting system.');
