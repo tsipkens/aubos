@@ -407,7 +407,7 @@ end
 %-- ARAP kernel ----------------------------------------------------------%
 %   Conventional, two-step.
 n_arap = tools.run('arap', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', 2e2);
+    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', 8e1);
 
 if f_plot
     figure(29);
@@ -511,6 +511,11 @@ end
 %=========================================================================%
 %}'
 
+% Standardize value of unified methods ahead of more automated analysis below. 
+n_uarap = n_uarap .* C0;
+n_uabela = n_uabela .* C0;
+n_uarap_ns = n_uarap_ns .* C0;
+
 
 %%
 
@@ -518,24 +523,52 @@ end
 %-- Quantitative comparisons --------------------------------%
 f_nan = isnan(n_s13a);
 
+sz_nan = [Nr+1, length(bet2b)/(Nr+1)];  % size of Abel-cropped region
+bet2b = bet2(~f_nan);
+
 normalizer = sum(~f_nan) ./ mean(bet2);
 
-e.uarap = norm(n_uarap - bet2) / length(bet2) ./ mean(bet2);
-e.uarap2 = norm(n_uarap(~f_nan) - bet2(~f_nan)) ./ normalizer;  % for region overlapping Abel inversions
-e.s13 = norm(n_s13a(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.threept = norm(n_3pta(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.threept_pois = norm(n_3pt_poisa(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.threept_poisv = norm(n_3pt_poisva(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.twopt = norm(n_2pta(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.onion_peel = norm(n_opa(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.arap = norm(n_arap ./ C0 - bet2) / length(bet2) ./ mean(bet2);
-e.arap2 = norm(n_arap(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.arap_ns = norm(n_arap_ns(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.dabel = norm(n_dabela(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
-e.uabel = norm(n_uabela(~f_nan) - bet2(~f_nan)) ./ normalizer;
-e.uarap_ns2 = norm(n_uarap_ns(~f_nan) - bet2(~f_nan)) ./ normalizer;
+% Map method, variable, and field names.
+name_methods = {'Two-point', 'Simpson 1/3', ...
+    'Three-point', 'Three-point (Poisson)', 'Onion peeling', ...
+    'ARAP', 'ARAP (no slope)', 'Direct, linear basis Abel', ...
+    'Unified Abel', 'Unified ARAP', 'Unified ARAP (no slope)'};
+name_vars = {'_2pta', '_s13a', ...
+    '_3pta', '_3pt_poisa', '_opa', ...
+	'_arap', '_arap_ns', '_dabela', ...
+    '_uabela', '_uarap', '_uarap_ns'};
+name_fields = {'twopt', 's13', ...
+    'threept', 'threept_pois', 'onion_peel', ...
+    'arap', 'arap_ns', 'dabel', ...
+    'uabel', 'uarap', 'uarap_ns'};
+
+clear e;
+for ii=1:length(name_methods)
+    nii = eval(['n', name_vars{ii}, '(~f_nan)']);
+    e.(name_fields{ii}) = norm(nii ./ C0 - bet2(~f_nan)) ./ normalizer;
+    ss.(name_fields{ii}) = ssim( ...
+        reshape(nii ./ C0, sz_nan), ...
+        reshape(bet2(~f_nan), sz_nan));
+end
+
+
+% e.uarap = norm(n_uarap - bet2) / length(bet2) ./ mean(bet2);
+% e.uarap2 = norm(n_uarap(~f_nan) - bet2(~f_nan)) ./ normalizer;  % for region overlapping Abel inversions
+% e.s13 = norm(n_s13a(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.threept = norm(n_3pta(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.threept_pois = norm(n_3pt_poisa(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.threept_poisv = norm(n_3pt_poisva(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.twopt = norm(n_2pta(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.onion_peel = norm(n_opa(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.arap = norm(n_arap ./ C0 - bet2) / length(bet2) ./ mean(bet2);
+% e.arap2 = norm(n_arap(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.arap_ns = norm(n_arap_ns(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.dabel = norm(n_dabela(~f_nan) ./ C0 - bet2(~f_nan)) ./ normalizer;
+% e.uabel = norm(n_uabela(~f_nan) - bet2(~f_nan)) ./ normalizer;
+% e.uarap_ns2 = norm(n_uarap_ns(~f_nan) - bet2(~f_nan)) ./ normalizer;
 
 e  % display e
+ss
 
 
 base = e.twopt;
@@ -552,21 +585,23 @@ re % display re
 % Summary plot.
 figure(40);
 clf; drawnow;
-tools.plot_grid(aso2, [], ...
-    {'Ground truth', ['Two-point: ', num2str(re.twopt)], ['Simpson 1/3: ', num2str(re.s13)], ...
-    ['Three-point: ', num2str(re.threept)], ['Three-point (Poisson): ', num2str(re.threept_pois)], ...
-    ['Onion peeling: ', num2str(re.onion_peel)], ...
-    ['ARAP: ', num2str(re.arap2)], ['ARAP (no slope): ', num2str(re.arap_ns)], ...
-    ['Direct, linear basis Abel: ', num2str(re.dabel)], ...
-    ['Unified Abel: ', num2str(re.uabel)], ...
-    ['Unified ARAP: ', num2str(re.uarap2)], ['Unified ARAP (no slope): ', num2str(re.uarap_ns2)]}, ...
+
+% Get titles.
+titles = {};
+for ii=1:length(name_methods)
+    titles{ii} = [name_methods{ii}, ': ', num2str(re.(name_fields{ii}))];
+end
+titles = [{'Ground truth'}, titles];
+
+% Plot on grid.
+tools.plot_grid(aso2, [], titles, ...
     bet2(:), n_2pta(:) ./ C0, n_s13a(:) ./ C0, ...
     n_3pta(:) ./ C0, n_3pt_poisa(:) ./ C0, ...
     n_opa(:) ./ C0, ... 
     n_arap(:) ./ C0, n_arap_ns(:) ./ C0, ...
     n_dabela(:) ./ C0, ...
-    n_uabela(:), ...
-    n_uarap(:), n_uarap_ns(:));
+    n_uabela(:) ./ C0, ...
+    n_uarap(:) ./ C0, n_uarap_ns(:) ./ C0);
 
 
 
