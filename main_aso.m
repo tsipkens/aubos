@@ -106,6 +106,7 @@ end
 % FIG 5: Initialize plot for uniform basis functions.
 figure(5);
 clf;
+title('Uniform');
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
 cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
@@ -114,6 +115,7 @@ xlim([-2,2]);
 % FIG 6: Initialize plot for linear basis functions.
 figure(6);
 clf;
+title('Linear');
 ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
 cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;

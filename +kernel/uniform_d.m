@@ -43,23 +43,24 @@ rju = re(2:end); % r_{j+1}
 
 
 %-{
+% Function for indefinite integral
+% the + eps allows for finite value of kernel when r = x0.
 Ka = @(m,y0,r) sqrt(r.^2 - y0.^2 ./ (1 + m.^2));
-Kb = @(m,y0,r) log(r + Ka(m, y0, r + eps));
-    % function for indefinite integral
-    % the + eps allows for finite value of kernel when r = x0
+Kb = @(m,y0,r) log(abs(r + Ka(m, y0, r + eps)));
 
-K = real(2  ./ (1 + my .^ 2) .* y0 .* ( ... % real(.) removes values outside integral bounds
-    Kb(my,y0,rju) - ...
-    Kb(my,y0,rj)))';
-    % uniform basis kernel function at specified m and u0
+
+% Uniform basis kernel function at specified m and u0.
+K = (2 .* y0 ./ (1 + my .^ 2) .* ( ...  % pre-factor ahead of integral
+    Kb(my, y0, rju) - ...  % upper integral bound
+    Kb(my, y0, rj)))';  % lower integral bound
 
     
-% If direct, multiply be differential operator.
+% Multiply be differential operator to get direct operator.
 % Else, proceed to output instead.
 d = (eye(Nr+1, Nr+1) - diag(ones(Nr, 1), 1));
 d(end, :) = []; % remove final row
 d = d ./ dr; % divide by element area
-K = -K*d; % gradient is implemented as seperate operator (better noise characteristics)
+K = -K * d; % gradient is implemented as seperate operator (better noise characteristics)
 
 
 
