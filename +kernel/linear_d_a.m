@@ -1,16 +1,18 @@
 
-% LINEAR_D  Evaluates the direct operator for a linear basis.
+% LINEAR_D_A  Alternate to evaluate the direct operator for a linear basis.
+%  Function is generally slower than kernel.linear_d(...) for the same
+%  output, but is slightly easier to read/understand.
 % 
-%  K = kernel.linear_d(ASO,Y0,MY) computes the 1D (radial only) ARAP, linear 
+%  K = kernel.linear_d_a(ASO,Y0,MY) computes the 1D (radial only) ARAP, linear 
 %  basis function operator for the Aso object in ASO and for the rays
 %  described by a y-intercept (at z = 0) of Y0 and a z-y slope of MY.
 %  Y0 and MY are expected to be row vectors.
 %  
-%  K = kernel.linear_d(RE,Y0,MY) replaces the Aso unit with the position of
+%  K = kernel.linear_d_a(RE,Y0,MY) replaces the Aso unit with the position of
 %  the edges of each of the annuli on which the linear basis is to be
 %  based. RE is expected to be a column vector.
 %  
-%  K = kernel.linear_d(ASO2,Y0,MY,X0,MX) computes the 2D (radial and axial)
+%  K = kernel.linear_d_a(ASO2,Y0,MY,X0,MX) computes the 2D (radial and axial)
 %  ARAP, linear basis function operators for the Aso2 object in ASO2 and
 %  adding the x-intercept of X0 and the z-x slope of MX. 
 %  Y0, MY, X0, and MX are expected to be row vectors.
@@ -21,7 +23,7 @@
 %  
 %  AUTHOR: Timothy Sipkens, 2020-06-10
 
-function [K, Kx] = linear_d(aso_re, y0, my, x0, mx)
+function [K, Kx] = linear_d_a(aso_re, y0, my, x0, mx)
 
 %-- Parse inputs ---------------------------------------------------------%
 if isa(aso_re,'Aso'); re = aso_re.re; % if input is an Aso
@@ -227,7 +229,7 @@ else  % consider 2D case
              Ad(my(idx_b), rju0, rj0, rju, rj); ... % integral over decline
              zeros(1,size(rj,2))  % zeros for last element
             ])))';
-        K1(abs(K1) < 1e5*eps) = 0;  % supress numerical noise
+        K1(abs(K1) < 1e3*eps) = 0;  % supress numerical noise
         K1(isnan(K1)) = 0;  % remove NaN values that result when modified element width is zero
         
         
@@ -272,7 +274,7 @@ else  % consider 2D case
              Ad(my(idx_c), rju0, rj0, rju, rj); ... % integral over decline
              zeros(1,size(rj,2))  % zeros for last element
             ])))';
-        K2(abs(K2) < 1e5*eps) = 0;  % supress numerical noise
+        K2(abs(K2) < 1e3*eps) = 0;  % supress numerical noise
         K2(isnan(K2)) = 0;  % remove NaN values that result when modified element width is zero
         
         

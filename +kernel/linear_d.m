@@ -100,9 +100,7 @@ else  % consider 2D case
         length(mx), length(x0)]);
     
     % Initialize K, assume 0.5% full.
-    K = spalloc(N_beams, aso2.Nx * (aso2.Nr + 1), ...
-        round(1e-4 * N_beams * aso2.Nx * (aso2.Nr + 1)));
-
+    K = sparse(N_beams, aso2.Nx * (aso2.Nr + 1));
     Kx = spalloc(N_beams, aso2.Nx * (aso2.Nr + 1), ...
         round(1e-5 * N_beams * aso2.Nx * (aso2.Nr + 1)));
     
@@ -208,7 +206,7 @@ else  % consider 2D case
         % Evaluate front of ASO kernel (up to midpoint in ASO).
         K1 = (sqrt(1+mx(idx_b).^2) ./ (1+my(idx_b).^2) .* ( ...
             ([ ...
-             zeros(1,size(rj,2)); ...  % zeros for first element
+             sparse(1,size(rj,2)); ...  % zeros for first element
              Afun(my(idx_b), y0(idx_b), rjd0, rj0, rj, rjd) + ... % integral over rise
              Ad(my(idx_b), rjd0, rj0, rjd, rj); ... % added component of integrand
              Afun(my(idx_b), y0(idx_b), rj0(end,:), rju0(end,:), rju(end,:), rj(end,:)) + ...
@@ -218,10 +216,8 @@ else  % consider 2D case
              Ad(my(idx_b), rj0(1,:), rjd0(1,:), rj(1,:), rjd(1,:)); ...
              Afun(my(idx_b), y0(idx_b), rju0, rj0, rju, rj) - ...
              Ad(my(idx_b), rju0, rj0, rju, rj); ... % integral over decline
-             zeros(1,size(rj,2))  % zeros for last element
+             sparse(1,size(rj,2))  % zeros for last element
             ])))';
-        K1(abs(K1) < 1e5*eps) = 0;  % supress numerical noise
-        K1(isnan(K1)) = 0;  % remove NaN values that result when modified element width is zero
         
         
         %== SECOND (REAR) INTEGRAND ========================================%
@@ -249,7 +245,7 @@ else  % consider 2D case
         % evaluate rear of ASO integrand (beyond midpoint in ASO).
         K2 = (sqrt(1+mx(idx_c).^2) ./ (1+my(idx_c).^2) .* ( ...
             ([ ...
-             zeros(1, size(rj,2)); ...  % zeros for first element
+             sparse(1, size(rj,2)); ...  % zeros for first element
              Afun(my(idx_c), y0(idx_c), rjd0, rj0, rj, rjd) - ... % integral over rise
              Ad(my(idx_c), rjd0,rj0, rjd, rj); ... % added component of integrand
              Afun(my(idx_c), y0(idx_c), rj0(end,:), rju0(end,:), rju(end,:), rj(end,:)) - ...
@@ -259,24 +255,32 @@ else  % consider 2D case
              Ad(my(idx_c), rj0(1,:), rjd0(1,:), rj(1,:), rjd(1,:)); ...
              Afun(my(idx_c), y0(idx_c), rju0, rj0, rju, rj) + ...
              Ad(my(idx_c), rju0, rj0, rju, rj); ... % integral over decline
-             zeros(1,size(rj,2))  % zeros for last element
+             sparse(1,size(rj,2))  % zeros for last element
             ])))';
-        K2(abs(K2) < 1e5*eps) = 0;  % supress numerical noise
-        K2(isnan(K2)) = 0;  % remove NaN values that result when modified element width is zero
         
         
-        % Extra IF statements consider if no intersecting rays.
-        K0 = zeros(length(idx_a), aso2.Nr+1);
-        if ~isempty(idx_b)
-            [~, ib] = intersect(idx_a, idx_b);
-            K0(ib, :) = K1;
-        end
-        if ~isempty(idx_c)
-            [~, ic] = intersect(idx_a, idx_c);
-            K0(ic, :) = K0(ic, :) + K2;
-        end
-        K0(isnan(K0)) = 0; 
-        K(idx_a, ((ii-1)*(aso2.Nr+1)+1):(ii*(aso2.Nr+1))) = K0;
+        %== Compile into larger kernel ================%
+        % Convert to relevant indices/vectors.
+        [i1a, i1b] = find(K1);
+        v1 = K1(sub2ind(size(K1), i1a, i1b));
+        [i2a, i2b] = find(K2);
+        v2 = K2(sub2ind(size(K2), i2a, i2b));
+        
+        % Compute quantities for bridging indices.
+        i3b = ((ii-1)*(aso2.Nr+1)+1):(ii*(aso2.Nr+1));
+        [~, ib] = intersect(idx_a, idx_b);
+        [~, ic] = intersect(idx_a, idx_c);
+        
+        % Convert to K matrix indices.
+        i1c = idx_a(ib(i1a));
+        i2c = idx_a(ic(i2a));
+        i1d = i3b(i1b);
+        i2d = i3b(i2b);
+        
+        % Recompile sparse matrix and add.
+        K = K + ...
+            sparse([i1c'; i2c'], [i1d'; i2d'], ...
+            [v1; v2], size(K, 1), size(K, 2));
         
         
         %== Evaluate axial deflections ===========================%
@@ -329,30 +333,46 @@ end
 
 function out = Afun(my,y0,ry,ryu,r3,r4)
 
+% Flag entires that will be non-zero. 
+% r3 = r4 corresponding to identical integral bounds, 
+% leading to zero entries, which are not computed for speed.
 f = ~(r3 == r4);
 
-[i1, i2] = find(f);
+[i1, i2] = find(f);  % indices of potentially non-zero entries
 
+% Pre-compute some of the quantities. 
 ya = y0(i2);
 yr = y0(i2).^2 ./ (1+my(i2).^2);
 
+% Transpose depending on above input. 
+% Accommodates 1D vectors.
 if size(ya, 1)~=size(i1, 1)
     ya = ya';
     yr = yr';
 end
 
+% Compute main integrand for two bounds for output.
 v = ya ./ (ryu(i1) - ry(i1)) .* ...
     (log(abs(r3(f) + sqrt(r3(f).^2 - yr))) - ...
     log(abs(r4(f) + sqrt(r4(f).^2 - yr))));
 
-out = full(sparse(i1, i2, v, size(r3, 1), size(r3, 2)));
+v(abs(v) < 1e5 * eps) = 0;  % supress numerical noise
+v(isnan(v)) = 0;  % remove NaN values that result when modified element width is zero
+
+% Compile into sparse matrix.
+out = sparse(i1, i2, v, size(r3, 1), size(r3, 2));
 
 end
 
 
 function out = Ad(my,ryd,ry,r1,r2)
 
-out = sparse(my .* (r1 - r2) ./ (ry - ryd));
+out = my .* (r1 - r2) ./ (ry - ryd);
+
+out(abs(out) < 1e5 * eps) = 0;  % supress numerical noise
+out(isnan(out)) = 0;  % remove NaN values that result when modified element width is zero
+
+out = sparse(out);
 
 end
 
