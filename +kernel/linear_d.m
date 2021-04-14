@@ -80,11 +80,11 @@ if nargin<4  % consider 1D case
 else  % consider 2D case
     tools.textheader('Building ARAP kernel');
     disp(' (Linear, 2D, Direct)');
-
+    
     if aso2.N<3; error(' Aso does not have enough annuli for linear basis.'); end
-
+    
     mx(abs(mx) < 1e-12) = 1e-12; % avoid division by zero in rv
-
+    
     % Cope edges of annuli and axial elements.
     rjd0 = aso2.re(1:(end-2));
     rj0  = aso2.re(2:(end-1));
@@ -92,11 +92,8 @@ else  % consider 2D case
     xj  = aso2.xe(1:(end-1));
     xju = aso2.xe(2:end);
     
-    % Functions for indefinite integral.
-    % A = @(my,y0,ry,ryu,r3) y0 ./ (ryu - ry) .* ...
-    %     log(abs(r3 + sqrt(r3.^2 - y0.^2 ./ (1+my.^2))));  % main part of integrand
-    % Ad = @(my,ryd,ry,r1,r2) my .* ...
-    %     (r1 - r2) ./ (ry - ryd);  % second part of integrand
+    % Functions for indefinite integral are defined 
+    % as subfunctions at the bottom of the file.
 
     % Number of rays. Any of the values could be scalar, so take max.
     N_beams = max([length(my), length(y0), ...
