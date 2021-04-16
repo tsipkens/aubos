@@ -121,6 +121,17 @@ cmap_sweep(Nc, flipud(inferno)); % set color order
 hold on;
 xlim([-2,2]);
 
+% FIG 7: Initialize plot for Cartesian ray sum.
+%-{
+figure(7);
+clf;
+title('Cartesian ray sum');
+ylabel(['Deflection, ',char(949),'_x']); xlabel('Vertical position, x_0');
+cmap_sweep(Nc, flipud(inferno)); % set color order
+hold on;
+xlim([-2,2]);
+%}
+
 
 % Loop through multiple camera positions.
 % Append curves to figures in loop.
@@ -134,9 +145,21 @@ for cc=1:Nc
     
     figure(5); plot(cam(cc).y0, bu);  % add line to FIG 5
     figure(6); plot(cam(cc).y0, bl);  % add line to FIG 6
+    
+    %-{
+    %-- Cartesian, indirect form. -----------------%
+    hull = tools.aso2hull(aso);  % convert to equivalent Cartesian hull
+    betc = aso.gradientc(hull.y, hull.z, bet);  % get Cartesian gradient
+    % betc = aso.interpc(hull.y, hull.z, bet);  % get Cartesian gradient
+    Kc = tools.raysum(hull, cam(cc).y0, cam(cc).my);  % ray sum matrix
+    bc = Kc * betc(:);  % forward evaluation
+    figure(7); plot(cam(cc).y0, bc);  % add line to FIG 7
+    %----------------------------------------------%
+    %}
 end
 figure(5); hold off;
 figure(6); hold off;
+figure(7); hold off;
 
 
 

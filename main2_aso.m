@@ -17,9 +17,9 @@ addpath cmap;  % add colormaps to path
 
 %%
 % Size of image
-Nv = 249; Nu = 352;  % higher res. (slow)
+% Nv = 249; Nu = 352;  % higher res. (slow)
 % Nv = 81; Nu = 100;  % lower res. (fast)
-% Nv = 121; Nu = 160;  % medium res.
+Nv = 121; Nu = 160;  % medium res.
 
 % Axisymmetric target object information and creation
 R = 1;  % maxial radius
@@ -58,7 +58,7 @@ bet2 = bet2(:);
 %   ASO, such that the image limits are set in ASO units.
 
 % Camera origin
-cam_no = 1;
+cam_no = 2;
 switch cam_no
     case 1
         cam.x = 3.5; cam.y = 0.5; cam.z = -1.9;
@@ -149,6 +149,27 @@ colorbar;
 title('Linear ray tracing (radial)');
 %=========================================================================%
 
+%{
+%== Equivalent Cartesian ray trace =======================================%
+%   (SLOW and coarse)
+hull = tools.aso2hull3(aso2);
+[~, betc] = aso2.gradientc(hull.x, hull.y, hull.z, bet2);
+
+Ac = tools.raysum3(hull, cam.y0, cam.my, cam.x0, cam.mx);
+eps_yc = Ac * betc(:);
+yc2 = reshape(eps_yc, [Nv, Nu]);
+
+figure(6);
+imagesc(cam.x0, cam.y0, yc2);
+colormap(curl(255));
+y_max = max(max(abs(yc2)));
+caxis([-y_max, y_max]);
+axis image;
+set(gca,'YDir','normal');
+colorbar;
+title('Linear ray tracing (radial)');
+%=========================================================================%
+%}
 
 
 %%

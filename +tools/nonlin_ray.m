@@ -1,5 +1,5 @@
 
-% NONLIN_RAY  Non-linear ray tracer through the ASO.
+% NONLIN_RAY  Non-linear ray tracer through the ASO for deflectometry. 
 %  
 %  INPUT:
 %   oc    Point on straight ray               [m]

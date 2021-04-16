@@ -1,5 +1,5 @@
 
-% LINEAR_RAY  Linear ray tracer through the ASO.
+% LINEAR_RAY  Linear ray tracer through the ASO for deflectometry. 
 %  
 %  INPUT:
 %   oc    Point on straight ray               [m]
@@ -97,13 +97,6 @@ eps_x = ix';
 % Check for failed rays
 d  = (p-z1)'*(z2-z1)/norm(z2-z1)^2; % Ray-wise distance travelled   [m]
 f  = sum(d < 1);                    % No. of rays behind plane 2    []
-fd = size(p,2);                     % Total no. of rays             []
 w  = min(d);                        % Worst ray distance            []
 
-% Report convergence results
-% fprintf(['\nReport:\nRun time: %.2f s\n',...
-%     '%i failed rays of %i (%.1f%%)',...
-%     '\nMinimum distance of %.1f%%\n'],t,f,fd,100*f/fd,100*w);
-%-------------------------------------------------------------------------%
 end
-%=== End =================================================================%
