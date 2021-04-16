@@ -82,7 +82,7 @@ classdef Aso
             
             % Setup grid for interpolation
             Dri = aso.grad * bet;  % reshape radial gradient
-            Dri = [Dri; 0]; % append constant slope data for last axial position
+            Dri = [Dri; 0]; % append no slope data for last axial position
             
             % Interpolate r-gradient and convert to Cartesian coords.
             Dro = interp1(aso.re, Dri, ri, 'linear', 0);

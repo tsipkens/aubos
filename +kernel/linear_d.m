@@ -341,18 +341,18 @@ f = ~(r3 == r4);
 [i1, i2] = find(f);  % indices of potentially non-zero entries
 
 % Pre-compute some of the quantities. 
-ya = y0(i2);
+y0a = y0(i2);
 yr = y0(i2).^2 ./ (1+my(i2).^2);
 
 % Transpose depending on above input. 
 % Accommodates 1D vectors.
-if size(ya, 1)~=size(i1, 1)
-    ya = ya';
+if size(y0a, 1)~=size(i1, 1)
+    y0a = y0a';
     yr = yr';
 end
 
 % Compute main integrand for two bounds for output.
-v = ya ./ (ryu(i1) - ry(i1)) .* ...
+v = y0a ./ (ryu(i1) - ry(i1)) .* ...
     (log(abs(r3(f) + sqrt(r3(f).^2 - yr))) - ...
     log(abs(r4(f) + sqrt(r4(f).^2 - yr))));
 
