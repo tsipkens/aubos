@@ -19,7 +19,7 @@
 %  NAME-VALUE PAIRS:
 %  
 %   Optical flow algorithm:
-%    'of': 'horn-schunk' (default), 'lucas-kanade'
+%    'of' | 'horn-schunk' (default), 'lucas-kanade'
 %  
 %   Integration method (only for indirect methods): 
 %    'integrate': '1D' (default), 'poisson', 'poissonv'
@@ -96,10 +96,10 @@ tools.textheader(['Running ', spec]);
 %== Set up optical flow operator, if relevant. ===========================%
 if ~any(strcmp(spec, 'unified'))
     if strcmp(opts.of, 'lucas-kanade')
-        disp(' OPTICAL FLOW: Using Lucas-Kanade.');
+        disp(' OPTICAL FLOW | Using Lucas-Kanade.');
         of = @tools.lucas_kanade;
     else
-        disp(' OPTICAL FLOW: Using Horn-Schunk.');
+        disp(' OPTICAL FLOW | Using Horn-Schunk.');
         of = @tools.horn_schunck;
     end
 end
@@ -109,20 +109,20 @@ end
 %== Set up integrator, if relevant. ======================================%
 if any(strcmp(spec, {'3pt', 'three-point', 'onion-peeling'}))
     if strcmp(opts.integrate, 'poisson')  % OPTION 1: Divergence and Poisson eq. solve.
-        disp(' INDIRECT: Using Poisson integration.');
+        disp(' INDIRECT | Using Poisson integration.');
         intfun = @(u_of, ~) -tools.poisson(divergence(0 .* u_of, u_of));
     
     elseif strcmp(opts.integrate, 'poissonv') % OPTION 2: Divergence and Poisson eq. solve w/ v-component.
-        disp(' INDIRECT: Using Poisson integration w/ axial components.');
+        disp(' INDIRECT | Using Poisson integration w/ axial components.');
         intfun = @(u_of, v_of) -tools.poisson(divergence(v_of, u_of));
         
     else % OPTION 3: Integrate in y-direction.  < (default)
-        disp(' INDIRECT: Using 1D integration.');
+        disp(' INDIRECT | Using 1D integration.');
         intfun = @(u_of, ~) cumsum(u_of);
 
     end
 else
-    disp(' DIRECT: No integration required.');
+    disp(' DIRECT | No integration required.');
 end
 
 
@@ -136,7 +136,7 @@ switch spec
         % Convert u_of to half domain.
         u_half = tools.halve(cam, Nu, u_of, opts.side);
         
-        disp(' INVERSE OPERATOR: Multiplying kernel.');
+        disp(' INVERSE OPERATOR | Multiplying kernel.');
         D = kernel.simps13(size(u_half));
         x = D * u_half(:);
     
@@ -148,7 +148,7 @@ switch spec
         % Convert u_of to half domain.
         u_half = tools.halve(cam, Nu, u_of, opts.side);
         
-        disp(' INVERSE OPERATOR: Multiplying kernel.');
+        disp(' INVERSE OPERATOR | Multiplying kernel.');
         D = kernel.two_pt(size(u_half));
         x = D * u_half(:);
         
@@ -163,7 +163,7 @@ switch spec
         % Convert u_of to half domain.
         pois_half = tools.halve(cam, Nu, pois0, opts.side);
         
-        disp(' INVERSE OPERATOR: Multiplying kernel.');
+        disp(' INVERSE OPERATOR | Multiplying kernel.');
         D = kernel.three_pt(size(pois_half));
         x = D * pois_half(:);
         
@@ -176,8 +176,8 @@ switch spec
         % Convert pois0 to half domain.
         pois_half = tools.halve(cam, Nu, pois0, opts.side);
         
-        disp([' TIKHONOV: λ = ', num2str(lambda)]);
-        disp(' FORWARD OPERATOR: Building and inverting system.');
+        disp([' TIKHONOV | λ = ', num2str(lambda)]);
+        disp(' FORWARD OPERATOR | Building and inverting system.');
         W = kernel.onion_peel(size(pois_half));
         L_tk = regularize.tikhonov_lpr(2, size(pois_half,1), numel(pois_half));
         A = [W; lambda .* L_tk];
@@ -191,8 +191,8 @@ switch spec
         % Convert u_of to half domain.
         u_half = tools.halve(cam, Nu, u_of, opts.side);
         
-        disp([' TIKHONOV: λ = ', num2str(lambda)]);
-        disp(' FORWARD OPERATOR: Building and inverting system.');
+        disp([' TIKHONOV | λ = ', num2str(lambda)]);
+        disp(' FORWARD OPERATOR | Building and inverting system.');
         K = kernel.linear_idx(size(u_half), zeros(1,size(u_half,1)));
         L_tk = regularize.tikhonov_lpr(2, size(u_half,1), numel(u_half));
         A = [K; lambda .* L_tk];
@@ -209,8 +209,8 @@ switch spec
         if ~exist('K', 'var'); error('Pre-computed kernel required.'); end
         if ~exist('Nr', 'var'); error("Number of annuli ('Nr') required."); end
         
-        disp([' TIKHONOV: λ = ', num2str(lambda)]);
-        disp(' FORWARD OPERATOR: Building and inverting system.');
+        disp([' TIKHONOV | λ = ', num2str(lambda)]);
+        disp(' FORWARD OPERATOR | Building and inverting system.');
         L_tk = regularize.tikhonov_lpr(2, Nr+1, size(K,2));
         A = [K; lambda .* L_tk];
         b = [u_of(:); sparse(zeros(size(L_tk,1), 1))];

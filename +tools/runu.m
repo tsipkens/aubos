@@ -64,7 +64,7 @@ U = U(:);
 
 % For Abel, truncate problem and generate kernel.
 if contains(lower(spec), 'abel')
-    disp(' ABEL: Computing kernel + truncating domain.')
+    disp(' ABEL | Computing kernel + truncating domain.')
     
     [~, idx_xp, ~, ~, Nu_a] = tools.halve(cam, Nu, []);
     
@@ -91,13 +91,13 @@ A = [Le * A0; lambda .* L_tk];  % weighted model operator
 b = [Le * b0; sparse(zeros(size(L_tk,1), 1))];  % weighted data and prior zeros
 
 
-disp([char(8), ' [', 8, '< <strong>DONE</strong>]', 8]);
+tools.textdone();
 disp(' Inverting system ...');
 
 % Invert system.
 x = full(lsqlin(A, b));
 
-disp([char(8), ' [', 8, '< <strong>DONE</strong>]', 8]);
+tools.textdone();
 tools.textheader();
 
 
