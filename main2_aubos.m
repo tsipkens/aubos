@@ -66,11 +66,11 @@ bet2 = bet2(:);
 Nv = size(Iref0,1);  % first image dimension
 Nu = size(Iref0,2);  % second image dimension
 
-cam_no = 3;
+cam_no = 1;
 switch cam_no
     case 1
         oc = [2,0.45,-1.4];   % camera origin
-        f = 1.5e2;          % focal length [px]
+        f = 1.6e2;          % focal length [px]
     case 2
         oc = [2,0,-20];      % camera origin
         f = 1.8e3;          % focal length [px]
@@ -82,8 +82,7 @@ cam = Camera(Nu, Nv, oc, f); % generate a camera
 
 
 figure(3);
-% aso2.plot(bet2);
-aso2.srays(bet2, cam.mx, cam.x0);
+aso2.prays(bet2, cam.mx, cam.x0);
 colormap(flipud(ocean));
 axis image;
 
@@ -407,7 +406,7 @@ end
 %-- ARAP kernel ----------------------------------------------------------%
 %   Conventional, two-step.
 n_arap = tools.run('arap', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', 8e1);
+    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', 1e2);
 
 if f_plot
     figure(29);
@@ -440,8 +439,6 @@ end
 
 %%
 %-- Unified Abel kernel --------------------------------------------------%
-tools.textheader('Unified Abel');
-
 n_uabel = tools.runu('abel', Iref, Idef, cam, ...
     'Nr', aso2.Nr, 'Le', Le, 'lambda', 3e1, 'C0', C0);
 
@@ -523,10 +520,12 @@ n_uarap_ns = n_uarap_ns .* C0;
 %-- Quantitative comparisons --------------------------------%
 f_nan = isnan(n_s13a);
 
-sz_nan = [Nr+1, length(bet2b)/(Nr+1)];  % size of Abel-cropped region
 bet2b = bet2(~f_nan);
+dim_half = max(sum(reshape(~f_nan, [Nr+1, length(f_nan) / (Nr+1)])));
+sz_nan = [dim_half, length(bet2b)/dim_half];  % size of Abel-cropped region
 
-normalizer = sum(~f_nan) ./ mean(bet2);
+normalizer = sum(~f_nan) ./ mean(bet2b);
+normalizer2 = numel(f_nan) ./ mean(bet2);
 
 % Map method, variable, and field names.
 name_methods = {'Two-point', 'Simpson 1/3', ...
@@ -542,10 +541,14 @@ name_fields = {'twopt', 's13', ...
     'arap', 'arap_ns', 'dabel', ...
     'uabel', 'uarap', 'uarap_ns'};
 
-clear e;
+clear e e2;
 for ii=1:length(name_methods)
     nii = eval(['n', name_vars{ii}, '(~f_nan)']);
     e.(name_fields{ii}) = norm(nii ./ C0 - bet2(~f_nan)) ./ normalizer;
+    
+    nii2 = eval(['n', name_vars{ii}]);
+    e2.(name_fields{ii}) = norm(nii2 ./ C0 - bet2) ./ normalizer2;
+    
     ss.(name_fields{ii}) = ssim( ...
         reshape(nii ./ C0, sz_nan), ...
         reshape(bet2(~f_nan), sz_nan));
@@ -572,10 +575,13 @@ ss
 
 
 base = e.twopt;
+base2 = e2.arap;
 fields = fieldnames(e); 
 re = struct();
+re2 = struct();
 for ff=1:length(fields)
     re.(fields{ff}) = (e.(fields{ff}) - base) ./ base;
+    re2.(fields{ff}) = (e2.(fields{ff}) - base2) ./ base2;
 end
 
 re % display re
@@ -589,7 +595,8 @@ clf; drawnow;
 % Get titles.
 titles = {};
 for ii=1:length(name_methods)
-    titles{ii} = [name_methods{ii}, ': ', num2str(re.(name_fields{ii}))];
+    titles{ii} = [name_methods{ii}, ': ', ...
+        num2str(re2.(name_fields{ii}))];
 end
 titles = [{'Ground truth'}, titles];
 
