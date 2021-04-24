@@ -1,28 +1,37 @@
 
 
-function h = plot_grid(aso2, cm, titles, varargin)
+function h = plot_grid(aso2, cm, po, field)
 
 if isempty(cm); cm = flipud(ocean); end
-if isempty(titles); titles = cell(size(varargin)); end
 
-n = length(varargin);
+if ~exist('field', 'var'); field = []; end
+if isempty(field); field = 'BETA'; end
+
+n =  size(po, 1);
 nx = ceil(sqrt(n));
 ny = ceil(n ./ nx);
 
 x_max = 0;
 x_min = 0;
 for ii=1:n
-    x_max = max(max(varargin{ii}), x_max);
-    x_min = min(min(varargin{ii}), x_min);
+    x_max = max(max(po.(field)(ii, :)), x_max);
+    x_min = min(min(po.(field)(ii, :)), x_min);
+end
+
+% If max and min are of a similar magnitude, assume diverging cmap.
+if (abs(x_max) - abs(x_min)) < (0.5 * max(abs(x_max), abs(x_min)))
+    x_max = max(abs(x_max), abs(x_min));
+    x_min = -max(abs(x_max), abs(x_min));
+    disp('Assuming diverging colormap scale.');
 end
 
 clf;
 for ii=1:n
     subplot(ny, nx, ii);
-    aso2.plot(varargin{ii});
+    aso2.plot(po.(field)(ii, :));
     colormap(cm);
     axis image;
-    title(titles{ii});
+    title(po.Properties.RowNames(ii));
     
     caxis([x_min, x_max]);
 end
