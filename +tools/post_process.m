@@ -1,14 +1,15 @@
 
 % POST_PROCESS  Post-process and reformat multiple reconstructions.
 
-function [out] = post_process(f, sz, varargin)
+function [out] = post_process(f, sz, C0, varargin)
 
 % Update size based on f. 
 dim_half = max(sum(reshape(f, sz)));
 sz = [dim_half, sum(f) / dim_half];
 
 for ii = 1:length(varargin)
-    name = parsename(inputname(ii + 2));
+    name0 = inputname(ii + nargin - length(varargin));
+    name = parsename(name0);
     
     NAMES{ii} = name;
     BETA(ii, :) = varargin{ii};
@@ -19,14 +20,14 @@ for ii = 1:length(varargin)
          / sum(f) / mean(varargin{1}(f));
     
     SELF_SIM(ii) = ssim( ...
-        reshape(varargin{ii}(f), sz), ...
-        reshape(varargin{1}(f), sz));
+        reshape(varargin{ii}(f), sz) ./ C0, ...
+        reshape(varargin{ 1}(f), sz) ./ C0);
     
 end
 
-% Relative error, phrased relative to the last entry.
+% Relative error, phrased relative to the 2nd entry.
 for ff=1:length(NAMES)
-    REL_ERROR(ff) = (ERROR(end) - ERROR(ff)) ./ ERROR(ff);
+    REL_ERROR(ff) = (ERROR(ff) - ERROR(2)) ./ ERROR(2);
 end
 
 % Transpose for table.
