@@ -22,19 +22,19 @@
 %    'of' | 'horn-schunk' (default), 'lucas-kanade'
 %  
 %   Integration method (only for indirect methods): 
-%    'integrate': '1D' (default), 'poisson', 'poissonv'
+%    'integrate' | '1D' (default), 'poisson', 'poissonv'
 %   
 %   Side about axis of symmetry to use as data (only for Abel methods):
-%    'side': 'top' (default), 'bottom'
+%    'side' | 'top' (default), 'bottom'
 %   
 %   Regularization method (only for forward operators):
-%    'lambda': 2e2 (default), double
+%    'lambda' | 2e2 (default), double
 %   
 %   Pre-computed kernel (only for non-index ARAP methods):
-%    'kernel': matrix
+%    'kernel' | matrix
 %   
 %   Number of annuli (only for non-index ARAP methods):
-%    'Nr': Nr integer
+%    'Nr' | Nr integer
 %  
 %  ------------------------------------------------------------------------
 %  
@@ -177,12 +177,15 @@ switch spec
         pois_half = tools.halve(cam, Nu, pois0, opts.side);
         
         disp([' TIKHONOV | λ = ', num2str(lambda)]);
-        disp(' FORWARD OPERATOR | Building and inverting system.');
+        disp(' FORWARD OPERATOR | Building operator.');
         W = kernel.onion_peel(size(pois_half));
         L_tk = regularize.tikhonov_lpr(2, size(pois_half,1), numel(pois_half));
         A = [W; lambda .* L_tk];
         b = [pois_half(:); sparse(zeros(size(L_tk,1), 1))];
+        
+        disp(' Inverting system ...');
         x = full(lsqlin(A, b));
+        tools.textdone(1);
         
         
     %== DIRECT ABEL ====================================================%
@@ -192,12 +195,15 @@ switch spec
         u_half = tools.halve(cam, Nu, u_of, opts.side);
         
         disp([' TIKHONOV | λ = ', num2str(lambda)]);
-        disp(' FORWARD OPERATOR | Building and inverting system.');
+        disp(' FORWARD OPERATOR | Building operator.');
         K = kernel.linear_idx(size(u_half), zeros(1,size(u_half,1)));
         L_tk = regularize.tikhonov_lpr(2, size(u_half,1), numel(u_half));
         A = [K; lambda .* L_tk];
         b = [u_half(:); sparse(zeros(size(L_tk,1), 1))];
+        
+        disp(' Inverting system ...');
         x = full(lsqlin(A, b));
+        tools.textdone(1);
         
         
     %== ARAP =============================================================%
@@ -210,11 +216,14 @@ switch spec
         if ~exist('Nr', 'var'); error("Number of annuli ('Nr') required."); end
         
         disp([' TIKHONOV | λ = ', num2str(lambda)]);
-        disp(' FORWARD OPERATOR | Building and inverting system.');
+        disp(' FORWARD OPERATOR | Building operator.');
         L_tk = regularize.tikhonov_lpr(2, Nr+1, size(K,2));
         A = [K; lambda .* L_tk];
         b = [u_of(:); sparse(zeros(size(L_tk,1), 1))];
+        
+        disp(' Inverting system ...');
         x = full(lsqlin(A, b));
+        tools.textdone(1);
         
         
     otherwise

@@ -81,7 +81,7 @@ end
 
 
 % Compile unified operator.
-disp(' Building problem ...');
+disp(' Building operator ...');
 A0 = -C0 .* U .* K;
 
 
