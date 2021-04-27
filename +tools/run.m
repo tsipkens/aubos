@@ -82,6 +82,13 @@ end
 if any(strcmp(varargin, 'Nr'))
     Nr = varargin{find(strcmp(varargin, 'Nr')) + 1};
 end
+
+% Type of prior (used by forward operators).
+if any(strcmp(varargin, 'prior'))
+    tprior = varargin{find(strcmp(varargin, 'prior')) + 1};
+else
+    tprior = 'tikhonov';  % by default use 2nd order Tikhonov
+end
 %-------------------------------------------------------------------------%
 
 
@@ -127,6 +134,7 @@ end
 
 
 %== Build and solve the problem for different operators. =================%
+f_forward = 0;  % by default, flag inverse operator
 switch spec
     
     %== SIMPS13 ==========================================================%
@@ -177,15 +185,13 @@ switch spec
         pois_half = tools.halve(cam, Nu, pois0, opts.side);
         
         disp([' TIKHONOV | λ = ', num2str(lambda)]);
-        disp(' FORWARD OPERATOR | Building operator.');
-        W = kernel.onion_peel(size(pois_half));
-        L_tk = regularize.tikhonov_lpr(2, size(pois_half,1), numel(pois_half));
-        A = [W; lambda .* L_tk];
-        b = [pois_half(:); sparse(zeros(size(L_tk,1), 1))];
         
-        disp(' Inverting system ...');
-        x = full(lsqlin(A, b));
-        tools.textdone(1);
+        disp(' FORWARD OPERATOR.');
+        f_forward = 1;  % flag forward operator
+        
+        K = kernel.onion_peel(size(pois_half));
+        b0 = pois_half;
+        sz = [size(pois_half,1), numel(pois_half)];
         
         
     %== DIRECT ABEL ====================================================%
@@ -195,15 +201,12 @@ switch spec
         u_half = tools.halve(cam, Nu, u_of, opts.side);
         
         disp([' TIKHONOV | λ = ', num2str(lambda)]);
-        disp(' FORWARD OPERATOR | Building operator.');
-        K = kernel.linear_idx(size(u_half), zeros(1,size(u_half,1)));
-        L_tk = regularize.tikhonov_lpr(2, size(u_half,1), numel(u_half));
-        A = [K; lambda .* L_tk];
-        b = [u_half(:); sparse(zeros(size(L_tk,1), 1))];
+        disp(' FORWARD OPERATOR.');
+        f_forward = 1;  % flag forward operator
         
-        disp(' Inverting system ...');
-        x = full(lsqlin(A, b));
-        tools.textdone(1);
+        K = kernel.linear_idx(size(u_half), zeros(1,size(u_half,1)));
+        b0 = u_half;
+        sz = [size(u_half,1), numel(u_half)];
         
         
     %== ARAP =============================================================%
@@ -217,18 +220,33 @@ switch spec
         
         disp([' TIKHONOV | λ = ', num2str(lambda)]);
         disp(' FORWARD OPERATOR | Building operator.');
-        L_tk = regularize.tikhonov_lpr(2, Nr+1, size(K,2));
-        A = [K; lambda .* L_tk];
-        b = [u_of(:); sparse(zeros(size(L_tk,1), 1))];
+        f_forward = 1;  % flag forward operator
         
-        disp(' Inverting system ...');
-        x = full(lsqlin(A, b));
-        tools.textdone(1);
+        b0 = u_of;
+        sz = [Nr+1, size(K,2)];
         
         
     otherwise
         error('Specified method not available.');
         
+end
+
+% If forward problem, invert system.
+if f_forward == 1
+    if strcmp(tprior, 'tikhonov')  % Tikhonov regularization
+        L_pr = regularize.tikhonov_lpr(2, sz(1), sz(2));
+        A = [K; lambda .* L_pr];
+        b = [b0(:); sparse(zeros(size(L_pr,1), 1))];
+
+        disp(' Inverting system ...');
+        x = full(lsqlin(A, b));
+        tools.textdone(1);
+    
+    else  % total variation prior (*EXPERIMENTAL)
+        L_pr = @(x) regularize.total_var(x, [sz(1), sz(2) / sz(1)]);
+        fun = @(x) [K * x - b0(:); sqrt(lambda .* L_pr(x))];
+        x = lsqnonlin(fun, zeros(size(K, 2), 1));
+    end
 end
 
 tools.textheader;
