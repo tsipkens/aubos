@@ -34,7 +34,7 @@ z2 = aso.R;
 if f_axial
     ds = 0.5 .* min([aso.dr; aso.dx]);
     my_max = max(abs(v(2,:) ./ v(3,:)));
-    mx_max = max(abs(v(2,:) ./ v(3,:)));
+    mx_max = max(abs(v(1,:) ./ v(3,:)));
     m_max = sqrt(1 + mx_max^2 + my_max^2);
 else
     ds = 0.5 .* min(aso.dr);
