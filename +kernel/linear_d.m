@@ -193,15 +193,15 @@ else  % consider 2D case
         % (adjusted for intersections with axial elements)
         rjd = rjd0 .* ones([1,length(idx_b)]); % repeat for relevant rv elements
         rjd(:,f1) = min(r1(f1), rjd(:,f1)); % adjust for lower axial bound
-        rjd(:,f2) = max(r2(f2), rjd(:,f2)); % adjust for upper axial bound
+        rjd(:,f2) = max(r2(:,f2), rjd(:,f2)); % adjust for upper axial bound
 
         rj = rj0 .* ones([1,length(idx_b)]);
         rj(:,f1) = min(r1(f1), rj(:,f1));
-        rj(:,f2) = max(r2(f2), rj(:,f2));
+        rj(:,f2) = max(r2(:,f2), rj(:,f2));
 
         rju = rju0 .* ones([1,length(idx_b)]);
         rju(:,f1) = min(r1(f1), rju(:,f1));
-        rju(:,f2) = max(r2(f2), rju(:,f2));
+        rju(:,f2) = max(r2(:,f2), rju(:,f2));
         
         % Evaluate front of ASO kernel (up to midpoint in ASO).
         K1 = (sqrt(1+mx(idx_b).^2) ./ (1+my(idx_b).^2) .* ( ...
@@ -247,7 +247,7 @@ else  % consider 2D case
             ([ ...
              sparse(1, size(rj,2)); ...  % zeros for first element
              Afun(my(idx_c), y0(idx_c), rjd0, rj0, rj, rjd) - ... % integral over rise
-             Ad(my(idx_c), rjd0,rj0, rjd, rj); ... % added component of integrand
+             Ad(my(idx_c), rjd0, rj0, rjd, rj); ... % added component of integrand
              Afun(my(idx_c), y0(idx_c), rj0(end,:), rju0(end,:), rju(end,:), rj(end,:)) - ...
              Ad(my(idx_c), rj0(end,:), rju0(end,:), rj(end,:), rju(end,:)) ... % incline, last element
             ] + [
@@ -331,7 +331,7 @@ end
 end
 
 
-function out = Afun(my,y0,ry,ryu,r3,r4)
+function out = Afun(my, y0, ry, ryu, r3, r4)
 
 % Flag entires that will be non-zero. 
 % r3 = r4 corresponding to identical integral bounds, 
@@ -365,7 +365,7 @@ out = sparse(i1, i2, v, size(r3, 1), size(r3, 2));
 end
 
 
-function out = Ad(my,ryd,ry,r1,r2)
+function out = Ad(my, ryd, ry, r1, r2)
 
 out = my .* (r1 - r2) ./ (ry - ryd);
 
