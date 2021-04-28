@@ -244,7 +244,7 @@ if f_forward == 1
     
     else  % total variation prior (*EXPERIMENTAL)
         L_pr = @(x) regularize.total_var(x, [sz(1), sz(2) / sz(1)]);
-        fun = @(x) [K * x - b0(:); sqrt(lambda .* L_pr(x))];
+        fun = @(x) [K * x - b0(:); sqrt(lambda ./ 1e4 .* L_pr(x))];
         x = lsqnonlin(fun, zeros(size(K, 2), 1));
     end
 end
