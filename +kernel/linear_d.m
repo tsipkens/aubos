@@ -21,7 +21,7 @@
 %  
 %  AUTHOR: Timothy Sipkens, 2020-06-10
 
-function [K, Kx] = linear_d(aso_re, y0, my, x0, mx)
+function [K, Kx] = linear_d(aso_re, y0, my, x0, mx, bet, i_sz)
 
 %-- Parse inputs ---------------------------------------------------------%
 if isa(aso_re,'Aso'); re = aso_re.re; % if input is an Aso
@@ -105,26 +105,20 @@ else  % consider 2D case
         round(1e-5 * N_beams * aso2.Nx * (aso2.Nr + 1)));
     
     
-    % Find radial intersection with axial elements.
-    % This will be a strictly positive number.
-    % This could be a bound for either term of the integrand.
-    % See 3rd equation in S2.1 of the Supplemental Information 
-    % in Sipkens et al. (2021).
-    rx0 = sqrt(1 ./ (1+my.^2) .* ...
-        ((1+my.^2) ./ mx .* ...
-        (xj - x0) + my.*y0) .^ 2 + ...
-        y0.^2);  % lower edge, vector over u0 and v0
-    rxu0 = sqrt(1 ./ (1+my.^2) .* ...
-        ((1+my.^2) ./ mx .* ...
-        (xju - x0) + my.*y0) .^ 2 + ...
-        y0.^2);  % upper edge, vector over u0 and v0
-    
-    
     % Find z intersection with axial elements.
     % This is used to determine whether to involve front of back
     % portion of integral.
     zu0  = (xj - x0) ./ mx;
     zuu0 = (xju - x0) ./ mx;
+    
+    
+    % Find radial intersection with axial elements.
+    % This will be a strictly positive number.
+    % This could be a bound for either term of the integrand.
+    % See 3rd equation in S2.1 of the Supplemental Information 
+    % in Sipkens et al. (2021).
+    rx0 = sqrt(zu0 .^ 2 + (my .* zu0 + y0) .^ 2);
+    rxu0 = sqrt(zuu0 .^ 2 + (my .* zuu0 + y0) .^ 2);
     
     
     %== COMMON PROPERTIES ======================================%
@@ -154,6 +148,8 @@ else  % consider 2D case
     
     disp(' Looping through axial slices:');
     tools.textbar([0,aso2.Nx]);
+    if exist('i_sz', 'var'); f = figure; 
+    	colormap(balanced); end
     for ii=1:aso2.Nx % loop through and append axial slices
         
         % Get z intersection with axial elements.
@@ -321,7 +317,18 @@ else  % consider 2D case
         end
 
         tools.textbar([ii, aso2.Nx]);
+        
+        %-{
+        if exist('i_sz', 'var')
+            figure(gcf);
+            i0 = K * bet;
+            imagesc(reshape(i0, i_sz));
+            axis image; set(gca,'YDir','normal');
+            caxis([-max(abs(i0)), max(abs(i0))]);
+        end
+        %}
     end
+    if exist('i_sz', 'var'); close(f); end
 
     % Kx = Kx * aso2.Dx;
     tools.textheader;

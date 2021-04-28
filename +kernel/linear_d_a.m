@@ -112,26 +112,20 @@ else  % consider 2D case
         round(1e-5 * N_beams * aso2.Nx * (aso2.Nr + 1)));
     
     
-    % Find radial intersection with axial elements.
-    % This will be a strictly positive number.
-    % This could be a bound for either term of the integrand.
-    % See 3rd equation in S2.1 of the Supplemental Information 
-    % in Sipkens et al. (2021).
-    rx0 = sqrt(1 ./ (1+my.^2) .* ...
-        ((1+my.^2) ./ mx .* ...
-        (xj - x0) + my.*y0) .^ 2 + ...
-        y0.^2);  % lower edge, vector over u0 and v0
-    rxu0 = sqrt(1 ./ (1+my.^2) .* ...
-        ((1+my.^2) ./ mx .* ...
-        (xju - x0) + my.*y0) .^ 2 + ...
-        y0.^2);  % upper edge, vector over u0 and v0
-    
-    
     % Find z intersection with axial elements.
     % This is used to determine whether to involve front of back
     % portion of integral.
     zu0  = (xj - x0) ./ mx;
     zuu0 = (xju - x0) ./ mx;
+    
+    
+    % Find radial intersection with axial elements.
+    % This will be a strictly positive number.
+    % This could be a bound for either term of the integrand.
+    % See 3rd equation in S2.1 of the Supplemental Information 
+    % in Sipkens et al. (2021).
+    rx0 = sqrt(zu0 .^ 2 + (my .* zu0 + y0) .^ 2);
+    rxu0 = sqrt(zuu0 .^ 2 + (my .* zuu0 + y0) .^ 2);
     
     
     %== COMMON PROPERTIES ======================================%
