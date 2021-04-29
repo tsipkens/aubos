@@ -44,7 +44,7 @@ K(abs(K)<1e3*eps) = 0; % remove numerical noise
 K = sparse(K); % convert to a sparse matrix
 
 
-% If second dimension, 
+% If second dimension and Abel case, 
 % use Kroneker to complete kernel.
 if and(length(n)==2, all(my==0))
     K = kron(speye(n(2)), K);
