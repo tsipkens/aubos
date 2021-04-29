@@ -1,8 +1,8 @@
 
-% MAIN_2COMPARE_FULL  Compares multiple inversion approaches to the 2D axisymmetric problem. 
-% Relative to main_2aso, this script uses a camera model with a focal length. 
-% Timothy Sipkens, 2020-08-31
-%=========================================================================%
+% MAIN2_AUBOS  Demonstrate AUBOS and compare to covnentional approaches.
+%  Relative to main_2aso, this script uses a camera model with a focal length. 
+%  
+%  AUTHOR: Timothy Sipkens, 2020-08-31
 
 clear; close all; clc;
 addpath cmap;  % add colormaps to path
@@ -15,14 +15,16 @@ f_plot = 0;
 %== Generate background ==================================================%
 disp('Reading and transforming image ...');
 
+sz_mod = 1 / 1.4;
+sz_img = round([250, 350] .* sz_mod);
 bg_no = 1;
 switch bg_no
     case 1  % striped
-        Iref0 = tools.gen_bg('sines', [250,352], 10)  .* 255;
+        Iref0 = tools.gen_bg('sines', sz_img, 10)  .* 255;
     case 2
-        Iref0 = tools.gen_bg('sines2', [250,352], 10)  .* 255;
+        Iref0 = tools.gen_bg('sines2', sz_img, 10)  .* 255;
     case 3
-        Iref0 = tools.gen_bg('dots', [250,352], 10)  .* 255;
+        Iref0 = tools.gen_bg('dots', sz_img, 10)  .* 255;
 end
 
 % Plot background
@@ -73,23 +75,23 @@ bet2 = bet2(:);
 
 
 %-- Model a camera ------------------------------%
-Nv = size(Iref0,1);  % first image dimension
-Nu = size(Iref0,2);  % second image dimension
+Nv = size(Iref0, 1);  % first image dimension
+Nu = size(Iref0, 2);  % second image dimension
 
 cam_no = 4;
 switch cam_no
     case 1
-        oc = [2,0.45,-1.4];   % camera origin
-        f = 1.6e2;          % focal length [px]
+        oc = [2.8,0.6,-1.4];   % camera origin
+        f = 0.8e2 .* sz_mod;  % focal length [px]
     case 2
-        oc = [2,0,-20];      % camera origin
-        f = 1.8e3;          % focal length [px]
+        oc = [2,0,-20];       % camera origin
+        f = 1.8e3 .* sz_mod;  % focal length [px]
     case 3
-        oc = [2,0,-2.5];   % camera origin
-        f = 3e2;          % focal length [px]
+        oc = [2,0,-2.5];    % camera origin
+        f = 3e2 .* sz_mod;  % focal length [px]
     case 4
-        oc = [2,0,-200];      % camera origin
-        f = 17.5e3;          % focal length [px]
+        oc = [2,0,-400];       % camera origin
+        f = 35e3 .* sz_mod;  % focal length [px]
 end
 cam = Camera(Nu, Nv, oc, f); % generate a camera
 
@@ -115,19 +117,31 @@ C0 = 2e-4;
 %%
 %== AUBOS operator =======================================================%
 %   + Forward problem to generate data.
-[Kl2, Ky2] = kernel.linear_d(aso2, cam.y0, cam.my, cam.x0, cam.mx);
+[Kl2, Ky2] = kernel.linear_d(aso2, cam.y0, cam.my, cam.x0, cam.mx); %, bet2, size(Iref0));
 
 yl2 = Kl2 * bet2; % yl2 is vertical deflections in image coordinate system
 yl2 = reshape(yl2, [Nv, Nu]);
 
+Itl = reshape(-U .* yl2(:), [Nv, Nu]);
+
 yv2 = Ky2 * bet2;
 yv2 = reshape(yv2', [Nv, Nu]);
 
+%-{
+% FIG 6: It estimated from ARAP kernel.
+figure(6);
+imagesc(cam.x0, cam.y0, Itl);
+colormap(balanced(255));
+I_max = max(max(abs(Itl)));
+caxis([-I_max, I_max]);
+axis image;
+set(gca,'YDir','normal');
+colorbar;
 
 % FIG 7: Radial deflection field
 figure(7);
 imagesc(cam.x0, cam.y0, yl2);
-colormap(curl(255));
+colormap(balanced(255));
 y_max = max(max(abs(yl2)));
 caxis([-y_max, y_max]);
 axis image;
@@ -137,12 +151,13 @@ colorbar;
 % FIG 8: Axial deflection field
 figure(8);
 imagesc(cam.x0, cam.y0, yv2);
-colormap(curl(255));
+colormap(balanced(255));
 y_max = max(max(abs(yv2)));
 caxis([-y_max, y_max]);
 axis image;
 set(gca,'YDir','normal');
 colorbar;
+%}
 
 % Compile the unified operator
 % ".*" in operator cosntruction avoids creating diagonal matrix from O * Iref(:)
@@ -157,7 +172,9 @@ colorbar;
 %== Generate data ========================================================%
 tools.textheader('Generating data');
 
-[~, ~, eps_y, eps_x] = tools.linear_ray(oc', ...
+ocl = repmat(oc, [length(cam.x0), 1]);  % origin of rays (identical for pinhole)
+% ocl(:, 1) = cam.x0;
+[~, ~, eps_y, eps_x] = tools.linear_ray(ocl', ...
     [cam.mx; cam.my; ones(size(cam.my))], ...
     aso2, bet2);  % linear ray tracing
 
@@ -170,7 +187,17 @@ Idef0 = Iref0 + It0; % perfect deflected image
 Idef0 = max(Idef0, 0); % check on positivity
 
 %-{
-% FIG 10: Perfect It field
+% FIG 9: Perfect deflection field.
+figure(9);
+imagesc(cam.x0, cam.y0, reshape(eps_y, [Nv, Nu]));
+colormap(balanced(255));
+It_max = max(max(abs(eps_y)));
+caxis([-It_max, It_max]);
+axis image;
+set(gca,'YDir','normal');
+colorbar;
+
+% FIG 10: Perfect It field.
 figure(10);
 imagesc(cam.x0, cam.y0, It0);
 colormap(balanced(255));
@@ -178,17 +205,18 @@ It_max = max(max(abs(It0)));
 caxis([-It_max, It_max]);
 axis image;
 set(gca,'YDir','normal');
+colorbar;
 
 % add camera position to FIG 10
 hold on;
-plot(oc(2), oc(1), 'ok');
+plot(oc(1), oc(2), 'ok');
 hold off;
 %}
 
 
 % Sample and add noise to It field 
 rng(1);
-pois_level = 1e-3; % 1e-3; % poissson noise level
+pois_level = C0 .* 4;  % poissson noise level
 e_e0 = pois_level .* ...
     sqrt(max(Idef0 + Iref0, max(max(Iref0)).*1e-4)); % magnitude of noise
 e_e = e_e0 .* randn(size(Iref0)); % realization of noise
@@ -226,39 +254,40 @@ tools.textheader;
 %-- Two-pt. kernel on upper half of data ---------------------------------%
 %   Direct approach.
 [n_2pt, ~, u_of] = tools.run('2pt', Iref, Idef, cam);
-n_2pta = tools.abel2aso(n_2pt, aso2, cam, Nu);  % interpolate back to aso2 space
+n_2pta = tools.abel2aso(n_2pt, aso2, cam, Nu) ./ C0;  % interpolate back to aso2 space
 %-------------------------------------------------------------------------%
 
 
 %-- Simpson 13 kernel on upper half of data ------------------------------%
 %   Direct approach.
 n_s13 = tools.run('simps13', Iref, Idef, cam);
-n_s13a = tools.abel2aso(n_s13, aso2, cam, Nu);
+n_s13a = tools.abel2aso(n_s13, aso2, cam, Nu) ./ C0;
 %-------------------------------------------------------------------------%
 
 
 %-- Three-pt. kernel -----------------------------------------------------%
 %   Indirect approach.
 n_3pt_1d = tools.run('3pt', Iref, Idef, cam);
-n_3pt_1da = tools.abel2aso(n_3pt_1d, aso2, cam, Nu);
+n_3pt_1da = tools.abel2aso(n_3pt_1d, aso2, cam, Nu) ./ C0;
 
 n_3pt_pois = tools.run('3pt', Iref, Idef, cam, ...
     'integrate', 'poisson');
-n_3pt_poisa = tools.abel2aso(n_3pt_pois, aso2, cam, Nu);
+n_3pt_poisa = tools.abel2aso(n_3pt_pois, aso2, cam, Nu) ./ C0;
 
 n_3pt_poisv = tools.run('3pt', Iref, Idef, cam, ...
     'integrate', 'poissonv');
-n_3pt_poisva = tools.abel2aso(n_3pt_poisv, aso2, cam, Nu);
+n_3pt_poisva = tools.abel2aso(n_3pt_poisv, aso2, cam, Nu) ./ C0;
 %-------------------------------------------------------------------------%
 
 
 %-- Onion peeling kernel -------------------------------------------------%
-n_op = tools.run('onion-peeling', Iref, Idef, cam, ...
+n_op_pois = tools.run('onion-peeling', Iref, Idef, cam, ...
     'lambda', 5e1, 'integrate', 'poisson');
-n_opa = tools.abel2aso(n_op, aso2, cam, Nu);
+n_op_poisa = tools.abel2aso(n_op_pois, aso2, cam, Nu) ./ C0;
 
-n_op_1d = tools.run('onion-peeling', Iref, Idef, cam);
-n_op_1da = tools.abel2aso(n_op_1d, aso2, cam, Nu);
+n_op_1d = tools.run('onion-peeling', Iref, Idef, cam, ...
+    'lambda', 5e1);
+n_op_1da = tools.abel2aso(n_op_1d, aso2, cam, Nu) ./ C0;
 %-------------------------------------------------------------------------%
 
 
@@ -266,7 +295,7 @@ n_op_1da = tools.abel2aso(n_op_1d, aso2, cam, Nu);
 %   Direct, two-step. Uses linear_idx kernel. 
 n_dabel = tools.run('direct-abel', Iref, Idef, cam, ...
     'lambda', 3e1);
-n_dabela = tools.abel2aso(n_dabel, aso2, cam, Nu);
+n_dabela = tools.abel2aso(n_dabel, aso2, cam, Nu) ./ C0;
 %-------------------------------------------------------------------------%
 
 
@@ -275,9 +304,6 @@ n_uabel = tools.runu('abel', Iref, Idef, cam, ...
     'Nr', aso2.Nr, 'Le', Le, 'lambda', 3e1, 'C0', C0);
 
 n_uabela = tools.abel2aso(n_uabel, aso2, cam, Nu);
-
-% Standardize value of unified methods ahead of more automated analysis below. 
-n_uabela = n_uabela .* C0;
 %-------------------------------------------------------------------------%
 
 
@@ -288,17 +314,19 @@ n_uabela = n_uabela .* C0;
 
 
 %%
+
+if 1
 %-- ARAP kernel ----------------------------------------------------------%
 %   Conventional, two-step.
 n_arap = tools.run('arap', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', 1e2);
+    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', 3e1) ./ C0;
 %-------------------------------------------------------------------------%
 
 %-- ARAP, no slope -------------------------------------------------------%
 disp('For no slope:');
 Kl_ns = kernel.linear_d(aso2, cam.y0, 0 .* cam.my, cam.x0, 0 .* cam.mx);
 n_arap_ns = tools.run('arap-ns', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'kernel', Kl_ns, 'lambda', 1e2);
+    'Nr', aso2.Nr, 'kernel', Kl_ns, 'lambda', 3e1) ./ C0;
 %-------------------------------------------------------------------------%
 
 
@@ -310,8 +338,6 @@ n_arap_ns = tools.run('arap-ns', Iref, Idef, cam, ...
 n_uarap = tools.runu('arap', Iref, Idef, cam, ...
     'Nr', aso2.Nr, 'Le', Le, 'lambda', 5e1, 'C0', C0, ...
     'kernel', Kl2);
-
-n_uarap = n_uarap .* C0;
 %=========================================================================%
 %}
 
@@ -323,10 +349,9 @@ n_uarap = n_uarap .* C0;
 n_uarap_ns = tools.runu('arap-ns', Iref, Idef, cam, ...
     'Nr', aso2.Nr, 'Le', Le, 'lambda', 5e1, 'C0', C0, ...
     'kernel', Kl_ns);
-
-n_uarap_ns = n_uarap_ns .* C0;
 %=========================================================================%
 %}
+end
 
 
 %%
@@ -335,16 +360,13 @@ n_uarap_ns = n_uarap_ns .* C0;
 %-- Quantitative comparisons --------------------------------%
 f_nan = isnan(n_s13a);
 
-n_3pt_poisva = max(n_3pt_poisva, min(n_s13));
-n_3pt_poisva(f_nan) = NaN;
-
 % Post-processed table.
-po = tools.post_process(~f_nan, [Nr+1, Nx], C0, bet2 .* C0, ...
+po = tools.post_process(~f_nan, [Nr+1, Nx], 1, bet2, ...
     n_2pta, n_s13a, ...
     n_3pt_1da, n_3pt_poisa, n_3pt_poisva, ...
-    n_opa, n_op_1da, n_dabela, n_uabela) %, ...
-    % n_arap, n_arap_ns, ...
-    % n_uarap, n_uarap_ns)
+    n_op_poisa, n_op_1da, n_dabela, n_uabela, ...
+    n_arap, n_arap_ns, ...
+    n_uarap, n_uarap_ns)
 
 % Plot grid of solutions from po.
 figure(30)
