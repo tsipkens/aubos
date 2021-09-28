@@ -4,7 +4,7 @@
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
-This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels, including novel **arbitrary ray, axisymmetric projection (ARAP)** kernels ([Sipkens et al., XXXX][sipkens-arap]). Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of the Bayesian framework with priors. Note that figures from [Sipkens et al., (XXXX)][sipkens-arap] are directly supported by the `main_aso` and `main2_mst21` scripts. 
+This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels, including novel **arbitrary ray, axisymmetric projection (ARAP)** kernels ([Sipkens et al., XXXX][sipkens-arap]). Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of the Bayesian framework with priors. Note that figures from [Sipkens et al. (XXXX)][sipkens-arap] are directly supported by the `main_aso`, `main_compares`, and `main2_mst21` scripts. 
 
 The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
 
