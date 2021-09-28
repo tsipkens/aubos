@@ -1,5 +1,5 @@
 
-% MAIN2_AUBOS  Demonstrate AUBOS and compare to covnentional approaches.
+% MAIN2_AUBOS  Demonstrate AUBOS and compare to conventional approaches.
 %  Relative to main_2aso, this script uses a camera model with a focal length. 
 %  
 %  AUTHOR: Timothy Sipkens, 2020-08-31
@@ -15,7 +15,7 @@ f_plot = 0;
 %== Generate background ==================================================%
 disp('Reading and transforming image ...');
 
-sz_mod = 1 / 1.4;
+sz_mod = 1 / 1.3;
 sz_img = round([250, 350] .* sz_mod);
 bg_no = 1;
 switch bg_no
@@ -69,6 +69,21 @@ switch pha_no
             sqrt(re(:) .^ 2 + (2 - xe(:)) .^ 2) - 0.75))); % sphere, edge
 end
 bet2 = bet2(:);
+
+% Set regularization parameters.
+if pha_no==6  % sphere parameters
+    l_op = 5e1;
+    l_dabel = 3e1;
+    l_uabel = 3e1;
+    l_arap = 3e1;
+    l_uarap = 5e1;
+else
+    l_op = 3e1;
+    l_dabel = 1e1;
+    l_uabel = 2e1;
+    l_arap = 3e1;
+    l_uarap = 5e1;
+end
 %=========================================================================%
 %}
 
@@ -78,7 +93,7 @@ bet2 = bet2(:);
 Nv = size(Iref0, 1);  % first image dimension
 Nu = size(Iref0, 2);  % second image dimension
 
-cam_no = 4;
+cam_no = 1;
 switch cam_no
     case 1
         oc = [2.8,0.6,-1.4];   % camera origin
@@ -99,7 +114,6 @@ cam = Camera(Nu, Nv, oc, f); % generate a camera
 figure(3);
 aso2.prays(bet2, cam.mx, cam.x0);
 colormap(flipud(ocean));
-axis image;
 
 
 % Gradient contribution to operator
@@ -127,7 +141,7 @@ Itl = reshape(-U .* yl2(:), [Nv, Nu]);
 yv2 = Ky2 * bet2;
 yv2 = reshape(yv2', [Nv, Nu]);
 
-%-{
+%{
 % FIG 6: It estimated from ARAP kernel.
 figure(6);
 imagesc(cam.x0, cam.y0, Itl);
@@ -186,7 +200,7 @@ disp('Completed forward evaluation.');
 Idef0 = Iref0 + It0; % perfect deflected image
 Idef0 = max(Idef0, 0); % check on positivity
 
-%-{
+%{
 % FIG 9: Perfect deflection field.
 figure(9);
 imagesc(cam.x0, cam.y0, reshape(eps_y, [Nv, Nu]));
@@ -282,11 +296,11 @@ n_3pt_poisva = tools.abel2aso(n_3pt_poisv, aso2, cam, Nu) ./ C0;
 
 %-- Onion peeling kernel -------------------------------------------------%
 n_op_pois = tools.run('onion-peeling', Iref, Idef, cam, ...
-    'lambda', 5e1, 'integrate', 'poisson');
+    'lambda', l_op, 'integrate', 'poisson');
 n_op_poisa = tools.abel2aso(n_op_pois, aso2, cam, Nu) ./ C0;
 
 n_op_1d = tools.run('onion-peeling', Iref, Idef, cam, ...
-    'lambda', 5e1);
+    'lambda', l_op);
 n_op_1da = tools.abel2aso(n_op_1d, aso2, cam, Nu) ./ C0;
 %-------------------------------------------------------------------------%
 
@@ -294,15 +308,14 @@ n_op_1da = tools.abel2aso(n_op_1d, aso2, cam, Nu) ./ C0;
 %-- Abel kernel ----------------------------------------------------------%
 %   Direct, two-step. Uses linear_idx kernel. 
 n_dabel = tools.run('direct-abel', Iref, Idef, cam, ...
-    'lambda', 3e1);
+    'lambda', l_dabel);
 n_dabela = tools.abel2aso(n_dabel, aso2, cam, Nu) ./ C0;
 %-------------------------------------------------------------------------%
 
 
 %-- Unified Abel kernel --------------------------------------------------%
 n_uabel = tools.runu('abel', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'Le', Le, 'lambda', 3e1, 'C0', C0);
-
+    'Nr', aso2.Nr, 'Le', Le, 'lambda', l_uabel, 'C0', C0);
 n_uabela = tools.abel2aso(n_uabel, aso2, cam, Nu);
 %-------------------------------------------------------------------------%
 
@@ -319,14 +332,14 @@ if 1
 %-- ARAP kernel ----------------------------------------------------------%
 %   Conventional, two-step.
 n_arap = tools.run('arap', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', 3e1) ./ C0;
+    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', l_arap) ./ C0;
 %-------------------------------------------------------------------------%
 
 %-- ARAP, no slope -------------------------------------------------------%
 disp('For no slope:');
 Kl_ns = kernel.linear_d(aso2, cam.y0, 0 .* cam.my, cam.x0, 0 .* cam.mx);
 n_arap_ns = tools.run('arap-ns', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'kernel', Kl_ns, 'lambda', 3e1) ./ C0;
+    'Nr', aso2.Nr, 'kernel', Kl_ns, 'lambda', l_arap) ./ C0;
 %-------------------------------------------------------------------------%
 
 
@@ -336,7 +349,7 @@ n_arap_ns = tools.run('arap-ns', Iref, Idef, cam, ...
 %== AUBOS ================================================================%
 %	Inversion with the new transform. 
 n_uarap = tools.runu('arap', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'Le', Le, 'lambda', 5e1, 'C0', C0, ...
+    'Nr', aso2.Nr, 'Le', Le, 'lambda', l_uarap, 'C0', C0, ...
     'kernel', Kl2);
 %=========================================================================%
 %}
@@ -347,7 +360,7 @@ n_uarap = tools.runu('arap', Iref, Idef, cam, ...
 %== AUBOS ================================================================%
 %	Inversion with the new transform. 
 n_uarap_ns = tools.runu('arap-ns', Iref, Idef, cam, ...
-    'Nr', aso2.Nr, 'Le', Le, 'lambda', 5e1, 'C0', C0, ...
+    'Nr', aso2.Nr, 'Le', Le, 'lambda', l_uarap, 'C0', C0, ...
     'kernel', Kl_ns);
 %=========================================================================%
 %}
