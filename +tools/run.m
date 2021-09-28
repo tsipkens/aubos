@@ -19,7 +19,7 @@
 %  NAME-VALUE PAIRS:
 %  
 %   Optical flow algorithm:
-%    'of' | 'horn-schunk' (default), 'lucas-kanade'
+%    'of' | 'horn-schunk' (default), 'lucas-kanade', 'none' (Iref = u_of, Idef = v_of)
 %  
 %   Integration method (only for indirect methods): 
 %    'integrate' | '1D' (default), 'poisson', 'poissonv'
@@ -101,16 +101,19 @@ tools.textheader(['Running ', spec]);
 
 
 %== Set up optical flow operator, if relevant. ===========================%
-if ~any(strcmp(spec, 'unified'))
-    if strcmp(opts.of, 'lucas-kanade')
-        disp(' OPTICAL FLOW | Using Lucas-Kanade.');
-        of = @tools.lucas_kanade;
-    else
-        disp(' OPTICAL FLOW | Using Horn-Schunk.');
-        of = @tools.horn_schunck;
-    end
+if strcmp(opts.of, 'lucas-kanade')
+    disp(' OPTICAL FLOW | Using Lucas-Kanade.');
+    of = @tools.lucas_kanade;
+    [u_of, v_of] = of(Iref, Idef);
+elseif strcmp(opts.of, 'none')  % if deflections already available (in Iref and Idef)
+    disp(' OPTICAL FLOW | Skipped.');
+    u_of = Iref;
+    v_of = Idef;
+else
+    disp(' OPTICAL FLOW | Using Horn-Schunk.');
+    of = @tools.horn_schunck;
+    [u_of, v_of] = of(Iref, Idef);
 end
-[u_of, v_of] = of(Iref, Idef);
 
 
 %== Set up integrator, if relevant. ======================================%
