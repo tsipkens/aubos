@@ -3,10 +3,12 @@
 %  Instead of a proper camera model, this script considers rays that
 %  transect the z = 0 plane close to the ASO.
 %  
-%  Runtimes on the order of a few minutes, depending on hardware 
+%  Runtimes on the order of a minute, depending on hardware 
 %  and camera position. Closer camera positions (small oc(3)) have 
 %  longer runtimes. Faster runtimes are also achieved by reducing 
 %  Nv and Nu.
+%  
+%  Fig. 5, Sipkens et al., MST corresponds to pha_no = 4 and cam_no = 1.
 %  
 %  AUTHOR: Timothy Sipkens, 2020
 
@@ -58,8 +60,10 @@ bet2 = bet2(:);
 %   ASO, such that the image limits are set in ASO units.
 
 % Camera origin
-cam_no = 2;
+cam_no = 1;
 switch cam_no
+    case 0
+        cam.x = 2; cam.y = 0.45; cam.z = -1.4;
     case 1
         cam.x = 3.5; cam.y = 0.5; cam.z = -1.9;
     case 2
@@ -87,9 +91,8 @@ cam.mx = (cam.x - cam.x0) ./ cam.z;
 % FIG 3: Plot refractive index with rays for ASO
 figure(3);
 % aso2.plot(bet2);
-aso2.prays(bet2, cam.mx, cam.x0); view(2);
+aso2.prays(bet2, cam.mx, cam.x0);
 colormap(flipud(ocean));
-axis image;
 title('Refractive index field for ASO');
 %=========================================================================%
 
