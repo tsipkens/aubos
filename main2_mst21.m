@@ -8,15 +8,12 @@ clear; close all;
 addpath cmap; % add colormaps to path
 
 
-
-
 %%
 R = 1;
 Nr = 250;
 X = 4;
 Nx = 400;
 aso2 = Aso2(Nr, R, Nx, X);
-
 
 
 
@@ -172,96 +169,25 @@ caxis([-u_max, u_max]);
 
 
 %%
-%== Generate data ========================================================%
-
-
-%-{
-%== Poisson equation + converntional BOS =================================%
-%   Then uses Abel inversion operators for inverion.
-
-
-%-- Solve Poisson equation -----------------------------------------------%
-%-{
-% OPTION 1: Divergence and Poisson eq. solve.
-div0 = divergence(0 .* u_of, u_of);
-figure(20);
-imagesc(div0);
-colormap(flipud(ocean));
-axis image;
-colorbar;
-title('Divergence');
-pois0 = tools.poisson(div0);
-%}
-
-%-{
-% OPTION 2: Integrate in y-direction.
-int0 = -cumsum(u_of);
-
-figure(21);
-imagesc(reshape(pois0, size(u_of)));
-colormap(flipud(balanced));
-pois_max = max(abs(pois0(:)));
-caxis([-pois_max, pois_max]);
-axis image;
-colorbar;
-title('Poisson eq. solution');
-%}
-%-------------------------------------------------------------------------%
-
-
-%-- Only consider data above r = 0 ---------------------------------------%
-f_top = 1
-if f_top
-    idx_xp = round(cam.y0, 6) >= 0; % removes eps that could remain
-    Nu_a = sum(idx_xp) ./ Nu; % number of x entries above zero
-
-    ya = round(reshape(cam.y0(idx_xp), [Nu_a,Nu]), 7);
-    xa = round(reshape(cam.x0(idx_xp), [Nu_a,Nu]), 7);
-
-    pois_half = -pois0(idx_xp);
-    pois_half = reshape(pois_half, [Nu_a,Nu]);
-    pois_half = pois_half(:);
-
-    int_half = -int0(idx_xp);
-    int_half = reshape(int_half, [Nu_a,Nu]);
-    int_half = int_half(:);
-
-    u_half = u_of(idx_xp);
-    u_half = reshape(u_half, [Nu_a,Nu]);
-    u_half2 = u_half(:);
-else
-    idx_xp = round(cam.y0, 6) <= 0; % removes eps that could remain
-    Nu_a = sum(idx_xp) ./ Nu; % number of x entries above zero
-
-    ya = -flipud(round(reshape(cam.y0(idx_xp), [Nu_a,Nu]), 7));
-    xa = flipud(round(reshape(cam.x0(idx_xp), [Nu_a,Nu]), 7));
-    
-    pois_half = -pois0(idx_xp);
-    pois_half = flipud(reshape(pois_half, [Nu_a,Nu]));
-    pois_half = pois_half(:);
-
-    int_half = -int0(idx_xp);
-    int_half = flipud(reshape(int_half, [Nu_a,Nu]));
-    int_half = int_half(:);
-
-    u_half = -u_of(idx_xp);
-    u_half = flipud(reshape(u_half, [Nu_a,Nu]));
-    u_half2 = u_half(:);
-end
-%-------------------------------------------------------------------------%
-
-
 %-- Two-pt. kernel on upper half of data ---------------------------------%
 %   Direct approach.
-K_2pt = kernel.two_pt([Nu_a,Nu]);
-n_2pt = K_2pt * u_half2;
-n_2pta = interp2(xa, ya, ...
-    reshape(n_2pt, [Nu_a,Nu]), ...
-    aso2.xe2, aso2.re2);  % interpolate back to aso2 space
+[n_2pt, ~, ~] = tools.run('2pt', u_of, 0 .* u_of, cam, ...
+    'of', 'none', 'side', 'top');
+n_2pta = tools.abel2aso(n_2pt, aso2, cam, Nu, 'top');
+
+[n_2pt, ~, ~] = tools.run('2pt', u_of, 0 .* u_of, cam, ...
+    'of', 'none', 'side', 'bottom');
+n_2ptb = tools.abel2aso(n_2pt, aso2, cam, Nu, 'bottom');
 
 figure(22);
-% imagesc(reshape(n_2pt ./ aso2.dr(1) ./ aso2.dy(1), size(t3)));
 aso2.plot(n_2pta);
+axis image;
+colormap(flipud(ocean));
+colorbar;
+title('Two point');
+
+figure(23);
+aso2.plot(n_2ptb);
 axis image;
 colormap(flipud(ocean));
 colorbar;
@@ -269,80 +195,28 @@ title('Two point');
 %-------------------------------------------------------------------------%
 
 
-%-- Simpson 13 kernel on upper half of data ------------------------------%
-%   Direct approach.
-K_s13 = kernel.simps13([Nu_a,Nu]);
-n_s13 = K_s13 * u_half2;
-n_s13a = interp2(xa, ya, ...
-    reshape(n_s13, [Nu_a,Nu]), ...
-    aso2.xe2, aso2.re2);
+%-- Onion peeling kernel -------------------------------------------------%
+n_op = tools.run('onion-peeling', u_of, 0 .* u_of, cam, ...
+    'lambda', 1e2, 'integrate', 'poisson', 'of', 'none', 'side', 'top');
+n_opa = tools.abel2aso(n_op, aso2, cam, Nu, 'top');
 
-
-figure(23);
-% imagesc(reshape(n_2pt ./ aso2.dr(1) ./ aso2.dy(1), size(t3)));
-aso2.plot(n_s13a);
-axis image;
-colormap(flipud(ocean));
-colorbar;
-title('Simpson 13');
-%-------------------------------------------------------------------------%
-
-
-%-- Three-pt. kernel -----------------------------------------------------%
-%   Indirect approach.
-K_3pt = kernel.three_pt([Nu_a,Nu]);
-n_3pt = K_3pt * pois_half;
-n_3pta = interp2(xa, ya, ...
-    reshape(n_3pt, [Nu_a,Nu]), ...
-    aso2.xe2, aso2.re2);
-
-figure(24);
-aso2.plot(n_3pta);
-% imagesc(reshape(n_3pt, size(t3)));
-colormap(flipud(ocean));
-axis image;
-colorbar;
-title('Three point, Poisson');
-
-
-K_3pti = kernel.three_pt([Nu_a,Nu]);
-n_3pti = K_3pti * int_half;
-n_3ptia = interp2(xa, ya, ...
-    reshape(n_3pti, [Nu_a,Nu]), ...
-    aso2.xe2, aso2.re2);
+n_op = tools.run('onion-peeling', -u_of, 0 .* u_of, cam, ...
+    'lambda', 1e2, 'integrate', 'poisson', 'of', 'none', 'side', 'bottom');
+n_opb = tools.abel2aso(n_op, aso2, cam, Nu, 'bottom');
 
 figure(25);
-aso2.plot(n_3ptia);
-% imagesc(reshape(n_3pt, size(t3)));
-colormap(flipud(ocean));
-axis image;
-colorbar;
-title('Three point, 1D integration');
-%-------------------------------------------------------------------------%
-
-
-%-- Onion peeling kernel -------------------------------------------------%
-disp('Onion peeling...');
-W = kernel.onion_peel(size(u_half));
-
-L_tk2_op = regularize.tikhonov_lpr(2, size(u_half,1), size(W,2));
-A_tk2_op = [W; 1e2.*L_tk2_op];
-b_tk2_op = [pois_half; sparse(zeros(size(L_tk2_op,1), 1))];
-n_op = full(lsqlin(A_tk2_op, b_tk2_op));
-n_opa = interp2(xa, ya, ...
-    reshape(n_op, [Nu_a,Nu]), ...
-    aso2.xe2, aso2.re2);
-
-figure(26);
 aso2.plot(n_opa);
-% imagesc(reshape(n_3pt, size(t3)));
 colormap(flipud(ocean));
 axis image;
 colorbar;
 title('Onion peeling + 2nd order Tikhonov');
 
-disp('Complete.');
-disp(' ');
+figure(26);
+aso2.plot(n_opb);
+colormap(flipud(ocean));
+axis image;
+colorbar;
+title('Onion peeling + 2nd order Tikhonov');
 %-------------------------------------------------------------------------%
 
 %=========================================================================%
@@ -352,22 +226,15 @@ disp(' ');
 
 %%
 %-- NRAP kernel ----------------------------------------------------------%
-disp('NRAP-L-D...');
-
-L_tk2_nrap = regularize.tikhonov_lpr(2, aso2.Nr+1, size(Kl2,2));
-A_tk2_nrap = [Kl2; 8e1 .* L_tk2_nrap];  % 2e2 is regularization parameter
-b_tk2_nrap = [u_of(:); sparse(zeros(size(L_tk2_nrap,1), 1))];
-n_nrap = full(lsqlin(A_tk2_nrap, b_tk2_nrap));
+n_arap = tools.run('arap', u_of, 0 .* u_of, cam, ...
+    'Nr', aso2.Nr, 'kernel', Kl2, 'lambda', 8e1, 'of', 'none');
 
 figure(27);
-aso2.plot(n_nrap);
+aso2.plot(n_arap);
 colormap(flipud(ocean));
 axis image;
 colorbar;
-title('NRAP + 2nd order Tikhonov');
-
-disp('Complete.');
-disp(' ');
+title('ARAP + 2nd order Tikhonov');
 %-------------------------------------------------------------------------%
 
 
@@ -389,20 +256,18 @@ title('Ground truth');
 
 %-- Rescale recosntructions ----------------------------------%
 n_maxmax = max(max([ ...
-    n_2pta(:), n_s13a(:), ...
-    n_3pta(:), n_opa(:), ... 
-    n_nrap(:), ...
+    n_2pta(:), n_opa(:), ... 
+    n_arap(:), ...
     bet2(:)]));
 n_minmin = min(min([ ...
-    n_2pta(:), n_s13a(:), ...
-    n_3pta(:), n_opa(:), ... 
-    n_nrap(:), ...
+    n_2pta(:), n_opa(:), ... 
+    n_arap(:), ...
     bet2(:)]));
 
 
 figure(22); caxis([n_minmin, n_maxmax]);
 figure(23); caxis([n_minmin, n_maxmax]);
-figure(24); caxis([n_minmin, n_maxmax]);
+figure(25); caxis([n_minmin, n_maxmax]);
 figure(26); caxis([n_minmin, n_maxmax]);
 figure(27); caxis([n_minmin, n_maxmax]);
 
@@ -411,24 +276,21 @@ figure(31); caxis([n_minmin, n_maxmax]);
 
 %
 %-- Quantitative comparisons --------------------------------%
-f_nan = isnan(n_s13a);
+f_nan = isnan(n_2pta);
 
-n_nrap2 = n_nrap;
-n_nrap2(f_nan) = NaN;
+n_arap2 = n_arap;
+n_arap2(f_nan) = NaN;
 
-e.s13 = norm(n_s13a(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
-e.threept = norm(n_3pta(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
-e.threept_i = norm(n_3ptia(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.twopt = norm(n_2pta(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
 e.onion_peel = norm(n_opa(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
-e.nrap2 = norm(n_nrap(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
-e.nrap = norm(n_nrap - bet2) / length(bet2) ./ mean(bet2);  % NOTE: larger field of view
+e.arap2 = norm(n_arap(~f_nan) - bet2(~f_nan)) / sum(~f_nan) ./ mean(bet2);
+e.arap = norm(n_arap - bet2) / length(bet2) ./ mean(bet2);  % NOTE: larger field of view
 
 
 e  % display e
 
 
-base = e.nrap2;
+base = e.arap2;
 fields = fieldnames(e);
 re = struct();
 for ff=1:length(fields)
@@ -437,6 +299,22 @@ end
 
 re % display re
 %------------------------------------------------------------%
+
+
+
+
+%-- Figure 40 ---------------------------------%
+%   Slice through the reconstructions.
+figure(40);
+aso2.plot_slice(n_2pta, 2);
+hold on;
+aso2.plot_slice(n_2ptb, 2);
+aso2.plot_slice(n_opa, 2);
+aso2.plot_slice(n_opb, 2);
+aso2.plot_slice(n_arap, 2);
+aso2.plot_slice(bet2, 2, 'k');
+hold off;
+
 
 
 
