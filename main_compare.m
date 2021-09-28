@@ -4,8 +4,13 @@
 %  axisymmetric object (i.e., % only a radial object, with no axial 
 %  considerations). 
 %  
+%  In direct support of Sipkens et al. (XXXX).
+%  
+%  Runtimes on the order of 20 seconds. 
+%  
+%  ------------------------------------------------------------------------
+%  
 %  AUTHOR: Timothy Sipkens, 2021-02-03
-%=========================================================================%
 
 
 clear; close all ;
