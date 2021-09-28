@@ -1,7 +1,7 @@
 
 % LINEAR_IDX  Evaluates the direct, linear ARAP kernel for using indices.
 % 
-%  K = kernel.linear_idx(N, MY) uses the number of annuli, N_R, and index
+%  K = kernel.linear_idx(N, MY) uses the number of annuli, N, and index
 %  corresponding to the closest approach radius to build kernel.
 %  
 %  AUTHOR: Timothy Sipkens, 2020-08-10

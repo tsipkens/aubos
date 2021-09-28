@@ -204,7 +204,7 @@ switch spec
         disp(' FORWARD OPERATOR.');
         f_forward = 1;  % flag forward operator
         
-        K = kernel.linear_idx(size(u_half), zeros(1,size(u_half,1)));
+        K = kernel.linear_abel(size(u_half));
         b0 = u_half;
         sz = [size(u_half,1), numel(u_half)];
         
