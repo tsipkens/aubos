@@ -4,7 +4,7 @@
 % Author: Timothy Sipkens, 2020-02-27
 %=========================================================================%
 
-function [n,A] = poisson(b, sz, Lb)
+function [n, A] = poisson(b, sz, Lb)
 
 %-- Parse inputs ---------------------------------------------------------%
 % Handle b, if matrix given as input (in which case, sz is ignored).

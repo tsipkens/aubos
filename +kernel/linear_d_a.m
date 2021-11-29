@@ -1,16 +1,18 @@
 
-% LINEAR_D  Evaluates the direct operator for a linear basis.
+% LINEAR_D_A  Alternate to evaluate the direct operator for a linear basis.
+%  Function is generally slower than kernel.linear_d(...) for the same
+%  output, but is slightly easier to read/understand.
 % 
-%  K = kernel.linear_d(ASO,Y0,MY) computes the 1D (radial only) ARAP, linear 
+%  K = kernel.linear_d_a(ASO,Y0,MY) computes the 1D (radial only) ARAP, linear 
 %  basis function operator for the Aso object in ASO and for the rays
 %  described by a y-intercept (at z = 0) of Y0 and a z-y slope of MY.
 %  Y0 and MY are expected to be row vectors.
 %  
-%  K = kernel.linear_d(RE,Y0,MY) replaces the Aso unit with the position of
+%  K = kernel.linear_d_a(RE,Y0,MY) replaces the Aso unit with the position of
 %  the edges of each of the annuli on which the linear basis is to be
 %  based. RE is expected to be a column vector.
 %  
-%  K = kernel.linear_d(ASO2,Y0,MY,X0,MX) computes the 2D (radial and axial)
+%  K = kernel.linear_d_a(ASO2,Y0,MY,X0,MX) computes the 2D (radial and axial)
 %  ARAP, linear basis function operators for the Aso2 object in ASO2 and
 %  adding the x-intercept of X0 and the z-x slope of MX. 
 %  Y0, MY, X0, and MX are expected to be row vectors.
@@ -21,7 +23,7 @@
 %  
 %  AUTHOR: Timothy Sipkens, 2020-06-10
 
-function [K, Kx] = linear_d(aso_re, y0, my, x0, mx, bet, i_sz)
+function [K, Kx] = linear_d_a(aso_re, y0, my, x0, mx)
 
 %-- Parse inputs ---------------------------------------------------------%
 if isa(aso_re,'Aso'); re = aso_re.re; % if input is an Aso
@@ -80,11 +82,11 @@ if nargin<4  % consider 1D case
 else  % consider 2D case
     tools.textheader('Building ARAP kernel');
     disp(' (Linear, 2D, Direct)');
-    
+
     if aso2.N<3; error(' Aso does not have enough annuli for linear basis.'); end
-    
+
     mx(abs(mx) < 1e-12) = 1e-12; % avoid division by zero in rv
-    
+
     % Cope edges of annuli and axial elements.
     rjd0 = aso2.re(1:(end-2));
     rj0  = aso2.re(2:(end-1));
@@ -92,15 +94,20 @@ else  % consider 2D case
     xj  = aso2.xe(1:(end-1));
     xju = aso2.xe(2:end);
     
-    % Functions for indefinite integral are defined 
-    % as subfunctions at the bottom of the file.
+    % Functions for indefinite integral.
+    A = @(my,y0,ry,ryu,r3) y0 ./ (ryu - ry) .* ...
+        log(abs(r3 + sqrt(r3.^2 - y0.^2 ./ (1+my.^2))));  % main part of integrand
+    Ad = @(my,ryd,ry,r1,r2) my .* ...
+        (r1 - r2) ./ (ry - ryd);  % second part of integrand
 
     % Number of rays. Any of the values could be scalar, so take max.
     N_beams = max([length(my), length(y0), ...
         length(mx), length(x0)]);
     
     % Initialize K, assume 0.5% full.
-    K = sparse(N_beams, aso2.Nx * (aso2.Nr + 1));
+    K = spalloc(N_beams, aso2.Nx * (aso2.Nr + 1), ...
+        round(1e-4 * N_beams * aso2.Nx * (aso2.Nr + 1)));
+
     Kx = spalloc(N_beams, aso2.Nx * (aso2.Nr + 1), ...
         round(1e-5 * N_beams * aso2.Nx * (aso2.Nr + 1)));
     
@@ -148,8 +155,6 @@ else  % consider 2D case
     
     disp(' Looping through axial slices:');
     tools.textbar([0,aso2.Nx]);
-    if exist('i_sz', 'var'); f = figure; 
-    	colormap(balanced); end
     for ii=1:aso2.Nx % loop through and append axial slices
         
         % Get z intersection with axial elements.
@@ -189,31 +194,37 @@ else  % consider 2D case
         % (adjusted for intersections with axial elements)
         rjd = rjd0 .* ones([1,length(idx_b)]); % repeat for relevant rv elements
         rjd(:,f1) = min(r1(f1), rjd(:,f1)); % adjust for lower axial bound
-        rjd(:,f2) = max(r2(:,f2), rjd(:,f2)); % adjust for upper axial bound
+        rjd(:,f2) = max(r2(f2), rjd(:,f2)); % adjust for upper axial bound
 
         rj = rj0 .* ones([1,length(idx_b)]);
         rj(:,f1) = min(r1(f1), rj(:,f1));
-        rj(:,f2) = max(r2(:,f2), rj(:,f2));
+        rj(:,f2) = max(r2(f2), rj(:,f2));
 
         rju = rju0 .* ones([1,length(idx_b)]);
         rju(:,f1) = min(r1(f1), rju(:,f1));
-        rju(:,f2) = max(r2(:,f2), rju(:,f2));
+        rju(:,f2) = max(r2(f2), rju(:,f2));
         
         % Evaluate front of ASO kernel (up to midpoint in ASO).
         K1 = (sqrt(1+mx(idx_b).^2) ./ (1+my(idx_b).^2) .* ( ...
             ([ ...
-             sparse(1,size(rj,2)); ...  % zeros for first element
-             Afun(my(idx_b), y0(idx_b), rjd0, rj0, rj, rjd) + ... % integral over rise
+             zeros(1,size(rj,2)); ...  % zeros for first element
+             A(my(idx_b), y0(idx_b), rjd0, rj0, rj) - ...
+             A(my(idx_b), y0(idx_b), rjd0, rj0, rjd) + ... % integral over rise
              Ad(my(idx_b), rjd0, rj0, rjd, rj); ... % added component of integrand
-             Afun(my(idx_b), y0(idx_b), rj0(end,:), rju0(end,:), rju(end,:), rj(end,:)) + ...
+             A(my(idx_b), y0(idx_b), rj0(end,:), rju0(end,:), rju(end,:)) - ...
+             A(my(idx_b), y0(idx_b), rj0(end,:), rju0(end,:), rj(end,:)) + ...
              Ad(my(idx_b), rj0(end,:), rju0(end,:), rj(end,:), rju(end,:)) ... % incline, last element
             ] + [
-             Afun(my(idx_b), y0(idx_b), rj0(1,:), rjd0(1,:), rj(1,:), rjd(1,:)) - ...
+             A(my(idx_b), y0(idx_b), rj0(1,:), rjd0(1,:), rj(1,:)) - ...
+             A(my(idx_b), y0(idx_b), rj0(1,:), rjd0(1,:), rjd(1,:)) - ...
              Ad(my(idx_b), rj0(1,:), rjd0(1,:), rj(1,:), rjd(1,:)); ...
-             Afun(my(idx_b), y0(idx_b), rju0, rj0, rju, rj) - ...
+             A(my(idx_b), y0(idx_b), rju0, rj0, rju) - ...
+             A(my(idx_b), y0(idx_b), rju0, rj0, rj) - ...
              Ad(my(idx_b), rju0, rj0, rju, rj); ... % integral over decline
-             sparse(1,size(rj,2))  % zeros for last element
+             zeros(1,size(rj,2))  % zeros for last element
             ])))';
+        K1(abs(K1) < 1e3*eps) = 0;  % supress numerical noise
+        K1(isnan(K1)) = 0;  % remove NaN values that result when modified element width is zero
         
         
         %== SECOND (REAR) INTEGRAND ========================================%
@@ -241,42 +252,38 @@ else  % consider 2D case
         % evaluate rear of ASO integrand (beyond midpoint in ASO).
         K2 = (sqrt(1+mx(idx_c).^2) ./ (1+my(idx_c).^2) .* ( ...
             ([ ...
-             sparse(1, size(rj,2)); ...  % zeros for first element
-             Afun(my(idx_c), y0(idx_c), rjd0, rj0, rj, rjd) - ... % integral over rise
-             Ad(my(idx_c), rjd0, rj0, rjd, rj); ... % added component of integrand
-             Afun(my(idx_c), y0(idx_c), rj0(end,:), rju0(end,:), rju(end,:), rj(end,:)) - ...
+             zeros(1, size(rj,2)); ...  % zeros for first element
+             A(my(idx_c), y0(idx_c), rjd0, rj0, rj) - ...
+             A(my(idx_c), y0(idx_c), rjd0, rj0, rjd) - ... % integral over rise
+             Ad(my(idx_c), rjd0,rj0, rjd, rj); ... % added component of integrand
+             A(my(idx_c), y0(idx_c), rj0(end,:), rju0(end,:), rju(end,:)) - ...
+             A(my(idx_c), y0(idx_c), rj0(end,:), rju0(end,:), rj(end,:)) - ...
              Ad(my(idx_c), rj0(end,:), rju0(end,:), rj(end,:), rju(end,:)) ... % incline, last element
             ] + [
-             Afun(my(idx_c), y0(idx_c), rj0(1,:), rjd0(1,:), rj(1,:), rjd(1,:)) + ...
+             A(my(idx_c), y0(idx_c), rj0(1,:), rjd0(1,:), rj(1,:)) - ...
+             A(my(idx_c), y0(idx_c), rj0(1,:), rjd0(1,:), rjd(1,:)) + ...
              Ad(my(idx_c), rj0(1,:), rjd0(1,:), rj(1,:), rjd(1,:)); ...
-             Afun(my(idx_c), y0(idx_c), rju0, rj0, rju, rj) + ...
+             A(my(idx_c), y0(idx_c), rju0, rj0, rju) - ...
+             A(my(idx_c), y0(idx_c), rju0, rj0, rj) + ...
              Ad(my(idx_c), rju0, rj0, rju, rj); ... % integral over decline
-             sparse(1,size(rj,2))  % zeros for last element
+             zeros(1,size(rj,2))  % zeros for last element
             ])))';
+        K2(abs(K2) < 1e3*eps) = 0;  % supress numerical noise
+        K2(isnan(K2)) = 0;  % remove NaN values that result when modified element width is zero
         
         
-        %== Compile into larger kernel ================%
-        % Convert to relevant indices/vectors.
-        [i1a, i1b] = find(K1);
-        v1 = K1(sub2ind(size(K1), i1a, i1b));
-        [i2a, i2b] = find(K2);
-        v2 = K2(sub2ind(size(K2), i2a, i2b));
-        
-        % Compute quantities for bridging indices.
-        i3b = ((ii-1)*(aso2.Nr+1)+1):(ii*(aso2.Nr+1));
-        [~, ib] = intersect(idx_a, idx_b);
-        [~, ic] = intersect(idx_a, idx_c);
-        
-        % Convert to K matrix indices.
-        i1c = idx_a(ib(i1a));
-        i2c = idx_a(ic(i2a));
-        i1d = i3b(i1b);
-        i2d = i3b(i2b);
-        
-        % Recompile sparse matrix and add.
-        K = K + ...
-            sparse([i1c'; i2c'], [i1d'; i2d'], ...
-            [v1; v2], size(K, 1), size(K, 2));
+        % Extra IF statements consider if no intersecting rays.
+        K0 = zeros(length(idx_a), aso2.Nr+1);
+        if ~isempty(idx_b)
+            [~, ib] = intersect(idx_a, idx_b);
+            K0(ib, :) = K1;
+        end
+        if ~isempty(idx_c)
+            [~, ic] = intersect(idx_a, idx_c);
+            K0(ic, :) = K0(ic, :) + K2;
+        end
+        K0(isnan(K0)) = 0; 
+        K(idx_a, ((ii-1)*(aso2.Nr+1)+1):(ii*(aso2.Nr+1))) = K0;
         
         
         %== Evaluate axial deflections ===========================%
@@ -317,18 +324,7 @@ else  % consider 2D case
         end
 
         tools.textbar([ii, aso2.Nx]);
-        
-        %-{
-        if exist('i_sz', 'var')
-            figure(gcf);
-            i0 = K * bet;
-            imagesc(reshape(i0, i_sz));
-            axis image; set(gca,'YDir','normal');
-            caxis([-max(abs(i0)), max(abs(i0))]);
-        end
-        %}
     end
-    if exist('i_sz', 'var'); close(f); end
 
     % Kx = Kx * aso2.Dx;
     tools.textheader;
@@ -337,49 +333,4 @@ end
 
 end
 
-
-function out = Afun(my, y0, ry, ryu, r3, r4)
-
-% Flag entires that will be non-zero. 
-% r3 = r4 corresponding to identical integral bounds, 
-% leading to zero entries, which are not computed for speed.
-f = ~(r3 == r4);
-
-[i1, i2] = find(f);  % indices of potentially non-zero entries
-
-% Pre-compute some of the quantities. 
-y0a = y0(i2);
-yr = y0(i2).^2 ./ (1+my(i2).^2);
-
-% Transpose depending on above input. 
-% Accommodates 1D vectors.
-if size(y0a, 1)~=size(i1, 1)
-    y0a = y0a';
-    yr = yr';
-end
-
-% Compute main integrand for two bounds for output.
-v = y0a ./ (ryu(i1) - ry(i1)) .* ...
-    (log(abs(r3(f) + sqrt(r3(f).^2 - yr))) - ...
-    log(abs(r4(f) + sqrt(r4(f).^2 - yr))));
-
-v(abs(v) < 1e5 * eps) = 0;  % supress numerical noise
-v(isnan(v)) = 0;  % remove NaN values that result when modified element width is zero
-
-% Compile into sparse matrix.
-out = sparse(i1, i2, v, size(r3, 1), size(r3, 2));
-
-end
-
-
-function out = Ad(my, ryd, ry, r1, r2)
-
-out = my .* (r1 - r2) ./ (ry - ryd);
-
-out(abs(out) < 1e5 * eps) = 0;  % supress numerical noise
-out(isnan(out)) = 0;  % remove NaN values that result when modified element width is zero
-
-out = sparse(out);
-
-end
 

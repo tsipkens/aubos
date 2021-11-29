@@ -54,9 +54,6 @@ for i=1:iter
     v(isnan(v)) = 0;
     u(isnan(u)) = 0;
 end
-
-% Correct vertical direction
-u = -u;
 %-------------------------------------------------------------------------%
 end
 

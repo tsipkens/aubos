@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>AUBOS</title>
+  <title>ARAP</title>
 
   <link rel="icon" type="image/png" href="imgs/favicon.png">
 
@@ -24,7 +24,7 @@
 <body>
 
   <header id="navbar">
-    <a href="#h1" id="header-logo">AUBOS</a>
+    <a href="#h1" id="header-logo">ARAP</a>
     <nav>
       <ul class="nav-list">
         <li><a href="#htransform" class="nav-link">THE TRANSFORMS</a></li>
@@ -41,7 +41,8 @@
 
   <div class="main">
 
-    <h1>Axisymmetric BOS</h1>
+    <h1>ARAP</h1>
+    <div class="subtitle"><b>A</b>rbitrary <b>R</b>ay<br><b>A</b>xisymmetric<br><b>P</b>rojection<br>transform</div>
 
     <p align="justify">
       This web app demonstrates some of the principles underlying axisymmetric
@@ -77,18 +78,18 @@
       the center plane of the ASO, that is where z = 0.
       A ray where y<sub>0</sub> = 0 will pass directly through the origin,
       which is placed at the center of the ASO (where the radius is zero).
-
     </p>
 
-    <div class="control">
-      <span class="control-label">Intercept </span>
-      <input type="range" name="y0Slider" id="y0Slider" min="1" max="19" value="11" class="slider" onchange="displayy0val(this.value);"> <br>
-      <i>y</i><sub>0</sub> = <output id="y0val">-</output>
+    <div style="margin:0 auto;margin-top:10px;width:600px;text-align:center;">
+      <div class="control">
+        <span class="control-label">Intercept </span>
+        <input type="range" name="y0Slider" id="y0Slider" min="1" max="19" value="11" class="slider" onchange="displayy0val(this.value);"> <br>
+        <i>y</i><sub>0</sub> = <output id="y0val">-</output>
+      </div>
+
+      <!-- Create a div where the graph will take place -->
+      <div id="my_dataviz"></div>
     </div>
-
-    <!-- Create a div where the graph will take place -->
-    <div id="my_dataviz" style="margin-top:10px"></div>
-
 
   </div>
   <div class="main">
@@ -158,6 +159,20 @@
 
   <script src="scripts/transforms.js"></script>
   <script src="scripts/linear.js"></script>
+
+  <script>
+    // When the user scrolls down 50px from the top of the document, reformat header
+    window.onscroll = function() {scrollFunction()};
+    function scrollFunction() {
+      if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 60) {
+        document.getElementById("navbar").style.boxShadow = "0px 0px 4px #AAA";
+        document.getElementById("navbar").style.backgroundColor = "white";
+      } else {
+        document.getElementById("navbar").style.boxShadow = "none";
+        document.getElementById("navbar").style.backgroundColor = "#FAFAFA";
+      }
+    }
+  </script>
 
 </body>
 

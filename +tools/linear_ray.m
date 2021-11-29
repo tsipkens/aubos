@@ -1,5 +1,5 @@
 
-% LINEAR_RAY  Linear ray tracer through the ASO.
+% LINEAR_RAY  Linear ray tracer through the ASO for deflectometry. 
 %  
 %  INPUT:
 %   oc    Point on straight ray               [m]
@@ -34,7 +34,7 @@ z2 = aso.R;
 if f_axial
     ds = 0.5 .* min([aso.dr; aso.dx]);
     my_max = max(abs(v(2,:) ./ v(3,:)));
-    mx_max = max(abs(v(2,:) ./ v(3,:)));
+    mx_max = max(abs(v(1,:) ./ v(3,:)));
     m_max = sqrt(1 + mx_max^2 + my_max^2);
 else
     ds = 0.5 .* min(aso.dr);
@@ -45,7 +45,7 @@ K = ceil(1.2 * norm(z1 - z2) / ds * ...
 
 
 % Print script status
-if f_print; disp(' Linear ray tracing:'); tools.textbar(0); end
+if f_print; disp(' Linear ray tracing:'); tools.textbar([0, K]); end
 %-------------------------------------------------------------------------%
 
 
@@ -79,11 +79,11 @@ while any(~ic)
     ic = c(3,:)>aso.R; % index of converged rays
     
     % Update progress bar
-    if f_print; tools.textbar(k/K); end
+    if f_print; tools.textbar([k, K]); end
     
     if k==K; break; end % if iteration limit reached
 end
-if f_print; tools.textbar(1); disp(' '); end
+if f_print; tools.textbar([K, K]); disp(' '); end
 %-------------------------------------------------------------------------%
 
 
@@ -97,13 +97,6 @@ eps_x = ix';
 % Check for failed rays
 d  = (p-z1)'*(z2-z1)/norm(z2-z1)^2; % Ray-wise distance travelled   [m]
 f  = sum(d < 1);                    % No. of rays behind plane 2    []
-fd = size(p,2);                     % Total no. of rays             []
 w  = min(d);                        % Worst ray distance            []
 
-% Report convergence results
-% fprintf(['\nReport:\nRun time: %.2f s\n',...
-%     '%i failed rays of %i (%.1f%%)',...
-%     '\nMinimum distance of %.1f%%\n'],t,f,fd,100*f/fd,100*w);
-%-------------------------------------------------------------------------%
 end
-%=== End =================================================================%

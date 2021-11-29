@@ -101,7 +101,7 @@ var $container = $('#my_dataviz'),
     height_t = $container.height()
 var margin = {
     top: 0,
-    right: 10,
+    right: 40,
     bottom: 50,
     left: 40
   },
@@ -122,6 +122,12 @@ var svg2 = d3.select("#my_labels")
   .attr("height", 40)
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+//-- Add background rectangle --//
+svg.append("rect")
+  .attr("width", width)
+  .attr("height", height)
+  .attr("fill", "#FFF");
 
 // Add X axis
 var x = d3.scaleLinear()

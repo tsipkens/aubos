@@ -1,11 +1,18 @@
 
 % ASO  A class to handle spatial information for 1D axisymmetric objects.
-% Such an object has no axial dependence, which is useful in demonstrating
-% and testing kernels. This class provides the basics for discretizing the
-% space and plotting functions on the space. 
+%  Such an object has no axial dependence, which is useful in demonstrating
+%  and testing kernels. This class provides the basics for discretizing the
+%  space and plotting functions on the space. 
+%  
+%  A = Aso(NR) creates an discrete, axisymmetric object with NR
+%  annuli/elements. Uses default radius of R = 1.
+%  
+%  A = Aso(NR,R) creates an discrete, axisymmetric object with NR
+%  annuli/elements and an outer radius of R. 
+%  
+%  ------------------------------------------------------------------------
 % 
-% Author: Timothy Sipkens, 2020-05-20
-%=========================================================================%
+%  AUTHOR: Timothy Sipkens, 2020-05-20
 
 classdef Aso
     
@@ -25,8 +32,11 @@ classdef Aso
     methods
         %== ASO ==========================================================%
         %   Constructor method.
-        function aso = Aso(R, Nr)
+        function aso = Aso(Nr, R)
             if nargin==0; return; end % return empty object
+            
+            if ~exist('R', 'var'); R = []; end
+            if isempty(R); R = 1; end  % use R = 1 by default
             
             aso.Nr = Nr; % number of annuli
             aso.R = R; % outer radius
@@ -72,7 +82,7 @@ classdef Aso
             
             % Setup grid for interpolation
             Dri = aso.grad * bet;  % reshape radial gradient
-            Dri = [Dri; 0]; % append constant slope data for last axial position
+            Dri = [Dri; 0]; % append no slope data for last axial position
             
             % Interpolate r-gradient and convert to Cartesian coords.
             Dro = interp1(aso.re, Dri, ri, 'linear', 0);

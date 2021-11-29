@@ -4,8 +4,13 @@
 %  axisymmetric object (i.e., % only a radial object, with no axial 
 %  considerations). 
 %  
+%  In direct support of Sipkens et al. (XXXX).
+%  
+%  Runtimes on the order of 20 seconds. 
+%  
+%  ------------------------------------------------------------------------
+%  
 %  AUTHOR: Timothy Sipkens, 2021-02-03
-%=========================================================================%
 
 
 clear; close all ;
@@ -15,35 +20,35 @@ addpath cmap; % add colormaps to path
 
 R = 1;
 Nr = 250;
-aso = Aso(R, Nr); % generate an axis-symmetric object
+aso = Aso(Nr, R); % generate an axis-symmetric object
 
 
 %== Case studies / phantoms for dn/dr ====================================%
 %   Evaluated at ASO radial element edges.
 pha_no = 5;  % 7, 2, and 5 used in ARAP manuscript
 switch pha_no
-    case 1 % gaussian
+    case 1  % Gaussian
         bet = normpdf(aso.re,0,0.3);
         
-    case 2 % gaussian with central dip
+    case 2  % Gaussian with central dip
         bet = 0.8 .* ((2.2) .* normpdf(aso.re,0,0.25) - ...
             1.2 .* normpdf(aso.re,0,0.15));
         
-    case 3 % approx. cylinder, sigmoid function softens transition
+    case 3  % approx. cylinder, sigmoid function softens transition
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
         bet = f_sigmoid(aso.re - 0.35);
         
-    case 4 % cone
+    case 4  % cone
         bet = 1-aso.re;
         
-    case 5 % ring, e.g. looking through a cup, sigmoid softens transition
+    case 5  % ring, e.g. looking through a cup, sigmoid softens transition
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-80 .* x)); % sigmoid function
         bet = 3 .* (f_sigmoid(aso.re - 0.35) - f_sigmoid(aso.re - 0.33));
         
-    case 6 % half circle
+    case 6  % half circle
         bet = sqrt(max(0.7.^2 - aso.re.^2, 0));
         
-    case 7 % (similar to 3, but sharper)
+    case 7  % (similar to Case 3, but sharper)
         f_sigmoid = @(x) 1 - 1 ./ (1 + exp(-160 .* x)); % sigmoid function
         bet = f_sigmoid(aso.re - 0.35);
 end
@@ -63,7 +68,7 @@ bet = bet ./ max(bet);  % scale refractive index field such that peak is unity
 Nv = 800; % number of pixels in "camera" (only one dim. considered for this ASO)
 
 % Camera number ...
-%  No. 6 is default using in manuscript.
+%  No. 6 is default used in manuscript (Sipkens et al., XXXX).
 %  No. 1 does not have z = -20 and doesn't work with second half of code
 cam_no = 6;
 switch cam_no
@@ -99,6 +104,7 @@ end
 
 %-{
 %-- OPTION 1: Use Camera class ---------------%
+%   (Recommended)
 cam = Camera(1, Nv, oc0, f);
 %}
 
@@ -112,8 +118,6 @@ cam.y0 = linspace(-2.*aso.re(end), 2.*aso.re(end), Nv);
 cam.my = (cam.y - cam.y0) ./ cam.z; % slope implied by camera location
 %}
 %=========================================================================%
-
-
 
 
 % FIG 3: Plot Phantom (2D slice through center of ASO)
@@ -134,82 +138,12 @@ bnlr0 = bnlr0 .* mod_scale;
 bnlr0_z = bnlr0_z .* mod_scale;
 
 
-
-% Generate kernel.
-Kl = kernel.linear_d(aso, cam.y0, cam.my);
-bl0 = Kl * bet;  % forward model, deflections using linear kernel
-
-Ku = kernel.uniform_d(aso, cam.y0, cam.my);
-bu0 = Ku * bet;
-
-Kui = kernel.uniform_i(aso, cam.y0, cam.my);
-bui = Kui * bet;
-
-Kli = kernel.linear_i(aso, cam.y0, cam.my);
-bli = Kli * bet;
-
-figure(10);
-plot(bl0);
-hold on;
-plot(bui - bui(1), 'b--');
-plot(cumsum(bl0(2:end) .* ...
-    (cam.y0(2:end)' ./ sqrt(1 + cam.my(2:end)'.^2) - ...
-    cam.y0(1:(end-1))' ./ sqrt(1 + cam.my(1:(end-1))'.^2))), ...
-    'k--');
-plot(diff(bui) ./ (cam.y0(2:end) - cam.y0(1:(end-1))), 'r--');
-plot(diff(bli) ./ (cam.y0(2:end) - cam.y0(1:(end-1))), 'b:');
-hold off;
-
-figure(9);
-plot(cam.y0, blr0);
-hold on;
-plot(cam.y0, bnlr0);
-plot(cam.y0, bnlr0_z, 'Color', [0.8,0.8,0.8]);
-plot(cam.y0, bl0, 'k--');
-hold off;
-
-
-
-%%
-%== COMPARE FORWARD RESULTS ==============================================%
-% NOTE: Inverse procedure using simps13 is unstable.
-
-% 2-pt kernel, acts directly on deflections
-A2 = kernel.two_pt(length(bet));
-b1 = A2 \ bet;
-
-% New kernel, evaluated analogous with Abel-type kernels, 
-% acts directly on deflections
-A2 = kernel.uniform_d(aso.re, aso.re', 0.*aso.re');
-b2 = A2 * bet;
-
-% 3-pt kernel (operates on integrated deflections, thus gradient operator below)
-A3 = kernel.three_pt(length(bet));
-b3 = gradient(A3 \ bet);
-
-% Onion peeling kernel (forward operator, operates on integrated deflections)
-A_op = kernel.onion_peel(length(bet));
-b4 = gradient(A_op * bet);
-
-% figure(19);
-% plot(aso.re, b1);
-% hold on;
-% plot(aso.re, b2);
-% plot(aso.re, b3);
-% plot(aso.re, b4);
-% plot(aso.re, bet, 'k');
-% plot(cam(end).y0, bu0, 'Color', [1, 0.7, 0.7]);
-% plot(cam(end).y0, bl0, '--k');
-% hold off
-% xlim([0, max(aso.re)]);
-%=========================================================================%
-
-
 %%
 %== COMPARE INVERSE OPERATORS ============================================%
-cam_vec = 20 ./ [20, 5, 2,     1.5, 1.15, 1.05];  % for ARAP manuscript figures
+% OPTION 1: Coarse camera spacing for demonstration.
+cam_vec = 20 ./ [20, 5, 2, 1.5, 1.15, 1.05];  % for ARAP manuscript figures
 
-% More camera positions for errors. 
+% OPTION 2: Fine camera spacing to better show trends in error.
 % Also update rng(...) call below.
 % cam_vec = 20 ./ (1 + logspace(log10(0.01), log10(20), 150));
 
@@ -218,6 +152,7 @@ cmap_sweep(length(cam_vec)+1, inferno);
 plot(0, 0, 'o');
 xlim([-2,2]);
 
+% Prepare figures for different methods.
 for ii=21:27
     figure(ii);
     clf;
@@ -226,22 +161,26 @@ for ii=21:27
     xlim([0, aso.R]);
 end
 
+% Main loop over camera position.
 ii = 0;
 re(length(cam_vec)) = struct();
 for cc = cam_vec
+    tools.textheader(['Camera, z = ', num2str(oc0(3) / cc, 4)]);    
     
-    % rng(cc+ii);  % used for higher res. cam_vec
-    rng(cc+1);  % current ARAP mansucript figures
+    % rng(cc+ii);  % used for fine cam. spacing (OPTION 2)
+    rng(cc+1);  % current ARAP mansucript figures, coase cam. spacing (OPTION 1)
     
     oc = oc0;
-    oc(3) = oc(3) ./ cc;
-    f_cc = f ./ cc;
+    oc(3) = oc(3) / cc;
+    f_cc = f / cc;
     cam = Camera(1, Nv, oc, f_cc);
     
     [~,~,bnlr] = tools.linear_ray((oc')*ones(1, length(cam.my)), ...
         [zeros(size(cam.my)); cam.my; ones(size(cam.my))], ...
         aso, bet ./ mod_scale);
     bnlr = bnlr .* mod_scale;
+    
+    disp(' Performing inversions + plotting ...');
     
     Kl = kernel.linear_d(aso, cam.y0, cam.my);
     bl = Kl * bet;
@@ -271,7 +210,7 @@ for cc = cam_vec
     Le_b = sparse(diag(1 ./ noise_lvl .* ones(size(b_b))));
     
     
-    
+    %-- PERFORM INVERSIONS -----------------------------------------------%
     % 2-pt kernel
     A2 = kernel.two_pt(length(b_b));
     bet2 = A2 * b_b;
@@ -308,8 +247,17 @@ for cc = cam_vec
     b_a_int = b_a_int - b_a_int(end);
     Kli = kernel.linear_i(aso, cam.y0, cam.my);
     betli = regularize.tikhonov1(Kli, b_a_int, Le_a, 1e2);
+    %---------------------------------------------------------------------%
 
-
+    
+    %-- GENERATE PLOTS ---------------------------------------------------%
+    figure(20);
+    plot(cam.y0, bnlr, 'k');
+    hold on;
+    plot(cam.y0, b_a, 'r.');
+    plot(y, b_b, 'ko', 'MarkerSize', 2.8);
+    hold off
+    
     figure(21);
     title('2pt');
     hold on;
@@ -352,15 +300,10 @@ for cc = cam_vec
     plot(aso.re, betu);
     hold off;
     xlim([0, aso.R]);
-    
-    figure(20);
-    plot(cam.y0, bnlr, 'k');
-    hold on;
-    plot(cam.y0, b_a, 'r.');
-    plot(y, b_b, 'ko', 'MarkerSize', 2.8);
-    hold off
+    %---------------------------------------------------------------------%
     
     
+    % Compute relative error.
     ii = ii + 1;
     bety = interp1(aso.re, bet, y)';
     re(ii).twopt = norm(bet2 - bety) ./ norm(bety);
@@ -370,9 +313,11 @@ for cc = cam_vec
     re(ii).linear_d = norm(betl - bet) ./ norm(bet);
     re(ii).uniform_d = norm(betu - bet) ./ norm(bet);
     re(ii).linear_idx = norm(bet_lidx - bety) ./ norm(bety);
+    
+    tools.textdone(2);  % print orange DONE w/ two line breaks
 end
 
-
+% Loop to update figure formatting.
 for ii=21:27
     fi = figure(ii);
     fi.Position(4) = 280;

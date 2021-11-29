@@ -1,20 +1,22 @@
 
-% LINEAR_IND  Evaluates the direct, linear NRAP kernel for using indices.
+% LINEAR_IDX  Evaluates the direct, linear ARAP kernel for using indices.
 % 
-%  K = kernel.linear_ind(N_R,IH) uses the number of annuli, N_R, and index
+%  K = kernel.linear_idx(N, MY) uses the number of annuli, N, and index
 %  corresponding to the closest approach radius to build kernel.
 %  
 %  AUTHOR: Timothy Sipkens, 2020-08-10
 
-function K = linear_idx(n_r, my)
+function K = linear_idx(n, my)
 
-ii = 0:(n_r-1);
+Nu = n(1);
+
+ii = 0:(Nu-1);
 ih = ii ./ sqrt(1 + my .^ 2);
 
 % get range of rj
-jjd = (0:(n_r-3))';  % r_{j-1}
-jj  = (1:(n_r-2))';  % r_j
-jju = (2:(n_r-1))';  % r_{j+1}
+jjd = (0:(Nu-3))';  % r_{j-1}
+jj  = (1:(Nu-2))';  % r_j
+jju = (2:(Nu-1))';  % r_{j+1}
 
 % functions for indefinite integral
 Kb = @(ih,i,j) log(abs(j + sqrt(j.^2 - ih.^2)));
@@ -40,5 +42,12 @@ K = real(2 .* (ih .^ 2) ./ (ii+eps) .* ( ... % real(.) removes values outside in
 
 K(abs(K)<1e3*eps) = 0; % remove numerical noise
 K = sparse(K); % convert to a sparse matrix
+
+
+% If second dimension and Abel case, 
+% use Kroneker to complete kernel.
+if and(length(n)==2, all(my==0))
+    K = kron(speye(n(2)), K);
+end
 
 end
