@@ -3,7 +3,8 @@
 %  This includes the Abel transform and the generalized transform of
 %  Sipkens et al. for non-parallel rays.
 %  
-%  In direct support of Sipkens et al. (XXXX).
+%  In direct support of Sipkens et al. (2021).
+%  See Figure 2 in that work.
 %  
 %  ------------------------------------------------------------------------
 % 

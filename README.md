@@ -58,6 +58,18 @@ We refer the reader to individual functions and class definitions for use and mo
 
 Finally, example and high-level scripts typically follow the naming convention `main*`. Generally, `main_*` scripts examine the 1D (radial only) problem, while `main2_*` scripts consider the 2D (radial and axial) problem. 
 
+The following scripts are associated directly with **[Sipkens et al. (2021)][sipkens-arap]**: 
+
+> `main_transform` (evaluates the ARAP transform, Fig. 2),
+
+> `main_aso` (demonstrates use of ASO class and computes 1D deflections, Fig. 3),
+
+> `main2_aso` (demonstrated use of the ASO2 class and computes 2D deflections, Fig. 4), 
+
+> `main_compare` (compares 1D reconstructions from deflection fields across a range of techniques, Fig. 6), and
+
+> `main2_mst21` (slower runtimes, compares 2D reconstructions from deflection fields across a range of techniques, Fig. 8).
+
 ## Tutorials
 
 This codebase can be used for three purposes: (A) visualizing the transforms that underlie the problem; (B) evaluating the forward model, that is computing the deflections from a scaled refractive index field; and (C) evaluating the inverse model, that is going from a deflection field or pair of images to a refractive index field. 

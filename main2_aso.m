@@ -8,7 +8,12 @@
 %  longer runtimes. Faster runtimes are also achieved by reducing 
 %  Nv and Nu.
 %  
-%  Fig. 5, Sipkens et al., MST corresponds to pha_no = 4 and cam_no = 1.
+%  In direct support of Sipkens et al. (2021).
+%  Fig. 4 corresponds to pha_no = 4 and cam_no = 1.
+%  
+%  Runtimes on the order of 25 seconds. 
+%  
+%  ------------------------------------------------------------------------
 %  
 %  AUTHOR: Timothy Sipkens, 2020
 
