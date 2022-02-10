@@ -4,7 +4,7 @@
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
-This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels, including novel **arbitrary ray, axisymmetric projection (ARAP)** kernels ([Sipkens et al., XXXX][sipkens-arap]). Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of the Bayesian framework with priors. Note that figures from [Sipkens et al. (XXXX)][sipkens-arap] are directly supported by the `main_aso`, `main_compare`, and `main2_mst21` scripts. 
+This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels, including novel **arbitrary ray, axisymmetric projection (ARAP)** kernels ([Sipkens et al., 2021][sipkens-arap]). Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of the Bayesian framework with priors. Note that figures from [Sipkens et al. (2021)][sipkens-arap] are directly supported by the `main_aso`, `main_compare`, and `main2_mst21` scripts. 
 
 The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
 
@@ -34,7 +34,7 @@ Instead of the **cmap** package, one could also replace references in existing s
 
 Much of this codebase is distributed amongst a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the **tools** package can be called using `tools.textbar(..._)`. Available packages include:
 
-1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by [Sipkens et al. (XXXX)][sipkens-arap]. There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
+1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by [Sipkens et al. (2021)][sipkens-arap]. There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
 
 2. The **+kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/ARAP-type operators. 
 
@@ -214,4 +214,4 @@ This code contains several excerpts from a previous, private codebase by Samuel 
 
 [GrauerSteinberg20]: https://link.springer.com/article/10.1007/s00348-020-2912-1
 
-[sipkens-arap]: #
+[sipkens-arap]: https://doi.org/10.1088/1361-6501/ac3f83
