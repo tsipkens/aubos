@@ -212,6 +212,8 @@ This code contains several excerpts from a previous, private codebase by Samuel 
 
 [Grauer, S. J., & Steinberg, A. M. (2020). Fast and robust volumetric refractive index measurement by unified background-oriented schlieren tomography. Experiments in Fluids, 61(3), 1-17.][GrauerSteinberg20]
 
+[Sipkens, T. A., Grauer, S. J., Steinberg, A. M., Rogak, S. N., & Kirchen, P. (2021). New transform to project axisymmetric deflection fields along arbitrary rays. Measurement Science and Technology, 33(3), 035201.][sipkens-arap]
+
 [GrauerSteinberg20]: https://link.springer.com/article/10.1007/s00348-020-2912-1
 
 [sipkens-arap]: https://doi.org/10.1088/1361-6501/ac3f83
