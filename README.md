@@ -60,15 +60,15 @@ Finally, example and high-level scripts typically follow the naming convention `
 
 The following scripts are associated directly with **[Sipkens et al. (2021)][sipkens-arap]**: 
 
-`main_transform` (evaluates the ARAP transform, Fig. 2),
+1. `main_transform` (evaluates the ARAP transform, Fig. 2),
 
-`main_aso` (demonstrates use of ASO class and computes 1D deflections, Fig. 3),
+2. `main_aso` (demonstrates use of ASO class and computes 1D deflections, Fig. 3),
 
-`main2_aso` (demonstrated use of the ASO2 class and computes 2D deflections, Fig. 4), 
+3. `main2_aso` (demonstrated use of the ASO2 class and computes 2D deflections, Fig. 4), 
 
-`main_compare` (compares 1D reconstructions from deflection fields across a range of techniques, Fig. 6), and
+4. `main_compare` (compares 1D reconstructions from deflection fields across a range of techniques, Fig. 6), and
 
-`main2_mst21` (slower runtimes, compares 2D reconstructions from deflection fields across a range of techniques, Fig. 8).
+5. `main2_mst21` (slower runtimes, compares 2D reconstructions from deflection fields across a range of techniques, Fig. 8).
 
 ## Tutorials
 
@@ -76,15 +76,7 @@ This codebase can be used for three purposes: (A) visualizing the transforms tha
 
 ### A. Visualizing the ARAP transforms
 
-While projecting axisymmetric objects is typically achieved using the Abel transform, which has a kernel of 
-
-![](https://latex.codecogs.com/svg.latex?{\frac{2y_0}{\sqrt{r^2-y_0^2}}}.)
-
-[Sipkens] et al. (XXXX)][sipkens-arap] derived the arbitrary ray, axisymmetric projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
-
-![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)^{\frac{3}{2}}}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}}.)
-
-This code includes tools to visualize and compare these transforms directly, relying on the functions in the **transforms** package. For example, the direct, Abel transform can be evaluated using
+While projecting axisymmetric objects is typically achieved using the Abel transform. [Sipkens et al. (2021)][sipkens-arap] derived the arbitrary ray, axisymmetric projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This code includes tools to visualize and compare these transforms directly, relying on the functions in the **transforms** package. For example, the direct, Abel transform can be evaluated using
 
 ```Matlab
 K = transform.abeld(y0, r_vec);
