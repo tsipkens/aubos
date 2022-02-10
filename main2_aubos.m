@@ -3,6 +3,8 @@
 %  Relative to main_2aso, this script uses a camera model with 
 %  a focal length. 
 %  
+%  Runtimes on the order of 2 minutes.
+%  
 %  ------------------------------------------------------------------------
 %  
 %  AUTHOR: Timothy Sipkens, 2020-08-31
