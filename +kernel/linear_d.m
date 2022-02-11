@@ -281,7 +281,7 @@ else  % consider 2D case
         
         %== Evaluate axial deflections ===========================%
         %  (Experimental)
-        if nargout > 2  % if axial output requested
+        if nargout > 1  % if axial output requested
             %-{
             Kx0 = ([zeros(1, length(idx_a)); ...
                  (rx - rjd0) ./ (rj0 - rjd0) .* and(rjd0 < rx, rx < rj0) - ...

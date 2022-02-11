@@ -206,7 +206,7 @@ colorbar;
 title('ARAP, radial deflection, {\epsilon_y}');
 
 
-%{
+%-{
 % FIG 8: Axial deflection field
 % (Experimental)
 figure(8);
