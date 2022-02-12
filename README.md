@@ -4,7 +4,7 @@
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
-This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels, including novel **arbitrary ray, axisymmetric projection (ARAP)** kernels ([Sipkens et al., XXXX][sipkens-arap]). Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of the Bayesian framework with priors. Note that figures from [Sipkens et al. (XXXX)][sipkens-arap] are directly supported by the `main_aso`, `main_compare`, and `main2_mst21` scripts. 
+This program is designed to analyze background-oriented schlieren data for axisymmetric objects and to evaluate the related transforms and kernels, including novel **arbitrary ray, axisymmetric projection (ARAP)** kernels ([Sipkens et al., 2021][sipkens-arap]). Inverse analysis focuses on interpreting data within the unified framework ([Grauer and Steinberg, 2020][GrauerSteinberg20]), thus implementing axisymmetric unified background-oriented schlieren (AUBOS), and with the use of the Bayesian framework with priors. Note that figures from [Sipkens et al. (2021)][sipkens-arap] are directly supported by the `main_aso`, `main_compare`, and `main2_mst21` scripts. 
 
 The coordinate system used here for the overall axisymmetric schlieren problem is shown below. 
 
@@ -34,7 +34,7 @@ Instead of the **cmap** package, one could also replace references in existing s
 
 Much of this codebase is distributed amongst a series of packages (folders that start with **+**). These functions can be accessed by appending the package name and a `.` before the function name. For example, the `textbar(...)` function in the **tools** package can be called using `tools.textbar(..._)`. Available packages include:
 
-1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by [Sipkens et al. (XXXX)][sipkens-arap]. There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
+1. The **+transforms** package contain functions explicitly evaluating the Abel and new transform described by [Sipkens et al. (2021)][sipkens-arap]. There methods form the mathematical basis for the kernels derived subsequently but are not used directly during inversion. 
 
 2. The **+kernel** package includes functions to generate operators for solving the axisymmetric problem, including forward/inverse, indirect/direct, and Abel/ARAP-type operators. 
 
@@ -58,21 +58,25 @@ We refer the reader to individual functions and class definitions for use and mo
 
 Finally, example and high-level scripts typically follow the naming convention `main*`. Generally, `main_*` scripts examine the 1D (radial only) problem, while `main2_*` scripts consider the 2D (radial and axial) problem. 
 
+The following scripts are associated directly with **[Sipkens et al. (2021)][sipkens-arap]**: 
+
+1. `main_transform` (evaluates the ARAP transform, Fig. 2),
+
+2. `main_aso` (demonstrates use of ASO class and computes 1D deflections, Fig. 3),
+
+3. `main2_aso` (demonstrated use of the ASO2 class and computes 2D deflections, Fig. 4), 
+
+4. `main_compare` (compares 1D reconstructions from deflection fields across a range of techniques, Fig. 6), and
+
+5. `main2_mst21` (slower runtimes, compares 2D reconstructions from deflection fields across a range of techniques, Fig. 8).
+
 ## Tutorials
 
 This codebase can be used for three purposes: (A) visualizing the transforms that underlie the problem; (B) evaluating the forward model, that is computing the deflections from a scaled refractive index field; and (C) evaluating the inverse model, that is going from a deflection field or pair of images to a refractive index field. 
 
 ### A. Visualizing the ARAP transforms
 
-While projecting axisymmetric objects is typically achieved using the Abel transform, which has a kernel of 
-
-![](https://latex.codecogs.com/svg.latex?{\frac{2y_0}{\sqrt{r^2-y_0^2}}}.)
-
-[Sipkens] et al. (XXXX)][sipkens-arap] derived the arbitrary ray, axisymmetric projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This has a kernel of
-
-![](https://latex.codecogs.com/svg.latex?{\frac{1}{(1+m_{y}^2)^{\frac{3}{2}}}\frac{2y_0}{\sqrt{r^2-y_0^2(1+m_{y}^2)^{-1}}}}.)
-
-This code includes tools to visualize and compare these transforms directly, relying on the functions in the **transforms** package. For example, the direct, Abel transform can be evaluated using
+While projecting axisymmetric objects is typically achieved using the Abel transform. [Sipkens et al. (2021)][sipkens-arap] derived the arbitrary ray, axisymmetric projection (ARAP) transform, not requiring that the rays passing through the ASO be parallel. This code includes tools to visualize and compare these transforms directly, relying on the functions in the **transforms** package. For example, the direct, Abel transform can be evaluated using
 
 ```Matlab
 K = transform.abeld(y0, r_vec);
@@ -212,6 +216,8 @@ This code contains several excerpts from a previous, private codebase by Samuel 
 
 [Grauer, S. J., & Steinberg, A. M. (2020). Fast and robust volumetric refractive index measurement by unified background-oriented schlieren tomography. Experiments in Fluids, 61(3), 1-17.][GrauerSteinberg20]
 
+[Sipkens, T. A., Grauer, S. J., Steinberg, A. M., Rogak, S. N., & Kirchen, P. (2021). New transform to project axisymmetric deflection fields along arbitrary rays. Measurement Science and Technology, 33(3), 035201.][sipkens-arap]
+
 [GrauerSteinberg20]: https://link.springer.com/article/10.1007/s00348-020-2912-1
 
-[sipkens-arap]: #
+[sipkens-arap]: https://doi.org/10.1088/1361-6501/ac3f83

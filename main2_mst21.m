@@ -1,8 +1,13 @@
 
 % MAIN_2COMPARE  Compares multiple inversion approaches to the 2D axisymmetric problem. 
-% Relative to main_2aso, this script uses a camera model with a focal length. 
-% Timothy Sipkens, 2020-08-31
-%=========================================================================%
+%  Relative to main_2aso, this script uses a camera model with a focal length. 
+%  
+%  In direct support of Sipkens et al. (2021).
+%  See Figure 8 in that work.
+%  
+%  ------------------------------------------------------------------------
+%  
+%  AUTHOR: Timothy Sipkens, 2020-08-31
 
 clear; close all;
 addpath cmap; % add colormaps to path

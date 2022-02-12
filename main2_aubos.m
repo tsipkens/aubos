@@ -1,6 +1,11 @@
 
 % MAIN2_AUBOS  Demonstrate AUBOS and compare to conventional approaches.
-%  Relative to main_2aso, this script uses a camera model with a focal length. 
+%  Relative to main_2aso, this script uses a camera model with 
+%  a focal length. 
+%  
+%  Runtimes on the order of 2 minutes.
+%  
+%  ------------------------------------------------------------------------
 %  
 %  AUTHOR: Timothy Sipkens, 2020-08-31
 
@@ -93,7 +98,7 @@ end
 Nv = size(Iref0, 1);  % first image dimension
 Nu = size(Iref0, 2);  % second image dimension
 
-cam_no = 1;
+cam_no = 4;
 switch cam_no
     case 1
         oc = [2.8,0.6,-1.4];   % camera origin
