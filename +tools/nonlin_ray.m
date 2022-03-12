@@ -23,7 +23,7 @@ if ~exist('f_print','var'), f_print = 1; end
 f_axial = 0;  % flag indicating if axial contributions
 if isa(aso, 'Aso2'); f_axial = 1; end
 
-v = normc(v);  % normalize the ray direction
+v = tools.normc(v);  % normalize the ray direction
 
 z1 = -aso.R;
 z2 = aso.R;
@@ -75,7 +75,7 @@ while any(~ic)
     
     % Step each ray
     c(:,~ic) = c(:,~ic) + ds * bsxfun(@rdivide, v(:,~ic), nk); % update position
-    v(:,~ic) = normc(v(:,~ic) + ds .* [Dxk;Dyk;Dzk]); % update direction (first zero represents Dxk)
+    v(:,~ic) = tools.normc(v(:,~ic) + ds .* [Dxk;Dyk;Dzk]); % update direction (first zero represents Dxk)
     
     ic = c(3,:)>aso.R; % index of converged rays
     
