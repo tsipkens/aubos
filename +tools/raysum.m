@@ -16,7 +16,7 @@ ze_a = ze_a(:);
 ye_b = ye_b(:);
 ze_b = ze_b(:);
 
-v = normc([zeros(size(my)); my; -ones(size(my))]);  % direction of ray
+v = tools.normc([zeros(size(my)); my; -ones(size(my))]);  % direction of ray
 
 dy_a = (ye_a - y0) ./ v(2, :);  % distance to closer ye planes
 dy_b = (ye_b - y0) ./ v(2, :);  % distance to farther ye planes
@@ -29,7 +29,7 @@ a1 = min(dz_a, dz_b);
 a = max(a0, a1);
 
 % Second intersection.
-b0 = max(dy_a, dy_b);
+b0 = max(dy_a, dy_b);9
 b1 = max(dz_a, dz_b);
 b = min(b0, b1);
 
