@@ -17,7 +17,11 @@
 %  
 %  ------------------------------------------------------------------------
 %  
-%  NOTE: Axial deflections, KX, are experimental and may not be accurate.
+%  NOTE: Axial deflections, KX, are less reliable. The uniform basis in the
+%  axial direction can cause problems for very small MX, where the rays may
+%  not intersect a axial boundary. This is avoided by applying a minimum
+%  for MX, but there still may be limits for coarse discretization in the
+%  axial direction (often manifesting as numerical noise).
 %  
 %  AUTHOR: Timothy Sipkens, 2020-06-10
 
