@@ -29,7 +29,7 @@ a1 = min(dz_a, dz_b);
 a = max(a0, a1);
 
 % Second intersection.
-b0 = max(dy_a, dy_b);9
+b0 = max(dy_a, dy_b);
 b1 = max(dz_a, dz_b);
 b = min(b0, b1);
 
