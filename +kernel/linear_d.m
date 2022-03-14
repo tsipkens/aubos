@@ -283,6 +283,7 @@ else  % consider 2D case
         %  (Experimental)
         if nargout > 1  % if axial output requested
             %{
+            % Linear radial, uniform axial.
             Kx0 = (sqrt(1+1./mx(idx_a).^2+my(idx_a).^2./mx(idx_a).^2) .* ([zeros(1, length(idx_a)); ...
                  (rx - rjd0) ./ (rj0 - rjd0) .* and(rjd0 < rx, rx < rj0) - ...
                  (rxu - rjd0) ./ (rj0 - rjd0) .* and(rjd0 < rxu, rxu < rj0); ...
@@ -298,8 +299,31 @@ else  % consider 2D case
             Kx(idx_a, ((ii-1)*(aso2.Nr+1)+1):(ii*(aso2.Nr+1))) = sparse(Kx0);
             % + remove derivative below
             %}
-
+            
             %-{
+            % Uniform radial, linear axial.
+            [~, flag_b] = intersect(idx_a, idx_b);
+            flag_x = zeros(size(idx_a));
+            flag_x(flag_b) = 1;
+            x_fun = @(r) mx(idx_a).^2 ./ (1+my(idx_a).^2) .* ...
+                (-my(idx_a) .* y0(idx_a) + (flag_x - (~flag_x)) .* sqrt((1+my(idx_a).^2) .* r .^ 2 - y0(idx_a) .^ 2)) + x0(idx_a);
+            Kx0 = real((sqrt(1+1./mx(idx_a).^2+my(idx_a).^2./mx(idx_a).^2) .* ([zeros(1, length(idx_a)); ...
+                 (x_fun(rx) - x_fun(rjd0)) ./ (x_fun(rj0) - x_fun(rjd0)) .* and(rjd0 < rx, rx < rj0) - ...
+                 (x_fun(rxu) - x_fun(rjd0)) ./ (x_fun(rj0) - x_fun(rjd0)) .* and(rjd0 < rxu, rxu < rj0); ...
+                 (x_fun(rx) - x_fun(rjd0(end,:))) ./ (x_fun(rj0(end,:)) - x_fun(rjd0(end,:))) .* and(rjd0(end,:) < rx, rx < rj0(end,:)) - ...
+                 (x_fun(rxu) - x_fun(rjd0(end,:))) ./ (x_fun(rj0(end,:)) - x_fun(rjd0(end,:))) .* and(rjd0(end,:) < rxu, rxu < rj0(end,:)) % if crosses in rise
+                ] + [(x_fun(rx) - x_fun(rju0(1,:))) ./ (x_fun(rj0(1,:)) - x_fun(rju0(1,:))) .* and(rju0(1,:) > rx, rx > rj0(1,:)) - ...
+                 (x_fun(rxu) - x_fun(rju0(1,:))) ./ (x_fun(rj0(1,:)) - x_fun(rju0(1,:))) .* and(rju0(1,:) > rxu, rxu > rj0(1,:)); ...
+                 (x_fun(rx) - x_fun(rju0)) ./ (x_fun(rj0) - x_fun(rju0)) .* and(rju0 > rx, rx > rj0) - ...
+                 (x_fun(rxu) - x_fun(rju0)) ./ (x_fun(rj0) - x_fun(rju0)) .* and(rju0 > rxu, rxu > rj0); ...
+                 zeros(1, length(idx_a)) ... % if crosses in decline
+                ])))';
+            Kx0(abs(Kx0) < 1e5*eps) = 0;  % supress numerical noise
+            Kx(idx_a, ((ii-1)*(aso2.Nr+1)+1):(ii*(aso2.Nr+1))) = sparse(Kx0);
+            %}
+
+            %{
+            % Bilinear. NOT COMPLETE.
             [~, flag_b] = intersect(idx_a, idx_b);
             flag_x = zeros(size(idx_a));
             flag_x(flag_b) = 1;
