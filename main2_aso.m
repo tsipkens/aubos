@@ -65,7 +65,7 @@ bet2 = bet2(:);
 %   ASO, such that the image limits are set in ASO units.
 
 % Camera origin
-cam_no = 1;
+cam_no = 1;  % default: 1
 switch cam_no
     case 0
         cam.x = 2; cam.y = 0.45; cam.z = -1.4;
@@ -77,6 +77,8 @@ switch cam_no
         cam.x = 2; cam.y = 0.5; cam.z = -1.2;
 	case 4
         cam.x = 2; cam.y = 0; cam.z = -2;
+	case 5
+        cam.x = 2.7; cam.y = 0.1; cam.z = -400;
 end
 
 %-{
