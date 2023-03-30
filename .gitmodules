@@ -1,3 +1,3 @@
 [submodule "cmap"]
 	path = cmap
-	url = git://github.com/tsipkens/cmap
+	url = https://github.com/tsipkens/cmap
