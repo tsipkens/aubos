@@ -1,13 +1,11 @@
 
-% NORMC  Normalize the columns of a matrix. 
-%   A local version to act as a drop-in replacement of 
-%   MATLAB's original function. 
+% NORMC  A function to normalize columns of vector. 
+%  A simple utility to substitute for Matlab equivalent. 
 %  
-%  AUHTOR: Timothy Sipkens, 2022-03-12
+%  AUTHOR: Timothy Sipkens, 2023-03-30
 
-function A = normc(A)
+function v = normc(v)
 
-A = A ./ sqrt(sum(A .^ 2));
+v = v ./ sqrt(sum(v .^ 2));
 
 end
-

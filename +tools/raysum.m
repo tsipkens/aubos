@@ -16,7 +16,7 @@ ze_a = ze_a(:);
 ye_b = ye_b(:);
 ze_b = ze_b(:);
 
-v = tools.normc([zeros(size(my)); my; -ones(size(my))]);  % direction of ray
+v = normc([zeros(size(my)); my; -ones(size(my))]);  % direction of ray
 
 dy_a = (ye_a - y0) ./ v(2, :);  % distance to closer ye planes
 dy_b = (ye_b - y0) ./ v(2, :);  % distance to farther ye planes
